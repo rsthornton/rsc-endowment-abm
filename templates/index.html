@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSC Endowment ABM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --bg-alt: #0d0d0d;
+            --bg-panel: #0f0f0f;
+            --bg-card: #111;
+            --bg-hover: #151515;
+            --border: #1a1a1a;
+            --border-light: #2a2a2a;
+            --text: #d0d0d0;
+            --text-muted: #888;
+            --text-dim: #555;
+            --accent: #c9a227;
+            --success: #50c878;
+            --danger: #e05555;
+            --info: #4a9eff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+            background: var(--bg);
+            color: var(--text);
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        header { margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+        h1 {
+            color: var(--accent);
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .subtitle { color: var(--text-muted); font-size: 13px; }
+
+        .controls {
+            display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;
+            align-items: center;
+        }
+        button {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border-light);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all 0.15s;
+        }
+        button:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        button.primary {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+        button.primary:hover { background: #d4ad32; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .step-badge {
+            background: var(--bg-panel);
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .step-badge span { color: var(--accent); font-weight: 600; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .card-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .span-4 { grid-column: span 4; }
+        .span-6 { grid-column: span 6; }
+        .span-8 { grid-column: span 8; }
+        .span-12 { grid-column: span 12; }
+        @media (max-width: 1000px) {
+            .span-4, .span-6, .span-8 { grid-column: span 12; }
+        }
+
+        .metrics-row { display: flex; gap: 16px; flex-wrap: wrap; }
+        .metric {
+            flex: 1; min-width: 100px;
+            text-align: center;
+            padding: 12px;
+            background: var(--bg-panel);
+            border-radius: 4px;
+        }
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'SF Mono', monospace;
+        }
+        .metric-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .tier-bar {
+            display: flex; height: 24px; border-radius: 4px; overflow: hidden;
+            margin-bottom: 12px; border: 1px solid var(--border);
+        }
+        .tier-segment {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 600; color: #000;
+        }
+        .tier-flexible { background: #536471; }
+        .tier-3month { background: #4a9eff; }
+        .tier-6month { background: #7856ff; }
+        .tier-12month { background: var(--accent); }
+
+        .tier-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; }
+        .tier-legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+        .tier-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+        .list { max-height: 280px; overflow-y: auto; }
+        .list-item {
+            background: var(--bg-panel);
+            padding: 10px 12px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+        .list-item:last-child { margin-bottom: 0; }
+
+        .proposal-id { font-weight: 600; color: var(--text); font-family: monospace; }
+        .progress-bar {
+            width: 80px; height: 4px;
+            background: var(--border-light);
+            border-radius: 2px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+        .progress-fill { height: 100%; background: var(--success); border-radius: 2px; }
+
+        .status { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-open { color: var(--info); }
+        .status-funded { color: var(--success); }
+        .status-completed { color: var(--success); }
+        .status-failed { color: var(--danger); }
+
+        .event {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+        .event:last-child { border-bottom: none; }
+        .event-step {
+            color: var(--text-dim);
+            font-family: monospace;
+            margin-right: 8px;
+        }
+        .event-type {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 8px;
+        }
+        .event-type.funded { background: rgba(80,200,120,0.2); color: var(--success); }
+        .event-type.completed { background: rgba(80,200,120,0.2); color: var(--success); }
+        .event-type.failed { background: rgba(224,85,85,0.2); color: var(--danger); }
+        .event-type.new_proposal { background: rgba(74,158,255,0.2); color: var(--info); }
+        .event-type.init { background: rgba(201,162,39,0.2); color: var(--accent); }
+
+        .chart-container { height: 180px; }
+
+        .params-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 12px;
+        }
+        .param-label { color: var(--text-dim); }
+        .param-value { color: var(--accent); font-weight: 600; text-align: right; }
+
+        .questions-section { margin-top: 24px; }
+        .question {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .question-text { font-size: 13px; color: var(--text); margin-bottom: 6px; }
+        .question-current {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        .question-current span { color: var(--accent); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+        /* Round Narrative */
+        .narrative { font-size: 13px; line-height: 1.7; }
+        .narrative-placeholder { color: var(--text-dim); font-style: italic; }
+        .narrative-highlight { color: var(--accent); font-weight: 600; }
+        .narrative-success { color: var(--success); }
+        .narrative-danger { color: var(--danger); }
+        .narrative p { margin-bottom: 8px; }
+        .narrative p:last-child { margin-bottom: 0; }
+
+        /* Agent Inspector */
+        .agent-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .agent-tab {
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+        .agent-tab.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+        .agent-content { min-height: 120px; }
+        .agent-placeholder { color: var(--text-dim); font-style: italic; font-size: 12px; }
+        .agent-table {
+            width: 100%;
+            font-size: 11px;
+            border-collapse: collapse;
+        }
+        .agent-table th {
+            text-align: left;
+            padding: 8px;
+            background: var(--bg-panel);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            border-bottom: 1px solid var(--border);
+        }
+        .agent-table td {
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .agent-table tr:hover { background: var(--bg-hover); }
+        .agent-id { font-family: monospace; color: var(--accent); font-weight: 600; }
+        .tier-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .tier-flexible { background: rgba(83,100,113,0.3); color: #536471; }
+        .tier-3_month { background: rgba(74,158,255,0.2); color: #4a9eff; }
+        .tier-6_month { background: rgba(120,86,255,0.2); color: #7856ff; }
+        .tier-12_month { background: rgba(201,162,39,0.2); color: var(--accent); }
+
+        /* Education Section */
+        .education-content { display: block; padding-top: 16px; }
+        .education-content.collapsed { display: none; }
+        .edu-flow {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .flow-step {
+            flex: 1;
+            min-width: 160px;
+            max-width: 200px;
+            background: var(--bg-panel);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .flow-icon { font-size: 28px; margin-bottom: 8px; }
+        .flow-title { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 6px; }
+        .flow-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+        .flow-arrow {
+            color: var(--text-dim);
+            font-size: 24px;
+            padding-top: 30px;
+        }
+        @media (max-width: 800px) {
+            .flow-arrow { display: none; }
+            .edu-flow { flex-direction: column; align-items: center; }
+        }
+        .edu-section {
+            background: var(--bg-panel);
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            border-left: 3px solid var(--accent);
+        }
+        .edu-section:last-child { margin-bottom: 0; }
+        .edu-section h3 {
+            font-size: 13px;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .edu-section p, .edu-section li {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .edu-section ul, .edu-section ol {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        .edu-section li { margin-bottom: 4px; }
+        .edu-section strong { color: var(--text); }
+
+        /* Tooltips */
+        .metric[data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+        .metric[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            z-index: 100;
+            border: 1px solid var(--border-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RSC DECENTRALIZED ENDOWMENT</h1>
+            <div class="subtitle">Stake RSC → Earn Credits (APY) → Deploy to Proposals → 2% Burn</div>
+        </header>
+
+        <div class="controls">
+            <button class="primary" onclick="step()">Step</button>
+            <button onclick="run(10)">Run 10</button>
+            <button onclick="run(52)">Run 1 Year</button>
+            <button onclick="reset()">Reset</button>
+            <div class="step-badge">Week <span id="step-count">0</span></div>
+        </div>
+
+        <div class="grid">
+            <!-- Key Metrics -->
+            <div class="card span-12">
+                <div class="card-header">Key Metrics</div>
+                <div class="metrics-row">
+                    <div class="metric" data-tooltip="Total RSC locked by all stakers">
+                        <div class="metric-value" id="total-staked">0</div>
+                        <div class="metric-label">RSC Staked</div>
+                    </div>
+                    <div class="metric" data-tooltip="Accumulated funding power (not tradeable)">
+                        <div class="metric-value" id="total-credits">0</div>
+                        <div class="metric-label">Credits</div>
+                    </div>
+                    <div class="metric" data-tooltip="RSC permanently removed via 2% burn">
+                        <div class="metric-value" id="total-burned">0</div>
+                        <div class="metric-label">Burned</div>
+                    </div>
+                    <div class="metric" data-tooltip="New credits generated this week (stake × APY)">
+                        <div class="metric-value" id="credit-rate">0</div>
+                        <div class="metric-label">Credits/Wk</div>
+                    </div>
+                    <div class="metric" data-tooltip="Credits spent on proposals this week">
+                        <div class="metric-value" id="deployment-rate">0</div>
+                        <div class="metric-label">Deployed/Wk</div>
+                    </div>
+                    <div class="metric" data-tooltip="% of funded proposals that completed">
+                        <div class="metric-value" id="success-rate">—</div>
+                        <div class="metric-label">Success Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tier Distribution -->
+            <div class="card span-6">
+                <div class="card-header">Staking Tiers</div>
+                <div class="tier-bar" id="tier-bar"></div>
+                <div class="tier-legend">
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#536471"></div> Flexible 1×</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#4a9eff"></div> 3mo 1.5×</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#7856ff"></div> 6mo 2×</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#c9a227"></div> 12mo 3×</div>
+                </div>
+            </div>
+
+            <!-- Parameters -->
+            <div class="card span-6">
+                <div class="card-header">Parameters</div>
+                <div class="params-grid" id="params-grid"></div>
+            </div>
+
+            <!-- Chart -->
+            <div class="card span-8">
+                <div class="card-header">Time Series</div>
+                <div class="chart-container">
+                    <canvas id="history-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Proposals -->
+            <div class="card span-4">
+                <div class="card-header">Proposals</div>
+                <div class="list" id="proposals-list"></div>
+            </div>
+
+            <!-- Events -->
+            <div class="card span-12">
+                <div class="card-header">Event Log</div>
+                <div class="list" id="events-list" style="max-height: 150px;"></div>
+            </div>
+        </div>
+
+        <!-- Round Narrative -->
+        <div class="card span-12" style="margin-top: 16px;">
+            <div class="card-header">📖 This Week's Activity</div>
+            <div id="round-narrative" class="narrative">
+                <p class="narrative-placeholder">Run the simulation to see what happens each week...</p>
+            </div>
+        </div>
+
+        <!-- Agent Inspector -->
+        <div class="card span-12" style="margin-top: 16px;">
+            <div class="card-header">🔍 Agent Inspector</div>
+            <div class="agent-tabs">
+                <button class="agent-tab active" onclick="showAgentTab('top-stakers')">Top Stakers</button>
+                <button class="agent-tab" onclick="showAgentTab('recent-deployers')">Recent Deployers</button>
+                <button class="agent-tab" onclick="showAgentTab('tier-breakdown')">Tier Breakdown</button>
+            </div>
+            <div id="agent-content" class="agent-content">
+                <div class="agent-placeholder">Loading agents...</div>
+            </div>
+        </div>
+
+        <!-- How It Works (Educational) -->
+        <div class="education-section" style="margin-top: 24px;">
+            <div class="card">
+                <div class="card-header" onclick="toggleEducation()" style="cursor: pointer;">
+                    📚 How This Model Works <span id="edu-toggle" style="float:right;">▼</span>
+                </div>
+                <div id="education-content" class="education-content">
+                    <div class="edu-flow">
+                        <div class="flow-step">
+                            <div class="flow-icon">💰</div>
+                            <div class="flow-title">1. Stake RSC</div>
+                            <div class="flow-desc">Stakers lock RSC tokens and choose a tier (Flexible to 12-month). Longer locks = higher APY multiplier.</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">
+                            <div class="flow-icon">✨</div>
+                            <div class="flow-title">2. Earn Credits</div>
+                            <div class="flow-desc">Each week, stakers earn "funding credits" based on stake × APY × tier multiplier. Credits aren't RSC—they're deployment power.</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">
+                            <div class="flow-icon">🎯</div>
+                            <div class="flow-title">3. Deploy to Proposals</div>
+                            <div class="flow-desc">Stakers deploy credits to fund research proposals. When a proposal reaches its target, it becomes "funded."</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">
+                            <div class="flow-icon">🔥</div>
+                            <div class="flow-title">4. 2% Burn</div>
+                            <div class="flow-desc">When credits are deployed, 2% of the backer's RSC stake is burned permanently. This creates deflationary pressure.</div>
+                        </div>
+                    </div>
+
+                    <div class="edu-section">
+                        <h3>What Are "Stakers"?</h3>
+                        <p>Each staker is an agent representing a token holder who locks RSC to participate in governance. They have:</p>
+                        <ul>
+                            <li><strong>Stake:</strong> Amount of RSC locked (500–50,000)</li>
+                            <li><strong>Tier:</strong> Lock period chosen (affects APY multiplier)</li>
+                            <li><strong>Credits:</strong> Accumulated funding power (not tradeable)</li>
+                            <li><strong>Deploy probability:</strong> Chance they deploy credits each week (~30%)</li>
+                        </ul>
+                    </div>
+
+                    <div class="edu-section">
+                        <h3>What Happens Each Step (Week)?</h3>
+                        <ol>
+                            <li><strong>Credit Generation:</strong> All stakers earn credits based on their tier's APY</li>
+                            <li><strong>Credit Deployment:</strong> Some stakers choose to deploy credits to open proposals</li>
+                            <li><strong>Burn Event:</strong> 2% of deploying stakers' RSC is burned</li>
+                            <li><strong>Proposal Funding:</strong> Proposals that reach their target become "funded"</li>
+                            <li><strong>Proposal Resolution:</strong> Funded proposals complete (80% success) or fail (20%)</li>
+                        </ol>
+                    </div>
+
+                    <div class="edu-section">
+                        <h3>Key Dynamics to Watch</h3>
+                        <ul>
+                            <li><strong>Credit accumulation:</strong> Do stakers hoard credits or deploy them?</li>
+                            <li><strong>Burn rate:</strong> Is enough RSC being burned for deflation?</li>
+                            <li><strong>Tier distribution:</strong> Do longer locks create more funding capacity?</li>
+                            <li><strong>Proposal throughput:</strong> Are proposals getting funded at a healthy rate?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Design Questions -->
+        <div class="questions-section">
+            <div class="card">
+                <div class="card-header">❓ Open Design Questions (for ResearchHub)</div>
+                <div id="design-questions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '';
+        let chart = null;
+        let historyData = { steps: [], staked: [], credits: [], burned: [] };
+
+        async function fetchJson(url, options = {}) {
+            const resp = await fetch(API + url, options);
+            return resp.json();
+        }
+
+        function formatNumber(n) {
+            if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+            return Math.round(n).toLocaleString();
+        }
+
+        async function updateUI() {
+            const state = await fetchJson('/api/state');
+            const model = state.model;
+
+            document.getElementById('step-count').textContent = model.step;
+
+            document.getElementById('total-staked').textContent = formatNumber(model.total_staked);
+            document.getElementById('total-credits').textContent = formatNumber(model.total_credits);
+            document.getElementById('total-burned').textContent = formatNumber(model.total_burned);
+            document.getElementById('credit-rate').textContent = formatNumber(model.credit_generation_rate);
+            document.getElementById('deployment-rate').textContent = formatNumber(model.deployment_rate);
+            document.getElementById('success-rate').textContent =
+                model.completed_proposals + model.failed_proposals > 0
+                    ? (model.success_rate_actual * 100).toFixed(0) + '%'
+                    : '—';
+
+            // Tier distribution
+            const dist = model.tier_distribution;
+            const total = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
+            document.getElementById('tier-bar').innerHTML = `
+                <div class="tier-segment tier-flexible" style="width:${dist.flexible/total*100}%">${dist.flexible}</div>
+                <div class="tier-segment tier-3month" style="width:${dist['3_month']/total*100}%">${dist['3_month']}</div>
+                <div class="tier-segment tier-6month" style="width:${dist['6_month']/total*100}%">${dist['6_month']}</div>
+                <div class="tier-segment tier-12month" style="width:${dist['12_month']/total*100}%">${dist['12_month']}</div>
+            `;
+
+            // Params
+            const params = model.params;
+            document.getElementById('params-grid').innerHTML = `
+                <div class="param-label">Base APY</div><div class="param-value">${(params.base_apy * 100)}%</div>
+                <div class="param-label">Burn Rate</div><div class="param-value">${(params.burn_rate * 100)}%</div>
+                <div class="param-label">Success Rate</div><div class="param-value">${(params.success_rate * 100)}%</div>
+                <div class="param-label">Deploy Prob</div><div class="param-value">${(params.deploy_probability * 100)}%</div>
+                <div class="param-label">Stakers</div><div class="param-value">${model.num_stakers}</div>
+                <div class="param-label">Proposals</div><div class="param-value">${model.num_proposals}</div>
+            `;
+
+            // Events
+            const eventsHtml = state.events.slice(0, 12).map(e => `
+                <div class="event">
+                    <span class="event-step">[${String(e.step).padStart(3, '0')}]</span>
+                    <span class="event-type ${e.type}">${e.type}</span>
+                    <span>${e.message}</span>
+                </div>
+            `).join('');
+            document.getElementById('events-list').innerHTML = eventsHtml || '<div class="event" style="color:var(--text-dim)">No events yet</div>';
+
+            // Proposals
+            const proposals = await fetchJson('/api/proposals');
+            const proposalsHtml = proposals.slice(-8).reverse().map(p => `
+                <div class="list-item">
+                    <span class="proposal-id">${p.id}</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:${Math.min(p.funding_progress, 100)}%"></div>
+                    </div>
+                    <span class="status status-${p.status}">${p.status}</span>
+                </div>
+            `).join('');
+            document.getElementById('proposals-list').innerHTML = proposalsHtml || '<div class="list-item" style="color:var(--text-dim)">No proposals</div>';
+
+            // Update chart history
+            if (model.step > 0 && !historyData.steps.includes(model.step)) {
+                historyData.steps.push(model.step);
+                historyData.staked.push(model.total_staked);
+                historyData.credits.push(model.total_credits);
+                historyData.burned.push(model.total_burned);
+                updateChart();
+            }
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('history-chart').getContext('2d');
+            if (!chart) {
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: historyData.steps,
+                        datasets: [
+                            { label: 'Staked', data: historyData.staked, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.1)', tension: 0.3, fill: true },
+                            { label: 'Credits', data: historyData.credits, borderColor: '#50c878', backgroundColor: 'rgba(80,200,120,0.1)', tension: 0.3, fill: true },
+                            { label: 'Burned', data: historyData.burned, borderColor: '#e05555', backgroundColor: 'rgba(224,85,85,0.1)', tension: 0.3, fill: true },
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: { color: '#888', font: { size: 10, family: 'monospace' }, boxWidth: 12 }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
+                            y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } }
+                        }
+                    }
+                });
+            } else {
+                chart.data.labels = historyData.steps;
+                chart.data.datasets[0].data = historyData.staked;
+                chart.data.datasets[1].data = historyData.credits;
+                chart.data.datasets[2].data = historyData.burned;
+                chart.update('none');
+            }
+        }
+
+        async function step() {
+            await fetchJson('/api/step', { method: 'POST' });
+            await updateUI();
+        }
+
+        async function run(n) {
+            await fetchJson('/api/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steps: n })
+            });
+            const history = await fetchJson('/api/history');
+            historyData.steps = history.Step || [];
+            historyData.staked = history.Total_Staked || [];
+            historyData.credits = history.Total_Credits || [];
+            historyData.burned = history.Total_Burned || [];
+            updateChart();
+            await updateUI();
+        }
+
+        async function reset() {
+            await fetchJson('/api/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+            historyData = { steps: [], staked: [], credits: [], burned: [] };
+            if (chart) { chart.destroy(); chart = null; }
+            await updateUI();
+        }
+
+        async function loadDesignQuestions() {
+            const questions = await fetchJson('/api/design-questions');
+            const html = questions.map(q => `
+                <div class="question">
+                    <div class="question-text">${q.question}</div>
+                    <div class="question-current">Current: <span>${q.current}</span></div>
+                </div>
+            `).join('');
+            document.getElementById('design-questions').innerHTML = html;
+        }
+
+        // Agent Inspector
+        let currentAgentTab = 'top-stakers';
+        let lastStakers = [];
+
+        function showAgentTab(tab) {
+            currentAgentTab = tab;
+            document.querySelectorAll('.agent-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.agent-tab[onclick*="${tab}"]`).classList.add('active');
+            renderAgentTab();
+        }
+
+        async function loadStakers() {
+            lastStakers = await fetchJson('/api/stakers');
+            renderAgentTab();
+        }
+
+        function renderAgentTab() {
+            const container = document.getElementById('agent-content');
+            if (!lastStakers.length) {
+                container.innerHTML = '<div class="agent-placeholder">No stakers yet. Run the simulation.</div>';
+                return;
+            }
+
+            if (currentAgentTab === 'top-stakers') {
+                const sorted = [...lastStakers].sort((a, b) => b.stake - a.stake).slice(0, 10);
+                container.innerHTML = `
+                    <table class="agent-table">
+                        <thead><tr>
+                            <th>ID</th><th>Stake</th><th>Tier</th><th>Credits</th><th>Deployed</th><th>Burned</th>
+                        </tr></thead>
+                        <tbody>${sorted.map(s => `
+                            <tr>
+                                <td class="agent-id">${s.id}</td>
+                                <td>${formatNumber(s.stake)}</td>
+                                <td><span class="tier-badge tier-${s.tier_id}">${s.tier}</span></td>
+                                <td>${formatNumber(s.credits)}</td>
+                                <td>${formatNumber(s.total_deployed)}</td>
+                                <td style="color:var(--danger)">${formatNumber(s.total_burned)}</td>
+                            </tr>
+                        `).join('')}</tbody>
+                    </table>
+                `;
+            } else if (currentAgentTab === 'recent-deployers') {
+                const deployers = [...lastStakers].filter(s => s.total_deployed > 0).sort((a, b) => b.total_deployed - a.total_deployed).slice(0, 10);
+                container.innerHTML = deployers.length ? `
+                    <table class="agent-table">
+                        <thead><tr>
+                            <th>ID</th><th>Stake</th><th>Credits Deployed</th><th>RSC Burned (2%)</th><th>Net Position</th>
+                        </tr></thead>
+                        <tbody>${deployers.map(s => `
+                            <tr>
+                                <td class="agent-id">${s.id}</td>
+                                <td>${formatNumber(s.stake)}</td>
+                                <td style="color:var(--success)">${formatNumber(s.total_deployed)}</td>
+                                <td style="color:var(--danger)">${formatNumber(s.total_burned)}</td>
+                                <td style="color:${s.stake > s.initial_stake ? 'var(--success)' : 'var(--danger)'}">
+                                    ${s.stake > s.initial_stake ? '+' : ''}${formatNumber(s.stake - s.initial_stake)}
+                                </td>
+                            </tr>
+                        `).join('')}</tbody>
+                    </table>
+                ` : '<div class="agent-placeholder">No deployments yet. Run more steps.</div>';
+            } else if (currentAgentTab === 'tier-breakdown') {
+                const tiers = { flexible: [], '3_month': [], '6_month': [], '12_month': [] };
+                lastStakers.forEach(s => tiers[s.tier_id]?.push(s));
+                container.innerHTML = `
+                    <table class="agent-table">
+                        <thead><tr>
+                            <th>Tier</th><th>Count</th><th>Total Stake</th><th>Avg Stake</th><th>Total Credits</th><th>APY Mult</th>
+                        </tr></thead>
+                        <tbody>
+                            ${Object.entries(tiers).map(([tier, stakers]) => {
+                                const totalStake = stakers.reduce((a, s) => a + s.stake, 0);
+                                const totalCredits = stakers.reduce((a, s) => a + s.credits, 0);
+                                const mult = tier === 'flexible' ? '1.0×' : tier === '3_month' ? '1.5×' : tier === '6_month' ? '2.0×' : '3.0×';
+                                return `<tr>
+                                    <td><span class="tier-badge tier-${tier}">${tier.replace('_', '-')}</span></td>
+                                    <td>${stakers.length}</td>
+                                    <td>${formatNumber(totalStake)}</td>
+                                    <td>${stakers.length ? formatNumber(totalStake / stakers.length) : '—'}</td>
+                                    <td>${formatNumber(totalCredits)}</td>
+                                    <td style="color:var(--accent)">${mult}</td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+        }
+
+        // Round Narrative
+        let prevState = null;
+
+        function generateNarrative(model, events) {
+            const parts = [];
+            const step = model.step;
+
+            // Count event types from this step
+            const stepEvents = events.filter(e => e.step === step);
+            const funded = stepEvents.filter(e => e.type === 'funded').length;
+            const completed = stepEvents.filter(e => e.type === 'completed').length;
+            const failed = stepEvents.filter(e => e.type === 'failed').length;
+            const newProposals = stepEvents.filter(e => e.type === 'new_proposal').length;
+
+            // Credit generation
+            const creditsGen = model.credit_generation_rate;
+            const deployed = model.deployment_rate;
+            const burned = model.burn_rate_per_step;
+
+            parts.push(`<p><strong>Week ${step}:</strong> All <span class="narrative-highlight">${model.num_stakers} stakers</span> earned credits based on their tier APY. ` +
+                `Total generation: <span class="narrative-highlight">${formatNumber(creditsGen)} credits</span>.</p>`);
+
+            if (deployed > 0) {
+                parts.push(`<p>Some stakers deployed credits to proposals. ` +
+                    `<span class="narrative-success">${formatNumber(deployed)} credits</span> were spent, ` +
+                    `triggering a <span class="narrative-danger">${formatNumber(burned)} RSC burn</span> (2% of deployers' stakes).</p>`);
+            }
+
+            if (funded > 0) {
+                parts.push(`<p><span class="narrative-success">🎉 ${funded} proposal${funded > 1 ? 's' : ''} reached funding target!</span></p>`);
+            }
+
+            if (completed > 0 || failed > 0) {
+                let resolutions = [];
+                if (completed > 0) resolutions.push(`<span class="narrative-success">${completed} completed successfully</span>`);
+                if (failed > 0) resolutions.push(`<span class="narrative-danger">${failed} failed</span>`);
+                parts.push(`<p>Funded proposals resolved: ${resolutions.join(', ')}.</p>`);
+            }
+
+            if (newProposals > 0) {
+                parts.push(`<p><span class="narrative-highlight">${newProposals} new proposal${newProposals > 1 ? 's' : ''}</span> entered the queue.</p>`);
+            }
+
+            return parts.join('') || '<p class="narrative-placeholder">No significant activity this week.</p>';
+        }
+
+        function updateNarrative(model, events) {
+            document.getElementById('round-narrative').innerHTML = generateNarrative(model, events);
+        }
+
+        // Toggle Education
+        function toggleEducation() {
+            const content = document.getElementById('education-content');
+            const toggle = document.getElementById('edu-toggle');
+            content.classList.toggle('collapsed');
+            toggle.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+        }
+
+        // Enhanced updateUI
+        const originalUpdateUI = updateUI;
+        updateUI = async function() {
+            const state = await fetchJson('/api/state');
+            const model = state.model;
+
+            document.getElementById('step-count').textContent = model.step;
+
+            document.getElementById('total-staked').textContent = formatNumber(model.total_staked);
+            document.getElementById('total-credits').textContent = formatNumber(model.total_credits);
+            document.getElementById('total-burned').textContent = formatNumber(model.total_burned);
+            document.getElementById('credit-rate').textContent = formatNumber(model.credit_generation_rate);
+            document.getElementById('deployment-rate').textContent = formatNumber(model.deployment_rate);
+            document.getElementById('success-rate').textContent =
+                model.completed_proposals + model.failed_proposals > 0
+                    ? (model.success_rate_actual * 100).toFixed(0) + '%'
+                    : '—';
+
+            // Tier distribution
+            const dist = model.tier_distribution;
+            const total = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
+            document.getElementById('tier-bar').innerHTML = `
+                <div class="tier-segment tier-flexible" style="width:${dist.flexible/total*100}%">${dist.flexible}</div>
+                <div class="tier-segment tier-3month" style="width:${dist['3_month']/total*100}%">${dist['3_month']}</div>
+                <div class="tier-segment tier-6month" style="width:${dist['6_month']/total*100}%">${dist['6_month']}</div>
+                <div class="tier-segment tier-12month" style="width:${dist['12_month']/total*100}%">${dist['12_month']}</div>
+            `;
+
+            // Params
+            const params = model.params;
+            document.getElementById('params-grid').innerHTML = `
+                <div class="param-label">Base APY</div><div class="param-value">${(params.base_apy * 100)}%</div>
+                <div class="param-label">Burn Rate</div><div class="param-value">${(params.burn_rate * 100)}%</div>
+                <div class="param-label">Success Rate</div><div class="param-value">${(params.success_rate * 100)}%</div>
+                <div class="param-label">Deploy Prob</div><div class="param-value">${(params.deploy_probability * 100)}%</div>
+                <div class="param-label">Stakers</div><div class="param-value">${model.num_stakers}</div>
+                <div class="param-label">Proposals</div><div class="param-value">${model.num_proposals}</div>
+            `;
+
+            // Events
+            const eventsHtml = state.events.slice(0, 12).map(e => `
+                <div class="event">
+                    <span class="event-step">[${String(e.step).padStart(3, '0')}]</span>
+                    <span class="event-type ${e.type}">${e.type}</span>
+                    <span>${e.message}</span>
+                </div>
+            `).join('');
+            document.getElementById('events-list').innerHTML = eventsHtml || '<div class="event" style="color:var(--text-dim)">No events yet</div>';
+
+            // Proposals
+            const proposals = await fetchJson('/api/proposals');
+            const proposalsHtml = proposals.slice(-8).reverse().map(p => `
+                <div class="list-item">
+                    <span class="proposal-id">${p.id}</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:${Math.min(p.funding_progress, 100)}%"></div>
+                    </div>
+                    <span class="status status-${p.status}">${p.status}</span>
+                </div>
+            `).join('');
+            document.getElementById('proposals-list').innerHTML = proposalsHtml || '<div class="list-item" style="color:var(--text-dim)">No proposals</div>';
+
+            // Update chart history
+            if (model.step > 0 && !historyData.steps.includes(model.step)) {
+                historyData.steps.push(model.step);
+                historyData.staked.push(model.total_staked);
+                historyData.credits.push(model.total_credits);
+                historyData.burned.push(model.total_burned);
+                updateChart();
+            }
+
+            // Update narrative and agents
+            updateNarrative(model, state.events);
+            await loadStakers();
+        };
+
+        updateUI();
+        loadDesignQuestions();
+    </script>
+</body>
+</html>
