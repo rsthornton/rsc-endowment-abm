@@ -78,6 +78,76 @@ DEFAULT_PARAMS = {
 
 
 # ============================================
+# BEHAVIORAL ARCHETYPES
+# B=f(P,E): Behavior is a function of Person attributes + Environment
+# ============================================
+
+# Person attributes (continuous 0-1 scales)
+# - mission_alignment: cares about funding good research vs. just earning yield
+# - risk_tolerance: willingness to lock for longer tiers
+# - engagement: how actively they deploy credits
+# - price_sensitivity: how much external conditions affect behavior (future use)
+
+ARCHETYPES = {
+    "believer": {
+        "name": "Believer",
+        "description": "Believes in open science. Locks long, deploys often, selective about proposals.",
+        "mission_alignment": (0.7, 1.0),
+        "risk_tolerance": (0.6, 0.9),
+        "engagement": (0.6, 0.9),
+        "price_sensitivity": (0.0, 0.3),
+    },
+    "yield_seeker": {
+        "name": "Yield Seeker",
+        "description": "Here for the APY. Medium engagement, compares returns, tier-hops for best rate.",
+        "mission_alignment": (0.1, 0.4),
+        "risk_tolerance": (0.3, 0.7),
+        "engagement": (0.3, 0.6),
+        "price_sensitivity": (0.6, 1.0),
+    },
+    "governance": {
+        "name": "Governance",
+        "description": "Wants influence over which research gets funded. Selective, prefers flexibility.",
+        "mission_alignment": (0.7, 1.0),
+        "risk_tolerance": (0.1, 0.4),
+        "engagement": (0.5, 0.8),
+        "price_sensitivity": (0.2, 0.5),
+    },
+    "speculator": {
+        "name": "Speculator",
+        "description": "Bets on RSC appreciation. Hoards credits, short locks, watches price closely.",
+        "mission_alignment": (0.0, 0.2),
+        "risk_tolerance": (0.5, 0.9),
+        "engagement": (0.05, 0.2),
+        "price_sensitivity": (0.8, 1.0),
+    },
+}
+
+# Default archetype weights (fraction of population)
+DEFAULT_ARCHETYPE_MIX = {
+    "believer": 0.25,
+    "yield_seeker": 0.30,
+    "governance": 0.20,
+    "speculator": 0.25,
+}
+
+
+def get_archetype(archetype_id: str) -> dict:
+    """Get archetype configuration by ID."""
+    if archetype_id not in ARCHETYPES:
+        raise ValueError(f"Unknown archetype: {archetype_id}. Available: {list(ARCHETYPES.keys())}")
+    return ARCHETYPES[archetype_id]
+
+
+def list_archetypes() -> list:
+    """List all archetypes with metadata."""
+    return [
+        {"id": key, **{k: v for k, v in arch.items()}}
+        for key, arch in ARCHETYPES.items()
+    ]
+
+
+# ============================================
 # OPEN DESIGN QUESTIONS
 # ============================================
 

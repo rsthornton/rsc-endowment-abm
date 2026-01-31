@@ -8,7 +8,7 @@ import random
 from mesa import Model, DataCollector
 
 from .agents import EndowmentStaker, EndowmentProposal
-from .constants import DEFAULT_PARAMS, TIERS
+from .constants import DEFAULT_PARAMS, TIERS, ARCHETYPES, DEFAULT_ARCHETYPE_MIX
 
 
 class EndowmentModel(Model):
@@ -35,6 +35,7 @@ class EndowmentModel(Model):
         funding_target_min: int = None,
         funding_target_max: int = None,
         deploy_probability: float = None,
+        archetype_mix: dict = None,
         seed: int = None,
     ):
         super().__init__()
@@ -50,6 +51,7 @@ class EndowmentModel(Model):
         self.funding_target_min = funding_target_min or DEFAULT_PARAMS["funding_target_min"]
         self.funding_target_max = funding_target_max or DEFAULT_PARAMS["funding_target_max"]
         self.deploy_probability = deploy_probability if deploy_probability is not None else DEFAULT_PARAMS["deploy_probability"]
+        self.archetype_mix = archetype_mix or DEFAULT_ARCHETYPE_MIX
 
         num_proposals = num_proposals or DEFAULT_PARAMS["num_proposals"]
 
@@ -61,11 +63,22 @@ class EndowmentModel(Model):
         self.events = []
         self._proposal_counter = 0
 
-        # Create stakers (Mesa 3.x: agents auto-tracked via model.agents)
+        # Create stakers with archetype distribution
         self.stakers = []
-        for i in range(self.num_stakers):
-            staker = EndowmentStaker(self)
-            self.stakers.append(staker)
+        archetype_counts = {}
+        remaining = self.num_stakers
+        sorted_archetypes = sorted(self.archetype_mix.items(), key=lambda x: x[1], reverse=True)
+        for archetype_id, fraction in sorted_archetypes[:-1]:
+            count = round(self.num_stakers * fraction)
+            archetype_counts[archetype_id] = count
+            remaining -= count
+        # Last archetype gets remainder to handle rounding
+        archetype_counts[sorted_archetypes[-1][0]] = max(remaining, 0)
+
+        for archetype_id, count in archetype_counts.items():
+            for _ in range(count):
+                staker = EndowmentStaker(self, archetype=archetype_id)
+                self.stakers.append(staker)
 
         # Create initial proposals
         self.proposals = []
@@ -76,11 +89,17 @@ class EndowmentModel(Model):
         self.datacollector = DataCollector(
             model_reporters={
                 "Step": lambda m: m.step_count,
-                "Total_Staked": lambda m: sum(s.stake for s in m.stakers),
-                "Total_Credits": lambda m: sum(s.credits for s in m.stakers),
+                "Total_Staked": lambda m: sum(s.stake for s in m.stakers if s.active),
+                "Total_Credits": lambda m: sum(s.credits for s in m.stakers if s.active),
                 "Total_Burned": lambda m: m.total_burned,
                 "Credits_Generated": lambda m: m.total_credits_generated,
                 "Credits_Deployed": lambda m: m.total_credits_deployed,
+                "Active_Stakers": lambda m: len([s for s in m.stakers if s.active]),
+                "Churned_Stakers": lambda m: len([s for s in m.stakers if not s.active]),
+                "Avg_Satisfaction": lambda m: (
+                    sum(s.satisfaction for s in m.stakers if s.active) /
+                    max(len([s for s in m.stakers if s.active]), 1)
+                ),
                 "Open_Proposals": lambda m: len([p for p in m.proposals if p.status == "open"]),
                 "Funded_Proposals": lambda m: len([p for p in m.proposals if p.status == "funded"]),
                 "Completed_Proposals": lambda m: len([p for p in m.proposals if p.status == "completed"]),
@@ -146,6 +165,34 @@ class EndowmentModel(Model):
             stakes[staker.tier_id] += staker.stake
         return stakes
 
+    def get_archetype_distribution(self) -> dict:
+        """Get count of active stakers by archetype."""
+        dist = {}
+        for staker in self.stakers:
+            if staker.active:
+                dist[staker.archetype] = dist.get(staker.archetype, 0) + 1
+        return dist
+
+    def get_archetype_metrics(self) -> dict:
+        """Get per-archetype behavioral metrics."""
+        metrics = {}
+        for archetype_id in ARCHETYPES:
+            group = [s for s in self.stakers if s.archetype == archetype_id]
+            active = [s for s in group if s.active]
+            if not group:
+                continue
+            metrics[archetype_id] = {
+                "total": len(group),
+                "active": len(active),
+                "churned": len(group) - len(active),
+                "avg_stake": round(sum(s.stake for s in active) / max(len(active), 1), 2),
+                "avg_satisfaction": round(sum(s.satisfaction for s in active) / max(len(active), 1), 2),
+                "avg_credits": round(sum(s.credits for s in active) / max(len(active), 1), 2),
+                "total_deployed": round(sum(s.total_deployed for s in group), 2),
+                "total_burned": round(sum(s.total_burned for s in group), 2),
+            }
+        return metrics
+
     def step(self):
         """Advance model by one step (week)."""
         self.step_count += 1
@@ -200,8 +247,9 @@ class EndowmentModel(Model):
 
     def get_metrics(self) -> dict:
         """Compute current metrics."""
-        total_staked = sum(s.stake for s in self.stakers)
-        total_credits = sum(s.credits for s in self.stakers)
+        active_stakers = [s for s in self.stakers if s.active]
+        total_staked = sum(s.stake for s in active_stakers)
+        total_credits = sum(s.credits for s in active_stakers)
 
         # Tier distribution
         tier_dist = self.get_tier_distribution()
@@ -217,8 +265,13 @@ class EndowmentModel(Model):
         success_rate_actual = completed_props / resolved if resolved > 0 else 0
 
         # Credit rates
-        credit_rate = sum(s.weekly_credit_rate for s in self.stakers)
+        credit_rate = sum(s.weekly_credit_rate for s in active_stakers)
         deployment_rate = self.total_credits_deployed / max(self.step_count, 1)
+
+        # Satisfaction
+        avg_satisfaction = (
+            sum(s.satisfaction for s in active_stakers) / max(len(active_stakers), 1)
+        )
 
         return {
             "step": self.step_count,
@@ -238,6 +291,9 @@ class EndowmentModel(Model):
             "failed_proposals": failed_props,
             "success_rate_actual": round(success_rate_actual, 3),
             "num_stakers": len(self.stakers),
+            "active_stakers": len(active_stakers),
+            "churned_stakers": len(self.stakers) - len(active_stakers),
+            "avg_satisfaction": round(avg_satisfaction, 3),
             "num_proposals": len(self.proposals),
         }
 
@@ -246,6 +302,8 @@ class EndowmentModel(Model):
         metrics = self.get_metrics()
         return {
             **metrics,
+            "archetype_distribution": self.get_archetype_distribution(),
+            "archetype_metrics": self.get_archetype_metrics(),
             "params": {
                 "base_apy": self.base_apy,
                 "burn_rate": self.burn_rate,
@@ -253,5 +311,6 @@ class EndowmentModel(Model):
                 "deploy_probability": self.deploy_probability,
                 "funding_target_min": self.funding_target_min,
                 "funding_target_max": self.funding_target_max,
+                "archetype_mix": self.archetype_mix,
             },
         }

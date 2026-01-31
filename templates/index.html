@@ -21,6 +21,7 @@
             --success: #50c878;
             --danger: #e05555;
             --info: #4a9eff;
+            --purple: #7856ff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -105,12 +106,13 @@
             border-bottom: 1px solid var(--border);
         }
 
+        .span-3 { grid-column: span 3; }
         .span-4 { grid-column: span 4; }
         .span-6 { grid-column: span 6; }
         .span-8 { grid-column: span 8; }
         .span-12 { grid-column: span 12; }
         @media (max-width: 1000px) {
-            .span-4, .span-6, .span-8 { grid-column: span 12; }
+            .span-3, .span-4, .span-6, .span-8 { grid-column: span 12; }
         }
 
         .metrics-row { display: flex; gap: 16px; flex-wrap: wrap; }
@@ -206,17 +208,103 @@
         .event-type.failed { background: rgba(224,85,85,0.2); color: var(--danger); }
         .event-type.new_proposal { background: rgba(74,158,255,0.2); color: var(--info); }
         .event-type.init { background: rgba(201,162,39,0.2); color: var(--accent); }
+        .event-type.churn { background: rgba(224,85,85,0.15); color: #c07070; }
 
         .chart-container { height: 180px; }
 
-        .params-grid {
+        /* Parameter Sliders */
+        .param-sliders {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+        .slider-label { color: var(--text-muted); }
+        .slider-value { color: var(--accent); font-weight: 600; font-family: monospace; }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--border-light);
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+        .slider-hint {
+            font-size: 9px;
+            color: var(--text-dim);
+        }
+        .apply-params {
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        /* Archetype section */
+        .archetype-bar {
+            display: flex; height: 24px; border-radius: 4px; overflow: hidden;
+            margin-bottom: 12px; border: 1px solid var(--border);
+        }
+        .arch-segment {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 600; color: #000;
+            transition: width 0.3s;
+        }
+        .arch-believer { background: var(--success); }
+        .arch-yield_seeker { background: var(--accent); }
+        .arch-governance { background: var(--purple); }
+        .arch-speculator { background: var(--danger); }
+
+        .arch-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; margin-bottom: 12px; }
+        .arch-legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+        .arch-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+        .arch-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
+            font-size: 11px;
+        }
+        @media (max-width: 800px) {
+            .arch-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .arch-metric-card {
+            background: var(--bg-panel);
+            border-radius: 6px;
+            padding: 10px;
+            border-left: 3px solid var(--border-light);
+        }
+        .arch-metric-card.believer { border-left-color: var(--success); }
+        .arch-metric-card.yield_seeker { border-left-color: var(--accent); }
+        .arch-metric-card.governance { border-left-color: var(--purple); }
+        .arch-metric-card.speculator { border-left-color: var(--danger); }
+        .arch-card-name {
+            font-weight: 600;
+            margin-bottom: 6px;
             font-size: 12px;
         }
-        .param-label { color: var(--text-dim); }
-        .param-value { color: var(--accent); font-weight: 600; text-align: right; }
+        .arch-card-name.believer { color: var(--success); }
+        .arch-card-name.yield_seeker { color: var(--accent); }
+        .arch-card-name.governance { color: var(--purple); }
+        .arch-card-name.speculator { color: var(--danger); }
+        .arch-stat { display: flex; justify-content: space-between; color: var(--text-muted); padding: 2px 0; }
+        .arch-stat-val { color: var(--text); font-family: monospace; }
 
         .questions-section { margin-top: 24px; }
         .question {
@@ -249,7 +337,7 @@
         .narrative p:last-child { margin-bottom: 0; }
 
         /* Agent Inspector */
-        .agent-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .agent-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .agent-tab {
             background: transparent;
             border: 1px solid var(--border);
@@ -283,6 +371,7 @@
             border-bottom: 1px solid var(--border);
         }
         .agent-table tr:hover { background: var(--bg-hover); }
+        .agent-table tr.churned { opacity: 0.5; }
         .agent-id { font-family: monospace; color: var(--accent); font-weight: 600; }
         .tier-badge {
             display: inline-block;
@@ -295,6 +384,30 @@
         .tier-3_month { background: rgba(74,158,255,0.2); color: #4a9eff; }
         .tier-6_month { background: rgba(120,86,255,0.2); color: #7856ff; }
         .tier-12_month { background: rgba(201,162,39,0.2); color: var(--accent); }
+        .arch-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .arch-badge.believer { background: rgba(80,200,120,0.2); color: var(--success); }
+        .arch-badge.yield_seeker { background: rgba(201,162,39,0.2); color: var(--accent); }
+        .arch-badge.governance { background: rgba(120,86,255,0.2); color: var(--purple); }
+        .arch-badge.speculator { background: rgba(224,85,85,0.2); color: var(--danger); }
+        .sat-bar {
+            width: 40px; height: 4px;
+            background: var(--border-light);
+            border-radius: 2px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+        .sat-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
 
         /* Education Section */
         .education-content { display: block; padding-top: 16px; }
@@ -380,15 +493,17 @@
     <div class="container">
         <header>
             <h1>RSC DECENTRALIZED ENDOWMENT</h1>
-            <div class="subtitle">Stake RSC → Earn Credits (APY) → Deploy to Proposals → 2% Burn</div>
+            <div class="subtitle">Stake RSC &rarr; Earn Credits (APY) &rarr; Deploy to Proposals &rarr; 2% Burn</div>
         </header>
 
         <div class="controls">
             <button class="primary" onclick="step()">Step</button>
             <button onclick="run(10)">Run 10</button>
             <button onclick="run(52)">Run 1 Year</button>
-            <button onclick="reset()">Reset</button>
+            <button onclick="resetWithParams()">Reset</button>
             <div class="step-badge">Week <span id="step-count">0</span></div>
+            <div class="step-badge">Active <span id="active-count">0</span> / <span id="total-count">0</span></div>
+            <div class="step-badge">Satisfaction <span id="avg-sat">1.00</span></div>
         </div>
 
         <div class="grid">
@@ -396,7 +511,7 @@
             <div class="card span-12">
                 <div class="card-header">Key Metrics</div>
                 <div class="metrics-row">
-                    <div class="metric" data-tooltip="Total RSC locked by all stakers">
+                    <div class="metric" data-tooltip="Total RSC locked by active stakers">
                         <div class="metric-value" id="total-staked">0</div>
                         <div class="metric-label">RSC Staked</div>
                     </div>
@@ -408,7 +523,7 @@
                         <div class="metric-value" id="total-burned">0</div>
                         <div class="metric-label">Burned</div>
                     </div>
-                    <div class="metric" data-tooltip="New credits generated this week (stake × APY)">
+                    <div class="metric" data-tooltip="New credits generated this week (stake x APY)">
                         <div class="metric-value" id="credit-rate">0</div>
                         <div class="metric-label">Credits/Wk</div>
                     </div>
@@ -416,29 +531,128 @@
                         <div class="metric-value" id="deployment-rate">0</div>
                         <div class="metric-label">Deployed/Wk</div>
                     </div>
+                    <div class="metric" data-tooltip="Stakers who left the system (low satisfaction)">
+                        <div class="metric-value" id="churned-count" style="color:var(--danger)">0</div>
+                        <div class="metric-label">Churned</div>
+                    </div>
                     <div class="metric" data-tooltip="% of funded proposals that completed">
-                        <div class="metric-value" id="success-rate">—</div>
+                        <div class="metric-value" id="success-rate">&mdash;</div>
                         <div class="metric-label">Success Rate</div>
                     </div>
                 </div>
             </div>
 
+            <!-- Parameter Controls -->
+            <div class="card span-6">
+                <div class="card-header">Parameters (adjust & reset)</div>
+                <div class="param-sliders">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Base APY</span>
+                            <span class="slider-value" id="val-apy">10%</span>
+                        </div>
+                        <input type="range" id="slider-apy" min="1" max="30" value="10" step="1"
+                            oninput="document.getElementById('val-apy').textContent=this.value+'%'">
+                        <div class="slider-hint">Higher APY = more credits = faster funding</div>
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Burn Rate</span>
+                            <span class="slider-value" id="val-burn">2%</span>
+                        </div>
+                        <input type="range" id="slider-burn" min="0" max="10" value="2" step="0.5"
+                            oninput="document.getElementById('val-burn').textContent=this.value+'%'">
+                        <div class="slider-hint">Higher burn = more deflation, higher cost</div>
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Stakers</span>
+                            <span class="slider-value" id="val-stakers">100</span>
+                        </div>
+                        <input type="range" id="slider-stakers" min="10" max="500" value="100" step="10"
+                            oninput="document.getElementById('val-stakers').textContent=this.value">
+                        <div class="slider-hint">Population size</div>
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Success Rate</span>
+                            <span class="slider-value" id="val-success">80%</span>
+                        </div>
+                        <input type="range" id="slider-success" min="10" max="100" value="80" step="5"
+                            oninput="document.getElementById('val-success').textContent=this.value+'%'">
+                        <div class="slider-hint">Proposal completion probability</div>
+                    </div>
+                </div>
+                <button class="primary apply-params" onclick="resetWithParams()">Apply & Reset</button>
+            </div>
+
+            <!-- Archetype Mix -->
+            <div class="card span-6">
+                <div class="card-header">Archetype Mix (adjust population composition)</div>
+                <div class="archetype-bar" id="arch-bar"></div>
+                <div class="arch-legend">
+                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--success)"></div> Believer</div>
+                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--accent)"></div> Yield Seeker</div>
+                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--purple)"></div> Governance</div>
+                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--danger)"></div> Speculator</div>
+                </div>
+                <div class="param-sliders">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label" style="color:var(--success)">Believers</span>
+                            <span class="slider-value" id="val-believer">25%</span>
+                        </div>
+                        <input type="range" id="slider-believer" min="0" max="100" value="25" step="5"
+                            oninput="updateArchMixPreview()">
+                        <div class="slider-hint">Mission-aligned, long locks, active deployers</div>
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label" style="color:var(--accent)">Yield Seekers</span>
+                            <span class="slider-value" id="val-yield_seeker">30%</span>
+                        </div>
+                        <input type="range" id="slider-yield_seeker" min="0" max="100" value="30" step="5"
+                            oninput="updateArchMixPreview()">
+                        <div class="slider-hint">APY-motivated, moderate engagement</div>
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label" style="color:var(--purple)">Governance</span>
+                            <span class="slider-value" id="val-governance">20%</span>
+                        </div>
+                        <input type="range" id="slider-governance" min="0" max="100" value="20" step="5"
+                            oninput="updateArchMixPreview()">
+                        <div class="slider-hint">Influence-focused, flexible tier, selective</div>
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label" style="color:var(--danger)">Speculators</span>
+                            <span class="slider-value" id="val-speculator">25%</span>
+                        </div>
+                        <input type="range" id="slider-speculator" min="0" max="100" value="25" step="5"
+                            oninput="updateArchMixPreview()">
+                        <div class="slider-hint">Price-driven, hoards credits, churn-prone</div>
+                    </div>
+                </div>
+                <div id="arch-mix-warn" style="font-size:10px;color:var(--danger);margin-top:8px;display:none"></div>
+            </div>
+
             <!-- Tier Distribution -->
             <div class="card span-6">
-                <div class="card-header">Staking Tiers</div>
+                <div class="card-header">Staking Tiers (driven by risk tolerance)</div>
                 <div class="tier-bar" id="tier-bar"></div>
                 <div class="tier-legend">
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#536471"></div> Flexible 1×</div>
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#4a9eff"></div> 3mo 1.5×</div>
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#7856ff"></div> 6mo 2×</div>
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#c9a227"></div> 12mo 3×</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#536471"></div> Flexible 1x</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#4a9eff"></div> 3mo 1.5x</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#7856ff"></div> 6mo 2x</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#c9a227"></div> 12mo 3x</div>
                 </div>
             </div>
 
-            <!-- Parameters -->
+            <!-- Archetype Behavioral Metrics -->
             <div class="card span-6">
-                <div class="card-header">Parameters</div>
-                <div class="params-grid" id="params-grid"></div>
+                <div class="card-header">Archetype Behavior (per-group metrics)</div>
+                <div class="arch-metrics-grid" id="arch-metrics"></div>
             </div>
 
             <!-- Chart -->
@@ -464,7 +678,7 @@
 
         <!-- Round Narrative -->
         <div class="card span-12" style="margin-top: 16px;">
-            <div class="card-header">📖 This Week's Activity</div>
+            <div class="card-header">This Week's Activity</div>
             <div id="round-narrative" class="narrative">
                 <p class="narrative-placeholder">Run the simulation to see what happens each week...</p>
             </div>
@@ -472,11 +686,12 @@
 
         <!-- Agent Inspector -->
         <div class="card span-12" style="margin-top: 16px;">
-            <div class="card-header">🔍 Agent Inspector</div>
+            <div class="card-header">Agent Inspector</div>
             <div class="agent-tabs">
                 <button class="agent-tab active" onclick="showAgentTab('top-stakers')">Top Stakers</button>
                 <button class="agent-tab" onclick="showAgentTab('recent-deployers')">Recent Deployers</button>
-                <button class="agent-tab" onclick="showAgentTab('tier-breakdown')">Tier Breakdown</button>
+                <button class="agent-tab" onclick="showAgentTab('by-archetype')">By Archetype</button>
+                <button class="agent-tab" onclick="showAgentTab('churned')">Churned</button>
             </div>
             <div id="agent-content" class="agent-content">
                 <div class="agent-placeholder">Loading agents...</div>
@@ -487,63 +702,66 @@
         <div class="education-section" style="margin-top: 24px;">
             <div class="card">
                 <div class="card-header" onclick="toggleEducation()" style="cursor: pointer;">
-                    📚 How This Model Works <span id="edu-toggle" style="float:right;">▼</span>
+                    How This Model Works <span id="edu-toggle" style="float:right;">&#9660;</span>
                 </div>
                 <div id="education-content" class="education-content">
                     <div class="edu-flow">
                         <div class="flow-step">
-                            <div class="flow-icon">💰</div>
+                            <div class="flow-icon">&#128176;</div>
                             <div class="flow-title">1. Stake RSC</div>
-                            <div class="flow-desc">Stakers lock RSC tokens and choose a tier (Flexible to 12-month). Longer locks = higher APY multiplier.</div>
+                            <div class="flow-desc">Stakers lock RSC and choose a tier based on their <strong>risk tolerance</strong>. Longer locks = higher APY multiplier.</div>
                         </div>
-                        <div class="flow-arrow">→</div>
+                        <div class="flow-arrow">&rarr;</div>
                         <div class="flow-step">
-                            <div class="flow-icon">✨</div>
+                            <div class="flow-icon">&#10024;</div>
                             <div class="flow-title">2. Earn Credits</div>
-                            <div class="flow-desc">Each week, stakers earn "funding credits" based on stake × APY × tier multiplier. Credits aren't RSC—they're deployment power.</div>
+                            <div class="flow-desc">Each week, stakers earn funding credits (stake x APY x tier). Credits are deployment power, not tradeable tokens.</div>
                         </div>
-                        <div class="flow-arrow">→</div>
+                        <div class="flow-arrow">&rarr;</div>
                         <div class="flow-step">
-                            <div class="flow-icon">🎯</div>
+                            <div class="flow-icon">&#127919;</div>
                             <div class="flow-title">3. Deploy to Proposals</div>
-                            <div class="flow-desc">Stakers deploy credits to fund research proposals. When a proposal reaches its target, it becomes "funded."</div>
+                            <div class="flow-desc"><strong>Engagement</strong> drives deployment probability. Mission-aligned stakers prefer near-funded proposals.</div>
                         </div>
-                        <div class="flow-arrow">→</div>
+                        <div class="flow-arrow">&rarr;</div>
                         <div class="flow-step">
-                            <div class="flow-icon">🔥</div>
+                            <div class="flow-icon">&#128293;</div>
                             <div class="flow-title">4. 2% Burn</div>
-                            <div class="flow-desc">When credits are deployed, 2% of the backer's RSC stake is burned permanently. This creates deflationary pressure.</div>
+                            <div class="flow-desc">When credits deploy, 2% of backer's RSC is burned. This creates deflationary pressure on the token.</div>
                         </div>
                     </div>
 
                     <div class="edu-section">
-                        <h3>What Are "Stakers"?</h3>
-                        <p>Each staker is an agent representing a token holder who locks RSC to participate in governance. They have:</p>
+                        <h3>Behavioral Model: B = f(P, E)</h3>
+                        <p>Each staker has <strong>Person attributes</strong> that interact with <strong>Environment conditions</strong> to produce behavior:</p>
                         <ul>
-                            <li><strong>Stake:</strong> Amount of RSC locked (500–50,000)</li>
-                            <li><strong>Tier:</strong> Lock period chosen (affects APY multiplier)</li>
-                            <li><strong>Credits:</strong> Accumulated funding power (not tradeable)</li>
-                            <li><strong>Deploy probability:</strong> Chance they deploy credits each week (~30%)</li>
+                            <li><strong>Mission Alignment</strong> (0-1): Cares about funding good research vs. just earning yield. Affects proposal selection.</li>
+                            <li><strong>Risk Tolerance</strong> (0-1): Willingness to lock longer for higher APY. Drives tier selection.</li>
+                            <li><strong>Engagement</strong> (0-1): How actively they deploy credits. Base probability of deploying each week.</li>
+                            <li><strong>Price Sensitivity</strong> (0-1): How much external conditions matter (future expansion).</li>
                         </ul>
+                        <p style="margin-top:8px">These combine into <strong>4 archetypes</strong>: Believers (mission-driven), Yield Seekers (APY-driven), Governance (influence-driven), and Speculators (price-driven).</p>
                     </div>
 
                     <div class="edu-section">
                         <h3>What Happens Each Step (Week)?</h3>
                         <ol>
-                            <li><strong>Credit Generation:</strong> All stakers earn credits based on their tier's APY</li>
-                            <li><strong>Credit Deployment:</strong> Some stakers choose to deploy credits to open proposals</li>
+                            <li><strong>Credit Generation:</strong> All active stakers earn credits based on tier APY</li>
+                            <li><strong>Deployment Decision:</strong> Each staker decides whether to deploy based on engagement + credit accumulation pressure + satisfaction</li>
+                            <li><strong>Proposal Selection:</strong> Mission-aligned stakers pick near-funded proposals; others pick randomly</li>
                             <li><strong>Burn Event:</strong> 2% of deploying stakers' RSC is burned</li>
-                            <li><strong>Proposal Funding:</strong> Proposals that reach their target become "funded"</li>
-                            <li><strong>Proposal Resolution:</strong> Funded proposals complete (80% success) or fail (20%)</li>
+                            <li><strong>Satisfaction Update:</strong> Based on proposal outcomes (did my backed proposals succeed?)</li>
+                            <li><strong>Churn Check:</strong> Unsatisfied, unlocked stakers may leave the system</li>
                         </ol>
                     </div>
 
                     <div class="edu-section">
                         <h3>Key Dynamics to Watch</h3>
                         <ul>
-                            <li><strong>Credit accumulation:</strong> Do stakers hoard credits or deploy them?</li>
-                            <li><strong>Burn rate:</strong> Is enough RSC being burned for deflation?</li>
-                            <li><strong>Tier distribution:</strong> Do longer locks create more funding capacity?</li>
+                            <li><strong>Archetype behavior:</strong> Believers deploy actively; Speculators hoard. Which behavior dominates?</li>
+                            <li><strong>Satisfaction & churn:</strong> Failed proposals reduce satisfaction. Low satisfaction + no lock = exit risk.</li>
+                            <li><strong>Tier distribution:</strong> Risk-tolerant agents lock longer. Does this create enough funding capacity?</li>
+                            <li><strong>Credit accumulation pressure:</strong> Agents with excess credits feel pressure to deploy (sigmoid function).</li>
                             <li><strong>Proposal throughput:</strong> Are proposals getting funded at a healthy rate?</li>
                         </ul>
                     </div>
@@ -554,7 +772,7 @@
         <!-- Design Questions -->
         <div class="questions-section">
             <div class="card">
-                <div class="card-header">❓ Open Design Questions (for ResearchHub)</div>
+                <div class="card-header">Open Design Questions (for ResearchHub)</div>
                 <div id="design-questions"></div>
             </div>
         </div>
@@ -563,7 +781,7 @@
     <script>
         const API = '';
         let chart = null;
-        let historyData = { steps: [], staked: [], credits: [], burned: [] };
+        let historyData = { steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [] };
 
         async function fetchJson(url, options = {}) {
             const resp = await fetch(API + url, options);
@@ -576,64 +794,130 @@
             return Math.round(n).toLocaleString();
         }
 
+        function satColor(sat) {
+            if (sat >= 0.7) return 'var(--success)';
+            if (sat >= 0.4) return 'var(--accent)';
+            return 'var(--danger)';
+        }
+
+        // Archetype mix preview
+        function updateArchMixPreview() {
+            const archs = ['believer', 'yield_seeker', 'governance', 'speculator'];
+            let total = 0;
+            archs.forEach(a => { total += parseInt(document.getElementById('slider-' + a).value); });
+            const warn = document.getElementById('arch-mix-warn');
+            if (total === 0) {
+                warn.style.display = 'block';
+                warn.textContent = 'Total is 0% — at least one archetype must be non-zero.';
+            } else if (total !== 100) {
+                warn.style.display = 'block';
+                warn.textContent = 'Total is ' + total + '% — will be normalized to 100% on reset.';
+            } else {
+                warn.style.display = 'none';
+            }
+            archs.forEach(a => {
+                const val = parseInt(document.getElementById('slider-' + a).value);
+                const pct = total > 0 ? Math.round(val / total * 100) : 0;
+                document.getElementById('val-' + a).textContent = pct + '%';
+            });
+        }
+
+        function getSliderParams() {
+            const archs = ['believer', 'yield_seeker', 'governance', 'speculator'];
+            let total = 0;
+            const raw = {};
+            archs.forEach(a => {
+                raw[a] = parseInt(document.getElementById('slider-' + a).value);
+                total += raw[a];
+            });
+            const mix = {};
+            if (total > 0) {
+                archs.forEach(a => { mix[a] = parseFloat((raw[a] / total).toFixed(4)); });
+            }
+            return {
+                num_stakers: parseInt(document.getElementById('slider-stakers').value),
+                base_apy: parseInt(document.getElementById('slider-apy').value) / 100,
+                burn_rate: parseFloat(document.getElementById('slider-burn').value) / 100,
+                success_rate: parseInt(document.getElementById('slider-success').value) / 100,
+                archetype_mix: mix,
+            };
+        }
+
+        // Main UI update
         async function updateUI() {
             const state = await fetchJson('/api/state');
             const model = state.model;
 
             document.getElementById('step-count').textContent = model.step;
+            document.getElementById('active-count').textContent = model.active_stakers;
+            document.getElementById('total-count').textContent = model.num_stakers;
+            document.getElementById('avg-sat').textContent = model.avg_satisfaction.toFixed(2);
 
             document.getElementById('total-staked').textContent = formatNumber(model.total_staked);
             document.getElementById('total-credits').textContent = formatNumber(model.total_credits);
             document.getElementById('total-burned').textContent = formatNumber(model.total_burned);
             document.getElementById('credit-rate').textContent = formatNumber(model.credit_generation_rate);
             document.getElementById('deployment-rate').textContent = formatNumber(model.deployment_rate);
+            document.getElementById('churned-count').textContent = model.churned_stakers;
             document.getElementById('success-rate').textContent =
                 model.completed_proposals + model.failed_proposals > 0
                     ? (model.success_rate_actual * 100).toFixed(0) + '%'
-                    : '—';
+                    : '\u2014';
 
             // Tier distribution
             const dist = model.tier_distribution;
-            const total = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
-            document.getElementById('tier-bar').innerHTML = `
-                <div class="tier-segment tier-flexible" style="width:${dist.flexible/total*100}%">${dist.flexible}</div>
-                <div class="tier-segment tier-3month" style="width:${dist['3_month']/total*100}%">${dist['3_month']}</div>
-                <div class="tier-segment tier-6month" style="width:${dist['6_month']/total*100}%">${dist['6_month']}</div>
-                <div class="tier-segment tier-12month" style="width:${dist['12_month']/total*100}%">${dist['12_month']}</div>
-            `;
+            const tierTotal = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
+            document.getElementById('tier-bar').innerHTML =
+                '<div class="tier-segment tier-flexible" style="width:' + (dist.flexible / tierTotal * 100) + '%">' + dist.flexible + '</div>' +
+                '<div class="tier-segment tier-3month" style="width:' + (dist['3_month'] / tierTotal * 100) + '%">' + dist['3_month'] + '</div>' +
+                '<div class="tier-segment tier-6month" style="width:' + (dist['6_month'] / tierTotal * 100) + '%">' + dist['6_month'] + '</div>' +
+                '<div class="tier-segment tier-12month" style="width:' + (dist['12_month'] / tierTotal * 100) + '%">' + dist['12_month'] + '</div>';
 
-            // Params
-            const params = model.params;
-            document.getElementById('params-grid').innerHTML = `
-                <div class="param-label">Base APY</div><div class="param-value">${(params.base_apy * 100)}%</div>
-                <div class="param-label">Burn Rate</div><div class="param-value">${(params.burn_rate * 100)}%</div>
-                <div class="param-label">Success Rate</div><div class="param-value">${(params.success_rate * 100)}%</div>
-                <div class="param-label">Deploy Prob</div><div class="param-value">${(params.deploy_probability * 100)}%</div>
-                <div class="param-label">Stakers</div><div class="param-value">${model.num_stakers}</div>
-                <div class="param-label">Proposals</div><div class="param-value">${model.num_proposals}</div>
-            `;
+            // Archetype distribution bar
+            const archDist = model.archetype_distribution || {};
+            const archTotal = Object.values(archDist).reduce((a, b) => a + b, 0) || 1;
+            document.getElementById('arch-bar').innerHTML =
+                ['believer', 'yield_seeker', 'governance', 'speculator'].map(a => {
+                    const n = archDist[a] || 0;
+                    return '<div class="arch-segment arch-' + a + '" style="width:' + (n / archTotal * 100) + '%">' + n + '</div>';
+                }).join('');
 
-            // Events
-            const eventsHtml = state.events.slice(0, 12).map(e => `
-                <div class="event">
-                    <span class="event-step">[${String(e.step).padStart(3, '0')}]</span>
-                    <span class="event-type ${e.type}">${e.type}</span>
-                    <span>${e.message}</span>
-                </div>
-            `).join('');
+            // Archetype metrics
+            const archMetrics = model.archetype_metrics || {};
+            const archNames = { believer: 'Believer', yield_seeker: 'Yield Seeker', governance: 'Governance', speculator: 'Speculator' };
+            document.getElementById('arch-metrics').innerHTML =
+                ['believer', 'yield_seeker', 'governance', 'speculator'].map(a => {
+                    const m = archMetrics[a];
+                    if (!m) return '<div class="arch-metric-card ' + a + '"><div class="arch-card-name ' + a + '">' + archNames[a] + '</div><div class="arch-stat" style="color:var(--text-dim)">No agents</div></div>';
+                    return '<div class="arch-metric-card ' + a + '">' +
+                        '<div class="arch-card-name ' + a + '">' + archNames[a] + '</div>' +
+                        '<div class="arch-stat"><span>Active</span><span class="arch-stat-val">' + m.active + '/' + m.total + '</span></div>' +
+                        '<div class="arch-stat"><span>Avg Stake</span><span class="arch-stat-val">' + formatNumber(m.avg_stake) + '</span></div>' +
+                        '<div class="arch-stat"><span>Satisfaction</span><span class="arch-stat-val" style="color:' + satColor(m.avg_satisfaction) + '">' + m.avg_satisfaction.toFixed(2) + '</span></div>' +
+                        '<div class="arch-stat"><span>Deployed</span><span class="arch-stat-val">' + formatNumber(m.total_deployed) + '</span></div>' +
+                        '<div class="arch-stat"><span>Burned</span><span class="arch-stat-val" style="color:var(--danger)">' + formatNumber(m.total_burned) + '</span></div>' +
+                        '</div>';
+                }).join('');
+
+            // Events (with churn support)
+            const eventsHtml = state.events.slice(0, 15).map(e =>
+                '<div class="event">' +
+                '<span class="event-step">[' + String(e.step).padStart(3, '0') + ']</span>' +
+                '<span class="event-type ' + e.type + '">' + e.type + '</span>' +
+                '<span>' + e.message + '</span>' +
+                '</div>'
+            ).join('');
             document.getElementById('events-list').innerHTML = eventsHtml || '<div class="event" style="color:var(--text-dim)">No events yet</div>';
 
             // Proposals
             const proposals = await fetchJson('/api/proposals');
-            const proposalsHtml = proposals.slice(-8).reverse().map(p => `
-                <div class="list-item">
-                    <span class="proposal-id">${p.id}</span>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width:${Math.min(p.funding_progress, 100)}%"></div>
-                    </div>
-                    <span class="status status-${p.status}">${p.status}</span>
-                </div>
-            `).join('');
+            const proposalsHtml = proposals.slice(-8).reverse().map(p =>
+                '<div class="list-item">' +
+                '<span class="proposal-id">' + p.id + '</span>' +
+                '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(p.funding_progress, 100) + '%"></div></div>' +
+                '<span class="status status-' + p.status + '">' + p.status + '</span>' +
+                '</div>'
+            ).join('');
             document.getElementById('proposals-list').innerHTML = proposalsHtml || '<div class="list-item" style="color:var(--text-dim)">No proposals</div>';
 
             // Update chart history
@@ -642,8 +926,14 @@
                 historyData.staked.push(model.total_staked);
                 historyData.credits.push(model.total_credits);
                 historyData.burned.push(model.total_burned);
+                historyData.satisfaction.push(model.avg_satisfaction);
+                historyData.active.push(model.active_stakers);
                 updateChart();
             }
+
+            // Update narrative and agents
+            updateNarrative(model, state.events);
+            await loadStakers();
         }
 
         function updateChart() {
@@ -654,9 +944,9 @@
                     data: {
                         labels: historyData.steps,
                         datasets: [
-                            { label: 'Staked', data: historyData.staked, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.1)', tension: 0.3, fill: true },
-                            { label: 'Credits', data: historyData.credits, borderColor: '#50c878', backgroundColor: 'rgba(80,200,120,0.1)', tension: 0.3, fill: true },
-                            { label: 'Burned', data: historyData.burned, borderColor: '#e05555', backgroundColor: 'rgba(224,85,85,0.1)', tension: 0.3, fill: true },
+                            { label: 'Staked', data: historyData.staked, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.1)', tension: 0.3, fill: true, yAxisID: 'y' },
+                            { label: 'Credits', data: historyData.credits, borderColor: '#50c878', backgroundColor: 'rgba(80,200,120,0.1)', tension: 0.3, fill: true, yAxisID: 'y' },
+                            { label: 'Burned', data: historyData.burned, borderColor: '#e05555', backgroundColor: 'rgba(224,85,85,0.1)', tension: 0.3, fill: true, yAxisID: 'y' },
                         ]
                     },
                     options: {
@@ -700,25 +990,32 @@
             historyData.staked = history.Total_Staked || [];
             historyData.credits = history.Total_Credits || [];
             historyData.burned = history.Total_Burned || [];
+            historyData.satisfaction = history.Avg_Satisfaction || [];
+            historyData.active = history.Active_Stakers || [];
             updateChart();
             await updateUI();
         }
 
-        async function reset() {
-            await fetchJson('/api/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-            historyData = { steps: [], staked: [], credits: [], burned: [] };
+        async function resetWithParams() {
+            const params = getSliderParams();
+            await fetchJson('/api/init', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+            historyData = { steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [] };
             if (chart) { chart.destroy(); chart = null; }
             await updateUI();
         }
 
         async function loadDesignQuestions() {
             const questions = await fetchJson('/api/design-questions');
-            const html = questions.map(q => `
-                <div class="question">
-                    <div class="question-text">${q.question}</div>
-                    <div class="question-current">Current: <span>${q.current}</span></div>
-                </div>
-            `).join('');
+            const html = questions.map(q =>
+                '<div class="question">' +
+                '<div class="question-text">' + q.question + '</div>' +
+                '<div class="question-current">Current: <span>' + q.current + '</span></div>' +
+                '</div>'
+            ).join('');
             document.getElementById('design-questions').innerHTML = html;
         }
 
@@ -729,7 +1026,7 @@
         function showAgentTab(tab) {
             currentAgentTab = tab;
             document.querySelectorAll('.agent-tab').forEach(t => t.classList.remove('active'));
-            document.querySelector(`.agent-tab[onclick*="${tab}"]`).classList.add('active');
+            event.target.classList.add('active');
             renderAgentTab();
         }
 
@@ -746,113 +1043,132 @@
             }
 
             if (currentAgentTab === 'top-stakers') {
-                const sorted = [...lastStakers].sort((a, b) => b.stake - a.stake).slice(0, 10);
-                container.innerHTML = `
-                    <table class="agent-table">
-                        <thead><tr>
-                            <th>ID</th><th>Stake</th><th>Tier</th><th>Credits</th><th>Deployed</th><th>Burned</th>
-                        </tr></thead>
-                        <tbody>${sorted.map(s => `
-                            <tr>
-                                <td class="agent-id">${s.id}</td>
-                                <td>${formatNumber(s.stake)}</td>
-                                <td><span class="tier-badge tier-${s.tier_id}">${s.tier}</span></td>
-                                <td>${formatNumber(s.credits)}</td>
-                                <td>${formatNumber(s.total_deployed)}</td>
-                                <td style="color:var(--danger)">${formatNumber(s.total_burned)}</td>
-                            </tr>
-                        `).join('')}</tbody>
-                    </table>
-                `;
+                const sorted = [...lastStakers].filter(s => s.active).sort((a, b) => b.stake - a.stake).slice(0, 12);
+                container.innerHTML =
+                    '<table class="agent-table"><thead><tr>' +
+                    '<th>ID</th><th>Archetype</th><th>Stake</th><th>Tier</th><th>Credits</th><th>Deployed</th><th>Satisfaction</th>' +
+                    '</tr></thead><tbody>' +
+                    sorted.map(s =>
+                        '<tr>' +
+                        '<td class="agent-id">' + s.id + '</td>' +
+                        '<td><span class="arch-badge ' + s.archetype + '">' + s.archetype + '</span></td>' +
+                        '<td>' + formatNumber(s.stake) + '</td>' +
+                        '<td><span class="tier-badge tier-' + s.tier_id + '">' + s.tier + '</span></td>' +
+                        '<td>' + formatNumber(s.credits) + '</td>' +
+                        '<td>' + formatNumber(s.total_deployed) + '</td>' +
+                        '<td><div class="sat-bar"><div class="sat-fill" style="width:' + (s.satisfaction * 100) + '%;background:' + satColor(s.satisfaction) + '"></div></div>' + s.satisfaction.toFixed(2) + '</td>' +
+                        '</tr>'
+                    ).join('') +
+                    '</tbody></table>';
+
             } else if (currentAgentTab === 'recent-deployers') {
-                const deployers = [...lastStakers].filter(s => s.total_deployed > 0).sort((a, b) => b.total_deployed - a.total_deployed).slice(0, 10);
-                container.innerHTML = deployers.length ? `
-                    <table class="agent-table">
-                        <thead><tr>
-                            <th>ID</th><th>Stake</th><th>Credits Deployed</th><th>RSC Burned (2%)</th><th>Net Position</th>
-                        </tr></thead>
-                        <tbody>${deployers.map(s => `
-                            <tr>
-                                <td class="agent-id">${s.id}</td>
-                                <td>${formatNumber(s.stake)}</td>
-                                <td style="color:var(--success)">${formatNumber(s.total_deployed)}</td>
-                                <td style="color:var(--danger)">${formatNumber(s.total_burned)}</td>
-                                <td style="color:${s.stake > s.initial_stake ? 'var(--success)' : 'var(--danger)'}">
-                                    ${s.stake > s.initial_stake ? '+' : ''}${formatNumber(s.stake - s.initial_stake)}
-                                </td>
-                            </tr>
-                        `).join('')}</tbody>
-                    </table>
-                ` : '<div class="agent-placeholder">No deployments yet. Run more steps.</div>';
-            } else if (currentAgentTab === 'tier-breakdown') {
-                const tiers = { flexible: [], '3_month': [], '6_month': [], '12_month': [] };
-                lastStakers.forEach(s => tiers[s.tier_id]?.push(s));
-                container.innerHTML = `
-                    <table class="agent-table">
-                        <thead><tr>
-                            <th>Tier</th><th>Count</th><th>Total Stake</th><th>Avg Stake</th><th>Total Credits</th><th>APY Mult</th>
-                        </tr></thead>
-                        <tbody>
-                            ${Object.entries(tiers).map(([tier, stakers]) => {
-                                const totalStake = stakers.reduce((a, s) => a + s.stake, 0);
-                                const totalCredits = stakers.reduce((a, s) => a + s.credits, 0);
-                                const mult = tier === 'flexible' ? '1.0×' : tier === '3_month' ? '1.5×' : tier === '6_month' ? '2.0×' : '3.0×';
-                                return `<tr>
-                                    <td><span class="tier-badge tier-${tier}">${tier.replace('_', '-')}</span></td>
-                                    <td>${stakers.length}</td>
-                                    <td>${formatNumber(totalStake)}</td>
-                                    <td>${stakers.length ? formatNumber(totalStake / stakers.length) : '—'}</td>
-                                    <td>${formatNumber(totalCredits)}</td>
-                                    <td style="color:var(--accent)">${mult}</td>
-                                </tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                `;
+                const deployers = [...lastStakers].filter(s => s.total_deployed > 0).sort((a, b) => b.total_deployed - a.total_deployed).slice(0, 12);
+                container.innerHTML = deployers.length ?
+                    '<table class="agent-table"><thead><tr>' +
+                    '<th>ID</th><th>Archetype</th><th>Deployed</th><th>Burned</th><th>Net Position</th><th>Satisfaction</th>' +
+                    '</tr></thead><tbody>' +
+                    deployers.map(s =>
+                        '<tr class="' + (s.active ? '' : 'churned') + '">' +
+                        '<td class="agent-id">' + s.id + (s.active ? '' : ' [left]') + '</td>' +
+                        '<td><span class="arch-badge ' + s.archetype + '">' + s.archetype + '</span></td>' +
+                        '<td style="color:var(--success)">' + formatNumber(s.total_deployed) + '</td>' +
+                        '<td style="color:var(--danger)">' + formatNumber(s.total_burned) + '</td>' +
+                        '<td style="color:' + (s.stake > s.initial_stake ? 'var(--success)' : 'var(--danger)') + '">' +
+                        (s.stake > s.initial_stake ? '+' : '') + formatNumber(s.stake - s.initial_stake) + '</td>' +
+                        '<td>' + s.satisfaction.toFixed(2) + '</td>' +
+                        '</tr>'
+                    ).join('') +
+                    '</tbody></table>'
+                    : '<div class="agent-placeholder">No deployments yet. Run more steps.</div>';
+
+            } else if (currentAgentTab === 'by-archetype') {
+                const archetypes = ['believer', 'yield_seeker', 'governance', 'speculator'];
+                const archNames = { believer: 'Believer', yield_seeker: 'Yield Seeker', governance: 'Governance', speculator: 'Speculator' };
+                const rows = archetypes.map(a => {
+                    const group = lastStakers.filter(s => s.archetype === a);
+                    const active = group.filter(s => s.active);
+                    const totalStake = active.reduce((acc, s) => acc + s.stake, 0);
+                    const totalDeployed = group.reduce((acc, s) => acc + s.total_deployed, 0);
+                    const avgSat = active.length > 0 ? active.reduce((acc, s) => acc + s.satisfaction, 0) / active.length : 0;
+                    const avgEng = active.length > 0 ? active.reduce((acc, s) => acc + s.engagement, 0) / active.length : 0;
+                    return '<tr>' +
+                        '<td><span class="arch-badge ' + a + '">' + archNames[a] + '</span></td>' +
+                        '<td>' + active.length + '/' + group.length + '</td>' +
+                        '<td>' + formatNumber(totalStake) + '</td>' +
+                        '<td>' + formatNumber(totalDeployed) + '</td>' +
+                        '<td style="color:' + satColor(avgSat) + '">' + avgSat.toFixed(2) + '</td>' +
+                        '<td>' + avgEng.toFixed(2) + '</td>' +
+                        '</tr>';
+                });
+                container.innerHTML =
+                    '<table class="agent-table"><thead><tr>' +
+                    '<th>Archetype</th><th>Active/Total</th><th>Total Stake</th><th>Total Deployed</th><th>Avg Satisfaction</th><th>Avg Engagement</th>' +
+                    '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+
+            } else if (currentAgentTab === 'churned') {
+                const churned = lastStakers.filter(s => !s.active);
+                container.innerHTML = churned.length ?
+                    '<table class="agent-table"><thead><tr>' +
+                    '<th>ID</th><th>Archetype</th><th>Final Stake</th><th>Tier</th><th>Total Deployed</th><th>Final Satisfaction</th><th>Idle Steps</th>' +
+                    '</tr></thead><tbody>' +
+                    churned.map(s =>
+                        '<tr class="churned">' +
+                        '<td class="agent-id">' + s.id + '</td>' +
+                        '<td><span class="arch-badge ' + s.archetype + '">' + s.archetype + '</span></td>' +
+                        '<td>' + formatNumber(s.stake) + '</td>' +
+                        '<td><span class="tier-badge tier-' + s.tier_id + '">' + s.tier + '</span></td>' +
+                        '<td>' + formatNumber(s.total_deployed) + '</td>' +
+                        '<td style="color:var(--danger)">' + s.satisfaction.toFixed(2) + '</td>' +
+                        '<td>' + s.idle_steps + '</td>' +
+                        '</tr>'
+                    ).join('') +
+                    '</tbody></table>'
+                    : '<div class="agent-placeholder">No stakers have churned yet. Low satisfaction + expired locks = churn risk.</div>';
             }
         }
 
         // Round Narrative
-        let prevState = null;
-
         function generateNarrative(model, events) {
             const parts = [];
             const step = model.step;
 
-            // Count event types from this step
             const stepEvents = events.filter(e => e.step === step);
             const funded = stepEvents.filter(e => e.type === 'funded').length;
             const completed = stepEvents.filter(e => e.type === 'completed').length;
             const failed = stepEvents.filter(e => e.type === 'failed').length;
             const newProposals = stepEvents.filter(e => e.type === 'new_proposal').length;
+            const churned = stepEvents.filter(e => e.type === 'churn').length;
 
-            // Credit generation
             const creditsGen = model.credit_generation_rate;
             const deployed = model.deployment_rate;
             const burned = model.burn_rate_per_step;
 
-            parts.push(`<p><strong>Week ${step}:</strong> All <span class="narrative-highlight">${model.num_stakers} stakers</span> earned credits based on their tier APY. ` +
-                `Total generation: <span class="narrative-highlight">${formatNumber(creditsGen)} credits</span>.</p>`);
+            parts.push('<p><strong>Week ' + step + ':</strong> <span class="narrative-highlight">' + model.active_stakers + ' active stakers</span> (' + model.churned_stakers + ' churned) earned credits. ' +
+                'Generation: <span class="narrative-highlight">' + formatNumber(creditsGen) + ' credits</span>. ' +
+                'Avg satisfaction: ' + model.avg_satisfaction.toFixed(2) + '.</p>');
 
             if (deployed > 0) {
-                parts.push(`<p>Some stakers deployed credits to proposals. ` +
-                    `<span class="narrative-success">${formatNumber(deployed)} credits</span> were spent, ` +
-                    `triggering a <span class="narrative-danger">${formatNumber(burned)} RSC burn</span> (2% of deployers' stakes).</p>`);
+                parts.push('<p><span class="narrative-success">' + formatNumber(deployed) + ' credits</span> deployed to proposals, ' +
+                    'triggering <span class="narrative-danger">' + formatNumber(burned) + ' RSC burn</span>.</p>');
             }
 
             if (funded > 0) {
-                parts.push(`<p><span class="narrative-success">🎉 ${funded} proposal${funded > 1 ? 's' : ''} reached funding target!</span></p>`);
+                parts.push('<p><span class="narrative-success">' + funded + ' proposal' + (funded > 1 ? 's' : '') + ' reached funding target!</span></p>');
             }
 
             if (completed > 0 || failed > 0) {
-                let resolutions = [];
-                if (completed > 0) resolutions.push(`<span class="narrative-success">${completed} completed successfully</span>`);
-                if (failed > 0) resolutions.push(`<span class="narrative-danger">${failed} failed</span>`);
-                parts.push(`<p>Funded proposals resolved: ${resolutions.join(', ')}.</p>`);
+                const resolutions = [];
+                if (completed > 0) resolutions.push('<span class="narrative-success">' + completed + ' completed</span>');
+                if (failed > 0) resolutions.push('<span class="narrative-danger">' + failed + ' failed</span>');
+                parts.push('<p>Proposals resolved: ' + resolutions.join(', ') + '.</p>');
+            }
+
+            if (churned > 0) {
+                parts.push('<p><span class="narrative-danger">' + churned + ' staker' + (churned > 1 ? 's' : '') + ' left the system</span> (low satisfaction).</p>');
             }
 
             if (newProposals > 0) {
-                parts.push(`<p><span class="narrative-highlight">${newProposals} new proposal${newProposals > 1 ? 's' : ''}</span> entered the queue.</p>`);
+                parts.push('<p><span class="narrative-highlight">' + newProposals + ' new proposal' + (newProposals > 1 ? 's' : '') + '</span> entered the queue.</p>');
             }
 
             return parts.join('') || '<p class="narrative-placeholder">No significant activity this week.</p>';
@@ -867,87 +1183,13 @@
             const content = document.getElementById('education-content');
             const toggle = document.getElementById('edu-toggle');
             content.classList.toggle('collapsed');
-            toggle.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+            toggle.innerHTML = content.classList.contains('collapsed') ? '&#9654;' : '&#9660;';
         }
 
-        // Enhanced updateUI
-        const originalUpdateUI = updateUI;
-        updateUI = async function() {
-            const state = await fetchJson('/api/state');
-            const model = state.model;
-
-            document.getElementById('step-count').textContent = model.step;
-
-            document.getElementById('total-staked').textContent = formatNumber(model.total_staked);
-            document.getElementById('total-credits').textContent = formatNumber(model.total_credits);
-            document.getElementById('total-burned').textContent = formatNumber(model.total_burned);
-            document.getElementById('credit-rate').textContent = formatNumber(model.credit_generation_rate);
-            document.getElementById('deployment-rate').textContent = formatNumber(model.deployment_rate);
-            document.getElementById('success-rate').textContent =
-                model.completed_proposals + model.failed_proposals > 0
-                    ? (model.success_rate_actual * 100).toFixed(0) + '%'
-                    : '—';
-
-            // Tier distribution
-            const dist = model.tier_distribution;
-            const total = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
-            document.getElementById('tier-bar').innerHTML = `
-                <div class="tier-segment tier-flexible" style="width:${dist.flexible/total*100}%">${dist.flexible}</div>
-                <div class="tier-segment tier-3month" style="width:${dist['3_month']/total*100}%">${dist['3_month']}</div>
-                <div class="tier-segment tier-6month" style="width:${dist['6_month']/total*100}%">${dist['6_month']}</div>
-                <div class="tier-segment tier-12month" style="width:${dist['12_month']/total*100}%">${dist['12_month']}</div>
-            `;
-
-            // Params
-            const params = model.params;
-            document.getElementById('params-grid').innerHTML = `
-                <div class="param-label">Base APY</div><div class="param-value">${(params.base_apy * 100)}%</div>
-                <div class="param-label">Burn Rate</div><div class="param-value">${(params.burn_rate * 100)}%</div>
-                <div class="param-label">Success Rate</div><div class="param-value">${(params.success_rate * 100)}%</div>
-                <div class="param-label">Deploy Prob</div><div class="param-value">${(params.deploy_probability * 100)}%</div>
-                <div class="param-label">Stakers</div><div class="param-value">${model.num_stakers}</div>
-                <div class="param-label">Proposals</div><div class="param-value">${model.num_proposals}</div>
-            `;
-
-            // Events
-            const eventsHtml = state.events.slice(0, 12).map(e => `
-                <div class="event">
-                    <span class="event-step">[${String(e.step).padStart(3, '0')}]</span>
-                    <span class="event-type ${e.type}">${e.type}</span>
-                    <span>${e.message}</span>
-                </div>
-            `).join('');
-            document.getElementById('events-list').innerHTML = eventsHtml || '<div class="event" style="color:var(--text-dim)">No events yet</div>';
-
-            // Proposals
-            const proposals = await fetchJson('/api/proposals');
-            const proposalsHtml = proposals.slice(-8).reverse().map(p => `
-                <div class="list-item">
-                    <span class="proposal-id">${p.id}</span>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width:${Math.min(p.funding_progress, 100)}%"></div>
-                    </div>
-                    <span class="status status-${p.status}">${p.status}</span>
-                </div>
-            `).join('');
-            document.getElementById('proposals-list').innerHTML = proposalsHtml || '<div class="list-item" style="color:var(--text-dim)">No proposals</div>';
-
-            // Update chart history
-            if (model.step > 0 && !historyData.steps.includes(model.step)) {
-                historyData.steps.push(model.step);
-                historyData.staked.push(model.total_staked);
-                historyData.credits.push(model.total_credits);
-                historyData.burned.push(model.total_burned);
-                updateChart();
-            }
-
-            // Update narrative and agents
-            updateNarrative(model, state.events);
-            await loadStakers();
-        };
-
+        // Init
         updateUI();
         loadDesignQuestions();
+        updateArchMixPreview();
     </script>
 </body>
 </html>

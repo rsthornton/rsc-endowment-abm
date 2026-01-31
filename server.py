@@ -11,7 +11,10 @@ from src import (
     TIERS,
     DESIGN_QUESTIONS,
     DEFAULT_PARAMS,
+    ARCHETYPES,
+    DEFAULT_ARCHETYPE_MIX,
     list_tiers,
+    list_archetypes,
 )
 
 app = Flask(__name__)
@@ -62,6 +65,7 @@ def api_info():
             "/api/history": "GET - Get time series data",
             "/api/events": "GET - Get event log",
             "/api/tiers": "GET - List staking tiers",
+            "/api/archetypes": "GET - List behavioral archetypes",
             "/api/design-questions": "GET - List open design questions",
         },
         "status": "ready",
@@ -83,6 +87,7 @@ def api_init():
         "funding_target_min": data.get("funding_target_min"),
         "funding_target_max": data.get("funding_target_max"),
         "deploy_probability": data.get("deploy_probability"),
+        "archetype_mix": data.get("archetype_mix"),
         "seed": data.get("seed"),
     }
 
@@ -192,6 +197,18 @@ def api_events():
 def api_tiers():
     """List staking tiers."""
     return jsonify(list_tiers())
+
+
+@app.route("/api/archetypes")
+def api_archetypes():
+    """List behavioral archetypes and current distribution."""
+    m = get_model()
+    return jsonify({
+        "archetypes": list_archetypes(),
+        "default_mix": DEFAULT_ARCHETYPE_MIX,
+        "current_distribution": m.get_archetype_distribution(),
+        "current_metrics": m.get_archetype_metrics(),
+    })
 
 
 @app.route("/api/design-questions")
