@@ -467,6 +467,19 @@
         .edu-section li { margin-bottom: 4px; }
         .edu-section strong { color: var(--text); }
 
+        /* Sim Canvas */
+        .sim-canvas-wrap {
+            position: relative;
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #080808;
+        }
+        .sim-canvas-wrap canvas {
+            display: block;
+            width: 100%;
+        }
+
         /* Tooltips */
         .metric[data-tooltip] {
             position: relative;
@@ -539,6 +552,14 @@
                         <div class="metric-value" id="success-rate">&mdash;</div>
                         <div class="metric-label">Success Rate</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Agent Visualization Canvas -->
+            <div class="card span-12">
+                <div class="card-header">Agent Field (archetype behavior at a glance)</div>
+                <div class="sim-canvas-wrap">
+                    <canvas id="sim-canvas"></canvas>
                 </div>
             </div>
 
@@ -779,6 +800,373 @@
     </div>
 
     <script>
+        // ============================================
+        // SimCanvas — NetLogo-style agent field
+        // ============================================
+        class SimCanvas {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.dpr = window.devicePixelRatio || 1;
+                this.W = 0;
+                this.H = 0;
+                this.agents = [];       // positioned agent objects
+                this.proposals = [];    // positioned proposal objects
+                this.arcs = [];         // active deployment arcs
+                this.churns = [];       // active churn animations
+                this.animating = false;
+                this.lastStakers = null;
+
+                // Archetype config
+                this.archColors = {
+                    believer:     '#50c878',
+                    yield_seeker: '#c9a227',
+                    governance:   '#7856ff',
+                    speculator:   '#e05555',
+                };
+                this.archLabels = {
+                    believer:     'BELIEVERS',
+                    yield_seeker: 'YIELD SEEKERS',
+                    governance:   'GOVERNANCE',
+                    speculator:   'SPECULATORS',
+                };
+                // Quadrant layout: [xCenter fraction, yCenter fraction]
+                this.quadrants = {
+                    believer:     { cx: 0.25, cy: 0.30 },
+                    yield_seeker: { cx: 0.75, cy: 0.30 },
+                    governance:   { cx: 0.25, cy: 0.75 },
+                    speculator:   { cx: 0.75, cy: 0.75 },
+                };
+
+                this._resize();
+                window.addEventListener('resize', () => this._resize());
+            }
+
+            _resize() {
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                this.W = rect.width;
+                this.H = Math.max(400, Math.min(500, this.W * 0.45));
+                this.canvas.width = this.W * this.dpr;
+                this.canvas.height = this.H * this.dpr;
+                this.canvas.style.height = this.H + 'px';
+                this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+                // Reposition agents if we have data
+                if (this.lastStakers) {
+                    this._positionAgents(this.lastStakers);
+                }
+                this._drawStatic();
+            }
+
+            // Phyllotaxis spiral positioning within a quadrant
+            _phyllotaxis(agents, cx, cy, maxRadius) {
+                const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+                const n = agents.length;
+                // Sort by stake descending — big stakers center
+                agents.sort((a, b) => b._stake - a._stake);
+                const spacing = Math.max(maxRadius / Math.sqrt(n + 1), 8);
+                for (let i = 0; i < n; i++) {
+                    const r = spacing * Math.sqrt(i + 0.5);
+                    const theta = i * goldenAngle;
+                    agents[i].x = cx + r * Math.cos(theta);
+                    agents[i].y = cy + r * Math.sin(theta);
+                }
+            }
+
+            _positionAgents(stakers) {
+                this.lastStakers = stakers;
+                const groups = { believer: [], yield_seeker: [], governance: [], speculator: [] };
+
+                stakers.forEach(s => {
+                    if (!groups[s.archetype]) return;
+                    groups[s.archetype].push({
+                        id: s.id,
+                        archetype: s.archetype,
+                        active: s.active,
+                        _stake: s.stake,
+                        satisfaction: s.satisfaction,
+                        credits_pressure: s.credits_pressure || 0,
+                        // Radius: 4-18px based on stake
+                        radius: 4 + Math.min(14, (s.stake / 20000) * 14),
+                        x: 0, y: 0,
+                    });
+                });
+
+                const allAgents = [];
+                for (const [arch, agents] of Object.entries(groups)) {
+                    const q = this.quadrants[arch];
+                    const cx = q.cx * this.W;
+                    const cy = q.cy * this.H;
+                    const maxR = Math.min(this.W * 0.22, this.H * 0.30);
+                    this._phyllotaxis(agents, cx, cy, maxR);
+                    allAgents.push(...agents);
+                }
+                this.agents = allAgents;
+            }
+
+            _positionProposals(proposals) {
+                // Center horizontal band
+                const bandY = this.H * 0.52;
+                const openOrFunded = proposals.filter(p => p.status === 'open' || p.status === 'funded');
+                const n = openOrFunded.length;
+                if (n === 0) { this.proposals = []; return; }
+
+                const margin = this.W * 0.1;
+                const span = this.W - margin * 2;
+                this.proposals = openOrFunded.map((p, i) => {
+                    const x = margin + (n === 1 ? span / 2 : (i / (n - 1)) * span);
+                    return {
+                        id: p.id,
+                        status: p.status,
+                        funding_target: p.funding_target,
+                        funding_progress: p.funding_progress,
+                        x: x,
+                        y: bandY,
+                        radius: 5 + Math.min(10, (p.funding_target / 10000) * 10),
+                    };
+                });
+            }
+
+            // Main update called from updateUI
+            update(stakers, proposals, stepDeployments) {
+                this._positionAgents(stakers);
+                this._positionProposals(proposals);
+
+                // Create deployment arcs
+                if (stepDeployments && stepDeployments.length > 0) {
+                    for (const d of stepDeployments) {
+                        const agent = this.agents.find(a => a.id === d.staker_id);
+                        const proposal = this.proposals.find(p => p.id === d.proposal_id);
+                        if (agent && proposal) {
+                            this.arcs.push({
+                                x0: agent.x, y0: agent.y,
+                                x1: proposal.x, y1: proposal.y,
+                                color: this.archColors[d.archetype] || '#888',
+                                width: Math.max(1, Math.min(3, d.credits / 100)),
+                                progress: 0,  // 0-1 for traveling dot
+                                alpha: 1.0,
+                                startTime: performance.now(),
+                                duration: 1500,
+                            });
+                        }
+                    }
+                }
+
+                // Detect churn (agents that became inactive)
+                for (const a of this.agents) {
+                    if (!a.active && !a._churning && !a._churned) {
+                        a._churning = true;
+                        this.churns.push({
+                            agent: a,
+                            startTime: performance.now(),
+                            duration: 2000,
+                        });
+                    }
+                }
+
+                if (this.arcs.length > 0 || this.churns.length > 0) {
+                    this._startAnimation();
+                } else {
+                    this._drawFrame();
+                }
+            }
+
+            reset() {
+                this.agents = [];
+                this.proposals = [];
+                this.arcs = [];
+                this.churns = [];
+                this.lastStakers = null;
+                this.animating = false;
+                this._drawStatic();
+            }
+
+            // Animation loop — only runs when there are active animations
+            _startAnimation() {
+                if (this.animating) return;
+                this.animating = true;
+                const loop = () => {
+                    if (!this.animating) return;
+                    const now = performance.now();
+
+                    // Update arcs
+                    this.arcs = this.arcs.filter(arc => {
+                        const elapsed = now - arc.startTime;
+                        if (elapsed >= arc.duration) return false;
+                        arc.progress = elapsed / arc.duration;
+                        arc.alpha = 1.0 - (elapsed / arc.duration) * 0.7;
+                        return true;
+                    });
+
+                    // Update churns
+                    this.churns = this.churns.filter(c => {
+                        const elapsed = now - c.startTime;
+                        if (elapsed >= c.duration) {
+                            c.agent._churned = true;
+                            c.agent._churning = false;
+                            return false;
+                        }
+                        c.agent._churnProgress = elapsed / c.duration;
+                        return true;
+                    });
+
+                    this._drawFrame();
+
+                    if (this.arcs.length === 0 && this.churns.length === 0) {
+                        this.animating = false;
+                        return;
+                    }
+                    requestAnimationFrame(loop);
+                };
+                requestAnimationFrame(loop);
+            }
+
+            _drawStatic() {
+                const ctx = this.ctx;
+                ctx.clearRect(0, 0, this.W, this.H);
+
+                // Background
+                ctx.fillStyle = '#080808';
+                ctx.fillRect(0, 0, this.W, this.H);
+
+                // Center proposal band highlight
+                const bandY = this.H * 0.52;
+                ctx.fillStyle = 'rgba(255,255,255,0.02)';
+                ctx.fillRect(0, bandY - 15, this.W, 30);
+
+                // Quadrant dividers (subtle)
+                ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 8]);
+                // Vertical center
+                ctx.beginPath();
+                ctx.moveTo(this.W / 2, 0);
+                ctx.lineTo(this.W / 2, this.H);
+                ctx.stroke();
+                // Horizontal center
+                ctx.beginPath();
+                ctx.moveTo(0, this.H / 2);
+                ctx.lineTo(this.W, this.H / 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Quadrant labels
+                ctx.font = '10px SF Mono, Menlo, monospace';
+                ctx.textAlign = 'center';
+                for (const [arch, q] of Object.entries(this.quadrants)) {
+                    const x = q.cx * this.W;
+                    const yBase = q.cy * this.H;
+                    // Label above or below the quadrant center
+                    const labelY = yBase < this.H / 2 ? 16 : this.H - 8;
+                    ctx.fillStyle = this.archColors[arch];
+                    ctx.globalAlpha = 0.4;
+                    ctx.fillText(this.archLabels[arch], x, labelY);
+                }
+                ctx.globalAlpha = 1.0;
+                ctx.textAlign = 'start';
+            }
+
+            _drawFrame() {
+                const ctx = this.ctx;
+                this._drawStatic();
+
+                // 1. Deployment arcs (behind everything)
+                for (const arc of this.arcs) {
+                    const midX = (arc.x0 + arc.x1) / 2;
+                    const midY = Math.min(arc.y0, arc.y1) - 30;
+                    ctx.beginPath();
+                    ctx.moveTo(arc.x0, arc.y0);
+                    ctx.quadraticCurveTo(midX, midY, arc.x1, arc.y1);
+                    ctx.strokeStyle = arc.color;
+                    ctx.lineWidth = arc.width;
+                    ctx.globalAlpha = arc.alpha * 0.6;
+                    ctx.stroke();
+
+                    // Traveling dot
+                    const t = arc.progress;
+                    const dotX = (1-t)*(1-t)*arc.x0 + 2*(1-t)*t*midX + t*t*arc.x1;
+                    const dotY = (1-t)*(1-t)*arc.y0 + 2*(1-t)*t*midY + t*t*arc.y1;
+                    ctx.beginPath();
+                    ctx.arc(dotX, dotY, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = arc.color;
+                    ctx.globalAlpha = arc.alpha;
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1.0;
+
+                // 2. Proposals (center band)
+                for (const p of this.proposals) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    if (p.status === 'funded') {
+                        ctx.fillStyle = 'rgba(80,200,120,0.3)';
+                        ctx.strokeStyle = '#50c878';
+                    } else {
+                        ctx.fillStyle = 'rgba(74,158,255,0.2)';
+                        ctx.strokeStyle = '#4a9eff';
+                    }
+                    ctx.lineWidth = 1.5;
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Progress arc
+                    if (p.funding_progress > 0) {
+                        const endAngle = -Math.PI / 2 + (Math.min(p.funding_progress, 100) / 100) * Math.PI * 2;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius + 3, -Math.PI / 2, endAngle);
+                        ctx.strokeStyle = p.status === 'funded' ? '#50c878' : '#4a9eff';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+
+                // 3. Agents
+                for (const a of this.agents) {
+                    if (a._churned) continue; // fully gone
+
+                    let scale = 1;
+                    let alpha = 0.3 + a.satisfaction * 0.7; // opacity = satisfaction
+
+                    if (a._churning) {
+                        const p = a._churnProgress || 0;
+                        scale = 1 - p;
+                        alpha *= (1 - p);
+                    }
+
+                    if (!a.active && !a._churning) {
+                        // Already churned in a previous step — dim ghost
+                        alpha = 0.1;
+                        scale = 0.4;
+                    }
+
+                    const r = a.radius * scale;
+                    if (r < 0.5) continue;
+
+                    const color = this.archColors[a.archetype] || '#888';
+
+                    // Credit ring (outer ring showing accumulation pressure)
+                    if (a.credits_pressure > 0.1 && a.active) {
+                        ctx.beginPath();
+                        ctx.arc(a.x, a.y, r + 2 + a.credits_pressure * 2, 0, Math.PI * 2);
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 1;
+                        ctx.globalAlpha = alpha * 0.35 * Math.min(a.credits_pressure, 1);
+                        ctx.stroke();
+                    }
+
+                    // Agent circle
+                    ctx.beginPath();
+                    ctx.arc(a.x, a.y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
+                    ctx.globalAlpha = alpha;
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        // Create the canvas instance
+        const simCanvas = new SimCanvas('sim-canvas');
+
         const API = '';
         let chart = null;
         let historyData = { steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [] };
@@ -934,6 +1322,9 @@
             // Update narrative and agents
             updateNarrative(model, state.events);
             await loadStakers();
+
+            // Update canvas with staker data, proposals, and deployment arcs
+            simCanvas.update(lastStakers, proposals, model.step_deployments || []);
         }
 
         function updateChart() {
@@ -1005,6 +1396,7 @@
             });
             historyData = { steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [] };
             if (chart) { chart.destroy(); chart = null; }
+            simCanvas.reset();
             await updateUI();
         }
 

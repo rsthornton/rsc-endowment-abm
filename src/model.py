@@ -173,6 +173,21 @@ class EndowmentModel(Model):
                 dist[staker.archetype] = dist.get(staker.archetype, 0) + 1
         return dist
 
+    def get_step_deployments(self) -> list:
+        """Get all deployments from the current step (for canvas visualization)."""
+        deployments = []
+        for staker in self.stakers:
+            for d in staker.deployments:
+                if d["step"] == self.step_count:
+                    deployments.append({
+                        "staker_id": f"S{staker.unique_id}",
+                        "archetype": staker.archetype,
+                        "proposal_id": f"P{d['proposal_id']}",
+                        "credits": round(d["credits"], 2),
+                        "burned": round(d["burned"], 2),
+                    })
+        return deployments
+
     def get_archetype_metrics(self) -> dict:
         """Get per-archetype behavioral metrics."""
         metrics = {}
@@ -304,6 +319,7 @@ class EndowmentModel(Model):
             **metrics,
             "archetype_distribution": self.get_archetype_distribution(),
             "archetype_metrics": self.get_archetype_metrics(),
+            "step_deployments": self.get_step_deployments(),
             "params": {
                 "base_apy": self.base_apy,
                 "burn_rate": self.burn_rate,

@@ -330,6 +330,14 @@ class EndowmentStaker(Agent):
             "total_burned": round(self.total_burned, 2),
             "deployments_count": len(self.deployments),
             "idle_steps": self.consecutive_idle_steps,
+            # Canvas visualization fields
+            "last_step_deployments": [
+                d for d in self.deployments
+                if d["step"] == self.model.step_count
+            ],
+            "credits_pressure": round(
+                min(self.credits / max(self.weekly_credit_rate * 4, 1), 2.0), 2
+            ),
         }
 
 
