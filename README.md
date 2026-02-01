@@ -2,6 +2,8 @@
 
 Agent-based model for RSC staking with **simple credit-based funding** and behavioral archetypes.
 
+![Dashboard screenshot showing the Agent Field grid with archetype behavior cards, parameter sliders, and KPI metrics after a 52-week simulation run.](docs/screenshot.png)
+
 ## Overview
 
 This model simulates the core endowment mechanism:
