@@ -89,6 +89,12 @@ def api_init():
         "deploy_probability": data.get("deploy_probability"),
         "archetype_mix": data.get("archetype_mix"),
         "seed": data.get("seed"),
+        # Design Lab params
+        "credit_expiry_enabled": data.get("credit_expiry_enabled"),
+        "credit_expiry_weeks": data.get("credit_expiry_weeks"),
+        "failure_mode": data.get("failure_mode"),
+        "min_stake_enabled": data.get("min_stake_enabled"),
+        "min_stake_amount": data.get("min_stake_amount"),
     }
 
     # Remove None values

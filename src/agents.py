@@ -9,6 +9,7 @@ Behavioral model: B = f(P, E)
 
 import random
 import math
+from collections import deque
 from mesa import Agent
 from .constants import TIERS, ARCHETYPES, get_tier
 
@@ -42,6 +43,8 @@ class EndowmentStaker(Agent):
         risk_tolerance: float = None,
         engagement: float = None,
         price_sensitivity: float = None,
+        credit_expiry_enabled: bool = False,
+        credit_expiry_weeks: int = 8,
     ):
         super().__init__(model)
 
@@ -72,6 +75,12 @@ class EndowmentStaker(Agent):
         self.tier_id = tier_id
         tier = get_tier(tier_id)
         self.lock_until = model.step_count + tier["lock_steps"] if tier["lock_steps"] > 0 else 0
+
+        # --- Credit expiry (FIFO batches) ---
+        self.credit_expiry_enabled = credit_expiry_enabled
+        self.credit_expiry_weeks = credit_expiry_weeks
+        self.credit_batches = deque()  # (step_created, amount) tuples
+        self.total_expired = 0.0
 
         # --- Tracking ---
         self.credits = 0.0
@@ -119,7 +128,25 @@ class EndowmentStaker(Agent):
         """Generate weekly credits based on APY."""
         new_credits = self.weekly_credit_rate
         self.credits += new_credits
+        if self.credit_expiry_enabled:
+            self.credit_batches.append((self.model.step_count, new_credits))
         return new_credits
+
+    def _expire_old_credits(self):
+        """Expire credit batches older than expiry window (FIFO)."""
+        if not self.credit_expiry_enabled:
+            return
+        current_step = self.model.step_count
+        while self.credit_batches:
+            step_created, amount = self.credit_batches[0]
+            if current_step - step_created > self.credit_expiry_weeks:
+                self.credit_batches.popleft()
+                self.credits -= amount
+                self.total_expired += amount
+                if self.credits < 0:
+                    self.credits = 0
+            else:
+                break
 
     def _should_deploy(self) -> bool:
         """
@@ -128,7 +155,7 @@ class EndowmentStaker(Agent):
         Factors:
         - engagement (P): base probability
         - credit accumulation pressure (E): more credits = more likely to deploy
-        - satisfaction (P×E): low satisfaction reduces activity
+        - satisfaction (P*E): low satisfaction reduces activity
         """
         if self.credits <= 0:
             return False
@@ -146,7 +173,8 @@ class EndowmentStaker(Agent):
         # Satisfaction dampening
         sat_factor = 0.3 + (0.7 * self.satisfaction)  # floor at 30%
 
-        final_prob = min((base_prob + pressure_boost) * sat_factor, 0.95)
+        deploy_scale = self.model.deploy_probability / 0.3
+        final_prob = min((base_prob + pressure_boost) * sat_factor * deploy_scale, 0.95)
         return random.random() < final_prob
 
     def _select_proposal(self, open_proposals: list):
@@ -198,6 +226,18 @@ class EndowmentStaker(Agent):
         # Apply deployment
         self.credits -= amount
         self.total_deployed += amount
+
+        # Consume from oldest batches first (FIFO)
+        if self.credit_expiry_enabled:
+            remaining = amount
+            while remaining > 0 and self.credit_batches:
+                step_created, batch_amount = self.credit_batches[0]
+                if batch_amount <= remaining:
+                    self.credit_batches.popleft()
+                    remaining -= batch_amount
+                else:
+                    self.credit_batches[0] = (step_created, batch_amount - remaining)
+                    remaining = 0
 
         # Burn RSC
         burn_amount = min(rsc_backing, self.stake * 0.1)
@@ -265,14 +305,18 @@ class EndowmentStaker(Agent):
     def step(self):
         """
         Each step:
-        1. Generate credits
-        2. Decide whether to deploy (behavioral)
-        3. Select proposal and deploy amount (behavioral)
-        4. Update satisfaction
-        5. Check churn
+        1. Expire old credits (if enabled)
+        2. Generate credits
+        3. Decide whether to deploy (behavioral)
+        4. Select proposal and deploy amount (behavioral)
+        5. Update satisfaction
+        6. Check churn
         """
         if not self.active:
             return
+
+        # Expire old credits first
+        self._expire_old_credits()
 
         # Generate credits
         self.generate_credits()
@@ -328,6 +372,7 @@ class EndowmentStaker(Agent):
             "weekly_rate": round(self.weekly_credit_rate, 2),
             "total_deployed": round(self.total_deployed, 2),
             "total_burned": round(self.total_burned, 2),
+            "total_expired": round(self.total_expired, 2),
             "deployments_count": len(self.deployments),
             "idle_steps": self.consecutive_idle_steps,
             # Canvas visualization fields
@@ -345,7 +390,7 @@ class EndowmentProposal:
     """
     A research funding proposal.
 
-    Unchanged from original — system mechanics are correct.
+    Unchanged from original -- system mechanics are correct.
     """
 
     def __init__(self, unique_id: int, model, funding_target: int = None):

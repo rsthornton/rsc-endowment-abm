@@ -37,6 +37,12 @@ class EndowmentModel(Model):
         deploy_probability: float = None,
         archetype_mix: dict = None,
         seed: int = None,
+        # Design Lab params
+        credit_expiry_enabled: bool = False,
+        credit_expiry_weeks: int = 8,
+        failure_mode: str = "nothing",
+        min_stake_enabled: bool = False,
+        min_stake_amount: int = 1000,
     ):
         super().__init__()
 
@@ -53,6 +59,13 @@ class EndowmentModel(Model):
         self.deploy_probability = deploy_probability if deploy_probability is not None else DEFAULT_PARAMS["deploy_probability"]
         self.archetype_mix = archetype_mix or DEFAULT_ARCHETYPE_MIX
 
+        # Design Lab params
+        self.credit_expiry_enabled = credit_expiry_enabled
+        self.credit_expiry_weeks = credit_expiry_weeks
+        self.failure_mode = failure_mode  # "nothing", "partial_refund", "satisfaction_only"
+        self.min_stake_enabled = min_stake_enabled
+        self.min_stake_amount = min_stake_amount
+
         num_proposals = num_proposals or DEFAULT_PARAMS["num_proposals"]
 
         # Tracking
@@ -62,6 +75,11 @@ class EndowmentModel(Model):
         self.total_credits_deployed = 0.0
         self.events = []
         self._proposal_counter = 0
+
+        # Per-step tracking
+        self._step_credits_generated = 0.0
+        self._step_credits_deployed = 0.0
+        self._step_churn_count = 0
 
         # Create stakers with archetype distribution
         self.stakers = []
@@ -77,8 +95,21 @@ class EndowmentModel(Model):
 
         for archetype_id, count in archetype_counts.items():
             for _ in range(count):
-                staker = EndowmentStaker(self, archetype=archetype_id)
+                staker = EndowmentStaker(
+                    self,
+                    archetype=archetype_id,
+                    credit_expiry_enabled=self.credit_expiry_enabled,
+                    credit_expiry_weeks=self.credit_expiry_weeks,
+                )
                 self.stakers.append(staker)
+
+        # Min stake filter
+        if self.min_stake_enabled:
+            before = len(self.stakers)
+            self.stakers = [s for s in self.stakers if s.stake >= self.min_stake_amount]
+            filtered = before - len(self.stakers)
+            if filtered > 0:
+                self.num_stakers = len(self.stakers)
 
         # Create initial proposals
         self.proposals = []
@@ -104,11 +135,26 @@ class EndowmentModel(Model):
                 "Funded_Proposals": lambda m: len([p for p in m.proposals if p.status == "funded"]),
                 "Completed_Proposals": lambda m: len([p for p in m.proposals if p.status == "completed"]),
                 "Failed_Proposals": lambda m: len([p for p in m.proposals if p.status == "failed"]),
+                # New reporters for chart views
+                "Sat_Believer": lambda m: m._avg_sat_for_archetype("believer"),
+                "Sat_YieldSeeker": lambda m: m._avg_sat_for_archetype("yield_seeker"),
+                "Sat_Governance": lambda m: m._avg_sat_for_archetype("governance"),
+                "Sat_Speculator": lambda m: m._avg_sat_for_archetype("speculator"),
+                "Credits_Generated_Step": lambda m: m._step_credits_generated,
+                "Credits_Deployed_Step": lambda m: m._step_credits_deployed,
+                "Churn_Step": lambda m: m._step_churn_count,
             },
         )
 
         self.datacollector.collect(self)
         self.log_event("init", f"Model initialized with {self.num_stakers} stakers, {num_proposals} proposals")
+
+    def _avg_sat_for_archetype(self, archetype_id: str) -> float:
+        """Get average satisfaction for an archetype."""
+        active = [s for s in self.stakers if s.archetype == archetype_id and s.active]
+        if not active:
+            return 0.0
+        return round(sum(s.satisfaction for s in active) / len(active), 3)
 
     def next_proposal_id(self) -> int:
         """Get next proposal ID."""
@@ -135,6 +181,29 @@ class EndowmentModel(Model):
             if proposal.step_funded is not None and self.step_count > proposal.step_funded:
                 success = random.random() < self.success_rate
                 proposal.resolve(success)
+
+                # Failure mode handling
+                if not success and self.failure_mode != "nothing":
+                    if self.failure_mode == "partial_refund":
+                        # Return 50% of credits to backers
+                        for staker_id, credits in proposal.backers.items():
+                            staker = next(
+                                (s for s in self.stakers if s.unique_id == staker_id),
+                                None,
+                            )
+                            if staker and staker.active:
+                                refund = credits * 0.5
+                                staker.credits += refund
+                    elif self.failure_mode == "satisfaction_only":
+                        # Extra 15% satisfaction penalty to backers
+                        for staker_id in proposal.backers:
+                            staker = next(
+                                (s for s in self.stakers if s.unique_id == staker_id),
+                                None,
+                            )
+                            if staker and staker.active:
+                                staker.satisfaction *= 0.85
+                                staker.satisfaction = max(0.1, staker.satisfaction)
 
     def maybe_spawn_proposal(self):
         """Maybe spawn a new proposal if too few are open."""
@@ -212,20 +281,30 @@ class EndowmentModel(Model):
         """Advance model by one step (week)."""
         self.step_count += 1
 
+        # Reset per-step counters
+        self._step_credits_generated = 0.0
+        self._step_credits_deployed = 0.0
+        self._step_churn_count = 0
+
         # Track pre-step values
         pre_credits = sum(s.credits for s in self.stakers)
         pre_deployed = self.total_credits_deployed
+        pre_churned = len([s for s in self.stakers if not s.active])
 
         # Agents take actions (generate credits, maybe deploy)
-        # Mesa 3.x: use agents.shuffle_do() instead of scheduler
         self.agents.shuffle_do("step")
 
         # Track post-step values
         post_credits = sum(s.credits for s in self.stakers)
         deployed_this_step = sum(s.total_deployed for s in self.stakers) - pre_deployed
+        post_churned = len([s for s in self.stakers if not s.active])
 
         # Update totals
-        self.total_credits_generated += (post_credits - pre_credits + deployed_this_step)
+        self._step_credits_generated = (post_credits - pre_credits + deployed_this_step)
+        self._step_credits_deployed = deployed_this_step
+        self._step_churn_count = post_churned - pre_churned
+
+        self.total_credits_generated += self._step_credits_generated
         self.total_credits_deployed = sum(s.total_deployed for s in self.stakers)
         self.total_burned = sum(s.total_burned for s in self.stakers)
 
@@ -320,6 +399,10 @@ class EndowmentModel(Model):
             "archetype_distribution": self.get_archetype_distribution(),
             "archetype_metrics": self.get_archetype_metrics(),
             "step_deployments": self.get_step_deployments(),
+            # Per-step data for frontend charts
+            "credits_generated_step": round(self._step_credits_generated, 2),
+            "credits_deployed_step": round(self._step_credits_deployed, 2),
+            "churn_step": self._step_churn_count,
             "params": {
                 "base_apy": self.base_apy,
                 "burn_rate": self.burn_rate,
@@ -328,5 +411,10 @@ class EndowmentModel(Model):
                 "funding_target_min": self.funding_target_min,
                 "funding_target_max": self.funding_target_max,
                 "archetype_mix": self.archetype_mix,
+                "credit_expiry_enabled": self.credit_expiry_enabled,
+                "credit_expiry_weeks": self.credit_expiry_weeks,
+                "failure_mode": self.failure_mode,
+                "min_stake_enabled": self.min_stake_enabled,
+                "min_stake_amount": self.min_stake_amount,
             },
         }

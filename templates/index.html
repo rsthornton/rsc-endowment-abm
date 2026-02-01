@@ -29,35 +29,56 @@
             font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
             background: var(--bg);
             color: var(--text);
-            padding: 24px;
             line-height: 1.5;
+            min-width: 1200px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
         }
 
-        .container { max-width: 1400px; margin: 0 auto; }
-
-        header { margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
-        h1 {
+        /* ==================== SIDEBAR ==================== */
+        .sidebar {
+            width: 320px;
+            min-width: 320px;
+            height: 100vh;
+            overflow-y: auto;
+            background: var(--bg-alt);
+            border-right: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .sidebar-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+        .sidebar-header h1 {
             color: var(--accent);
-            font-size: 20px;
+            font-size: 15px;
             font-weight: 600;
             letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
-        .subtitle { color: var(--text-muted); font-size: 13px; }
+        .sidebar-header .subtitle {
+            color: var(--text-muted);
+            font-size: 10px;
+            line-height: 1.4;
+        }
 
+        /* Controls */
         .controls {
-            display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;
-            align-items: center;
+            display: flex; gap: 6px; flex-wrap: wrap;
         }
         button {
             background: var(--bg-card);
             color: var(--text);
             border: 1px solid var(--border-light);
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
             transition: all 0.15s;
         }
         button:hover {
@@ -74,154 +95,53 @@
         button.primary:hover { background: #d4ad32; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        .status-badges {
+            display: flex; gap: 6px; flex-wrap: wrap;
+        }
         .step-badge {
             background: var(--bg-panel);
-            padding: 8px 16px;
+            padding: 4px 10px;
             border-radius: 4px;
             border: 1px solid var(--border);
-            font-size: 12px;
+            font-size: 10px;
             color: var(--text-muted);
         }
         .step-badge span { color: var(--accent); font-weight: 600; }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 16px;
-        }
-
-        .card {
-            background: var(--bg-card);
+        /* Sidebar Sections */
+        .sidebar-section {
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
+            border-radius: 6px;
+            background: var(--bg-card);
         }
-        .card-header {
-            font-size: 11px;
+        .sidebar-section-header {
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--text-muted);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .span-3 { grid-column: span 3; }
-        .span-4 { grid-column: span 4; }
-        .span-6 { grid-column: span 6; }
-        .span-8 { grid-column: span 8; }
-        .span-12 { grid-column: span 12; }
-        @media (max-width: 1000px) {
-            .span-3, .span-4, .span-6, .span-8 { grid-column: span 12; }
-        }
-
-        .metrics-row { display: flex; gap: 16px; flex-wrap: wrap; }
-        .metric {
-            flex: 1; min-width: 100px;
-            text-align: center;
-            padding: 12px;
-            background: var(--bg-panel);
-            border-radius: 4px;
-        }
-        .metric-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--accent);
-            font-family: 'SF Mono', monospace;
-        }
-        .metric-label {
-            font-size: 10px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 4px;
-        }
-
-        .tier-bar {
-            display: flex; height: 24px; border-radius: 4px; overflow: hidden;
-            margin-bottom: 12px; border: 1px solid var(--border);
-        }
-        .tier-segment {
-            display: flex; align-items: center; justify-content: center;
-            font-size: 10px; font-weight: 600; color: #000;
-        }
-        .tier-flexible { background: #536471; }
-        .tier-3month { background: #4a9eff; }
-        .tier-6month { background: #7856ff; }
-        .tier-12month { background: var(--accent); }
-
-        .tier-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; }
-        .tier-legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
-        .tier-dot { width: 8px; height: 8px; border-radius: 2px; }
-
-        .list { max-height: 280px; overflow-y: auto; }
-        .list-item {
-            background: var(--bg-panel);
             padding: 10px 12px;
-            border-radius: 4px;
-            margin-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
+            user-select: none;
         }
-        .list-item:last-child { margin-bottom: 0; }
+        .sidebar-section-header:hover { color: var(--text); }
+        .sidebar-section-header .toggle { font-size: 8px; color: var(--text-dim); }
+        .sidebar-section-body { padding: 12px; }
+        .sidebar-section-body.collapsed { display: none; }
 
-        .proposal-id { font-weight: 600; color: var(--text); font-family: monospace; }
-        .progress-bar {
-            width: 80px; height: 4px;
-            background: var(--border-light);
-            border-radius: 2px;
-            margin: 0 12px;
-            overflow: hidden;
-        }
-        .progress-fill { height: 100%; background: var(--success); border-radius: 2px; }
-
-        .status { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .status-open { color: var(--info); }
-        .status-funded { color: var(--success); }
-        .status-completed { color: var(--success); }
-        .status-failed { color: var(--danger); }
-
-        .event {
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 12px;
-        }
-        .event:last-child { border-bottom: none; }
-        .event-step {
-            color: var(--text-dim);
-            font-family: monospace;
-            margin-right: 8px;
-        }
-        .event-type {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-right: 8px;
-        }
-        .event-type.funded { background: rgba(80,200,120,0.2); color: var(--success); }
-        .event-type.completed { background: rgba(80,200,120,0.2); color: var(--success); }
-        .event-type.failed { background: rgba(224,85,85,0.2); color: var(--danger); }
-        .event-type.new_proposal { background: rgba(74,158,255,0.2); color: var(--info); }
-        .event-type.init { background: rgba(201,162,39,0.2); color: var(--accent); }
-        .event-type.churn { background: rgba(224,85,85,0.15); color: #c07070; }
-
-        .chart-container { height: 180px; }
-
-        /* Parameter Sliders */
+        /* Param Sliders (sidebar = single column) */
         .param-sliders {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            grid-template-columns: 1fr;
+            gap: 10px;
         }
         .slider-group {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
         .slider-header {
             display: flex;
@@ -251,19 +171,15 @@
             font-size: 9px;
             color: var(--text-dim);
         }
-        .apply-params {
-            margin-top: 12px;
-            width: 100%;
-        }
 
-        /* Archetype section */
+        /* Archetype bar */
         .archetype-bar {
-            display: flex; height: 24px; border-radius: 4px; overflow: hidden;
-            margin-bottom: 12px; border: 1px solid var(--border);
+            display: flex; height: 20px; border-radius: 4px; overflow: hidden;
+            margin-bottom: 8px; border: 1px solid var(--border);
         }
         .arch-segment {
             display: flex; align-items: center; justify-content: center;
-            font-size: 10px; font-weight: 600; color: #000;
+            font-size: 9px; font-weight: 600; color: #000;
             transition: width 0.3s;
         }
         .arch-believer { background: var(--success); }
@@ -271,17 +187,393 @@
         .arch-governance { background: var(--purple); }
         .arch-speculator { background: var(--danger); }
 
-        .arch-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; margin-bottom: 12px; }
-        .arch-legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
-        .arch-dot { width: 8px; height: 8px; border-radius: 2px; }
+        .arch-legend { display: flex; gap: 8px; flex-wrap: wrap; font-size: 10px; margin-bottom: 8px; }
+        .arch-legend-item { display: flex; align-items: center; gap: 4px; color: var(--text-muted); }
+        .arch-dot { width: 6px; height: 6px; border-radius: 2px; }
 
+        .apply-params {
+            margin-top: 8px;
+            width: 100%;
+        }
+        .btn-row { display: flex; gap: 6px; margin-top: 8px; }
+        .btn-row button { flex: 1; }
+
+        /* Design Lab */
+        .design-toggle-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 0; font-size: 11px;
+        }
+        .design-toggle-row label { color: var(--text-muted); cursor: pointer; }
+        .design-hint { font-size: 9px; color: var(--text-dim); margin-bottom: 8px; }
+        select {
+            background: var(--bg-panel);
+            color: var(--text);
+            border: 1px solid var(--border-light);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 11px;
+            width: 100%;
+        }
+        input[type="checkbox"] {
+            accent-color: var(--accent);
+        }
+
+        /* Education (sidebar collapsible) */
+        .edu-section {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+        }
+        .edu-section:last-child { border-bottom: none; }
+        .edu-section h3 {
+            font-size: 11px;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+        .edu-section p, .edu-section li {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .edu-section ul, .edu-section ol {
+            margin-left: 16px;
+            margin-top: 4px;
+        }
+        .edu-section li { margin-bottom: 2px; }
+        .edu-section strong { color: var(--text); }
+
+        /* Design Questions in sidebar */
+        .question {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .question:last-child { border-bottom: none; }
+        .question-text { font-size: 11px; color: var(--text); margin-bottom: 4px; }
+        .question-current {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+        .question-current span { color: var(--accent); }
+
+        /* ==================== MAIN AREA ==================== */
+        .main {
+            flex: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Pinned Metrics Bar */
+        .metrics-bar {
+            display: flex;
+            gap: 2px;
+            padding: 8px 16px;
+            background: var(--bg-alt);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .metric {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            background: var(--bg-panel);
+            border-radius: 4px;
+            position: relative;
+            cursor: help;
+            transition: transform 0.15s;
+        }
+        .metric.pulse {
+            animation: metric-pulse 0.3s ease-out;
+        }
+        @keyframes metric-pulse {
+            0% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .metric-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'SF Mono', monospace;
+            transition: color 0.4s ease;
+        }
+        .metric-label {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+        .metric[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 100;
+            border: 1px solid var(--border-light);
+            margin-bottom: 4px;
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            background: var(--bg-alt);
+            border-bottom: 1px solid var(--border);
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            padding: 10px 16px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            color: var(--text);
+            background: transparent;
+            border-color: transparent;
+        }
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: transparent;
+        }
+
+        /* Tab Content Area */
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .tab-pane { display: none; height: 100%; }
+        .tab-pane.active { display: flex; flex-direction: column; gap: 16px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .card-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Sim Canvas */
+        .sim-canvas-wrap {
+            position: relative;
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #080808;
+            flex: 1;
+            min-height: 400px;
+        }
+        .agent-grid {
+            display: grid;
+            gap: 3px;
+            padding: 24px;
+            width: 100%;
+            height: 100%;
+            align-content: center;
+            justify-content: center;
+        }
+        .agent-cell {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.4s, box-shadow 0.4s;
+        }
+        .agent-cell:hover {
+            outline: 1.5px solid rgba(255,255,255,0.8);
+            outline-offset: 1px;
+            z-index: 1;
+        }
+        .agent-cell.churned {
+            opacity: 0.06 !important;
+            cursor: default;
+        }
+        .agent-cell.deploy-flash {
+            animation: cell-flash 0.5s ease-out;
+        }
+        @keyframes cell-flash {
+            0% { box-shadow: inset 0 0 14px rgba(255,255,255,0.8), 0 0 6px rgba(255,255,255,0.4); }
+            100% { box-shadow: none; }
+        }
+        /* Canvas tooltip */
+        .canvas-tooltip {
+            display: none;
+            position: absolute;
+            background: rgba(20,20,20,0.95);
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            padding: 8px 10px;
+            font-size: 10px;
+            pointer-events: none;
+            z-index: 50;
+            max-width: 200px;
+            line-height: 1.5;
+        }
+        .canvas-tooltip .tt-id { color: var(--accent); font-weight: 600; }
+        .canvas-tooltip .tt-label { color: var(--text-muted); }
+        .canvas-tooltip .tt-val { color: var(--text); }
+        /* Canvas legend */
+        .canvas-legend {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10,10,10,0.85);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px 14px;
+            font-size: 10px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            z-index: 40;
+            white-space: nowrap;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+        .legend-divider { width: 1px; height: 14px; background: var(--border); margin: 0; }
+        .legend-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .legend-encoding { color: var(--text-dim); font-size: 9px; }
+
+        /* Chart views */
+        .chart-view-switcher {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .chart-view-btn {
+            background: transparent;
+            border: none;
+            border-right: 1px solid var(--border-light);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            font-size: 10px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .chart-view-btn:last-child { border-right: none; }
+        .chart-view-btn:hover { color: var(--text); }
+        .chart-view-btn.active {
+            background: var(--accent);
+            color: #000;
+            font-weight: 600;
+        }
+        .chart-container { height: 280px; }
+
+        /* Tier bars */
+        .tier-bar {
+            display: flex; height: 24px; border-radius: 4px; overflow: hidden;
+            margin-bottom: 12px; border: 1px solid var(--border);
+        }
+        .tier-segment {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 600; color: #000;
+        }
+        .tier-flexible { background: #536471; }
+        .tier-3month { background: #4a9eff; }
+        .tier-6month { background: #7856ff; }
+        .tier-12month { background: var(--accent); }
+        .tier-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; }
+        .tier-legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+        .tier-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+        /* Proposals list */
+        .list { max-height: 400px; overflow-y: auto; }
+        .list-item {
+            background: var(--bg-panel);
+            padding: 10px 12px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+        .list-item:last-child { margin-bottom: 0; }
+        .proposal-id { font-weight: 600; color: var(--text); font-family: monospace; }
+        .progress-bar {
+            width: 80px; height: 4px;
+            background: var(--border-light);
+            border-radius: 2px;
+            margin: 0 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .progress-fill { height: 100%; background: var(--success); border-radius: 2px; }
+        .progress-pct { font-size: 10px; color: var(--text-dim); min-width: 32px; text-align: right; }
+        .status { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-open { color: var(--info); }
+        .status-funded { color: var(--success); }
+        .status-completed { color: var(--success); }
+        .status-failed { color: var(--danger); }
+
+        /* Events */
+        .event {
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+        .event:last-child { border-bottom: none; }
+        .event-step {
+            color: var(--text-dim);
+            font-family: monospace;
+            margin-right: 8px;
+        }
+        .event-type {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 8px;
+        }
+        .event-type.funded { background: rgba(80,200,120,0.2); color: var(--success); }
+        .event-type.completed { background: rgba(80,200,120,0.2); color: var(--success); }
+        .event-type.failed { background: rgba(224,85,85,0.2); color: var(--danger); }
+        .event-type.new_proposal { background: rgba(74,158,255,0.2); color: var(--info); }
+        .event-type.init { background: rgba(201,162,39,0.2); color: var(--accent); }
+        .event-type.churn { background: rgba(224,85,85,0.15); color: #c07070; }
+
+        /* Archetype metrics grid */
         .arch-metrics-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
             font-size: 11px;
         }
-        @media (max-width: 800px) {
+        @media (max-width: 1600px) {
             .arch-metrics-grid { grid-template-columns: repeat(2, 1fr); }
         }
         .arch-metric-card {
@@ -306,28 +598,7 @@
         .arch-stat { display: flex; justify-content: space-between; color: var(--text-muted); padding: 2px 0; }
         .arch-stat-val { color: var(--text); font-family: monospace; }
 
-        .questions-section { margin-top: 24px; }
-        .question {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-        }
-        .question-text { font-size: 13px; color: var(--text); margin-bottom: 6px; }
-        .question-current {
-            font-size: 11px;
-            color: var(--text-dim);
-        }
-        .question-current span { color: var(--accent); }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
-
-        /* Round Narrative */
+        /* Narrative */
         .narrative { font-size: 13px; line-height: 1.7; }
         .narrative-placeholder { color: var(--text-dim); font-style: italic; }
         .narrative-highlight { color: var(--accent); font-weight: 600; }
@@ -337,12 +608,12 @@
         .narrative p:last-child { margin-bottom: 0; }
 
         /* Agent Inspector */
-        .agent-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .agent-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
         .agent-tab {
             background: transparent;
             border: 1px solid var(--border);
-            padding: 6px 12px;
-            font-size: 11px;
+            padding: 5px 10px;
+            font-size: 10px;
         }
         .agent-tab.active {
             background: var(--accent);
@@ -365,6 +636,8 @@
             letter-spacing: 0.5px;
             font-weight: 500;
             border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
         }
         .agent-table td {
             padding: 8px;
@@ -372,7 +645,8 @@
         }
         .agent-table tr:hover { background: var(--bg-hover); }
         .agent-table tr.churned { opacity: 0.5; }
-        .agent-id { font-family: monospace; color: var(--accent); font-weight: 600; }
+        .agent-table tr.highlighted { background: rgba(201,162,39,0.1); outline: 1px solid var(--accent); }
+        .agent-id { font-family: monospace; color: var(--accent); font-weight: 600; cursor: pointer; }
         .tier-badge {
             display: inline-block;
             padding: 2px 6px;
@@ -409,213 +683,206 @@
             transition: width 0.3s;
         }
 
-        /* Education Section */
-        .education-content { display: block; padding-top: 16px; }
-        .education-content.collapsed { display: none; }
-        .edu-flow {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            justify-content: center;
+        /* Scenario Compare */
+        .scenario-table {
+            width: 100%;
+            font-size: 11px;
+            border-collapse: collapse;
         }
-        .flow-step {
-            flex: 1;
-            min-width: 160px;
-            max-width: 200px;
-            background: var(--bg-panel);
-            padding: 16px;
-            border-radius: 8px;
-            text-align: center;
+        .scenario-table th, .scenario-table td {
+            padding: 6px 10px;
             border: 1px solid var(--border);
+            text-align: right;
         }
-        .flow-icon { font-size: 28px; margin-bottom: 8px; }
-        .flow-title { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 6px; }
-        .flow-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
-        .flow-arrow {
-            color: var(--text-dim);
-            font-size: 24px;
-            padding-top: 30px;
-        }
-        @media (max-width: 800px) {
-            .flow-arrow { display: none; }
-            .edu-flow { flex-direction: column; align-items: center; }
-        }
-        .edu-section {
+        .scenario-table th {
             background: var(--bg-panel);
-            padding: 16px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .scenario-table th:first-child, .scenario-table td:first-child { text-align: left; }
+        .scenario-name-input {
+            background: var(--bg-panel);
+            color: var(--text);
+            border: 1px solid var(--border-light);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 11px;
+            width: 100%;
+        }
+
+        /* Summary panel */
+        .summary-panel {
+            background: var(--bg-panel);
             border-radius: 6px;
-            margin-bottom: 16px;
+            padding: 16px;
             border-left: 3px solid var(--accent);
         }
-        .edu-section:last-child { margin-bottom: 0; }
-        .edu-section h3 {
-            font-size: 13px;
-            color: var(--accent);
-            margin-bottom: 10px;
+        .summary-delta {
+            display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px;
         }
-        .edu-section p, .edu-section li {
-            font-size: 12px;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-        .edu-section ul, .edu-section ol {
-            margin-left: 20px;
-            margin-top: 8px;
-        }
-        .edu-section li { margin-bottom: 4px; }
-        .edu-section strong { color: var(--text); }
-
-        /* Sim Canvas */
-        .sim-canvas-wrap {
-            position: relative;
-            width: 100%;
-            border-radius: 6px;
-            overflow: hidden;
-            background: #080808;
-        }
-        .sim-canvas-wrap canvas {
-            display: block;
-            width: 100%;
-        }
-
-        /* Tooltips */
-        .metric[data-tooltip] {
-            position: relative;
-            cursor: help;
-        }
-        .metric[data-tooltip]:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #222;
-            color: var(--text);
-            padding: 8px 12px;
+        .delta-label { color: var(--text-muted); }
+        .delta-pos { color: var(--success); }
+        .delta-neg { color: var(--danger); }
+        .tension-warning {
+            margin-top: 8px; padding: 8px;
+            background: rgba(224,85,85,0.1);
             border-radius: 4px;
+            border: 1px solid rgba(224,85,85,0.3);
             font-size: 11px;
-            white-space: nowrap;
-            z-index: 100;
-            border: 1px solid var(--border-light);
+            color: var(--danger);
         }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+        /* Two-column layout inside tabs */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .three-col { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; }
+        @media (max-width: 1400px) {
+            .two-col, .three-col { grid-template-columns: 1fr; }
+        }
+
+        /* Scenario comparison modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-body {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .modal-close:hover { color: var(--text); }
+
+        /* Metrics detail toggle */
+        .detail-toggle {
+            color: var(--text-muted);
+            font-size: 11px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .detail-toggle:hover { color: var(--text); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
+    <!-- ==================== SIDEBAR ==================== -->
+    <div class="sidebar">
+        <div class="sidebar-header">
             <h1>RSC DECENTRALIZED ENDOWMENT</h1>
-            <div class="subtitle">Stake RSC &rarr; Earn Credits (APY) &rarr; Deploy to Proposals &rarr; 2% Burn</div>
-        </header>
+            <div class="subtitle">Stake RSC &rarr; Earn Funding Credits &rarr; Deploy to Research Proposals</div>
+        </div>
 
+        <!-- Controls -->
         <div class="controls">
             <button class="primary" onclick="step()">Step</button>
             <button onclick="run(10)">Run 10</button>
             <button onclick="run(52)">Run 1 Year</button>
             <button onclick="resetWithParams()">Reset</button>
+        </div>
+
+        <!-- Status Badges -->
+        <div class="status-badges">
             <div class="step-badge">Week <span id="step-count">0</span></div>
             <div class="step-badge">Active <span id="active-count">0</span> / <span id="total-count">0</span></div>
             <div class="step-badge">Satisfaction <span id="avg-sat">1.00</span></div>
         </div>
 
-        <div class="grid">
-            <!-- Key Metrics -->
-            <div class="card span-12">
-                <div class="card-header">Key Metrics</div>
-                <div class="metrics-row">
-                    <div class="metric" data-tooltip="Total RSC locked by active stakers">
-                        <div class="metric-value" id="total-staked">0</div>
-                        <div class="metric-label">RSC Staked</div>
-                    </div>
-                    <div class="metric" data-tooltip="Accumulated funding power (not tradeable)">
-                        <div class="metric-value" id="total-credits">0</div>
-                        <div class="metric-label">Credits</div>
-                    </div>
-                    <div class="metric" data-tooltip="RSC permanently removed via 2% burn">
-                        <div class="metric-value" id="total-burned">0</div>
-                        <div class="metric-label">Burned</div>
-                    </div>
-                    <div class="metric" data-tooltip="New credits generated this week (stake x APY)">
-                        <div class="metric-value" id="credit-rate">0</div>
-                        <div class="metric-label">Credits/Wk</div>
-                    </div>
-                    <div class="metric" data-tooltip="Credits spent on proposals this week">
-                        <div class="metric-value" id="deployment-rate">0</div>
-                        <div class="metric-label">Deployed/Wk</div>
-                    </div>
-                    <div class="metric" data-tooltip="Stakers who left the system (low satisfaction)">
-                        <div class="metric-value" id="churned-count" style="color:var(--danger)">0</div>
-                        <div class="metric-label">Churned</div>
-                    </div>
-                    <div class="metric" data-tooltip="% of funded proposals that completed">
-                        <div class="metric-value" id="success-rate">&mdash;</div>
-                        <div class="metric-label">Success Rate</div>
-                    </div>
-                </div>
+        <!-- Parameters -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" onclick="toggleSection(this)">
+                Parameters <span class="toggle">&#9660;</span>
             </div>
-
-            <!-- Agent Visualization Canvas -->
-            <div class="card span-12">
-                <div class="card-header">Agent Field (archetype behavior at a glance)</div>
-                <div class="sim-canvas-wrap">
-                    <canvas id="sim-canvas"></canvas>
-                </div>
-            </div>
-
-            <!-- Parameter Controls -->
-            <div class="card span-6">
-                <div class="card-header">Parameters (adjust & reset)</div>
+            <div class="sidebar-section-body">
                 <div class="param-sliders">
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label">Base APY</span>
-                            <span class="slider-value" id="val-apy">10%</span>
+                            <span class="slider-label">Yield</span>
+                            <span class="slider-value" id="val-yield">10%</span>
                         </div>
-                        <input type="range" id="slider-apy" min="1" max="30" value="10" step="1"
-                            oninput="document.getElementById('val-apy').textContent=this.value+'%'">
-                        <div class="slider-hint">Higher APY = more credits = faster funding</div>
+                        <input type="range" id="slider-yield" min="1" max="25" value="10" step="1"
+                            oninput="document.getElementById('val-yield').textContent=this.value+'%'">
+                        <div class="slider-hint">Annual return paid to stakers as funding credits. Higher yield = more credits flowing into the system.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label">Burn Rate</span>
-                            <span class="slider-value" id="val-burn">2%</span>
+                            <span class="slider-label">Deploy Rate</span>
+                            <span class="slider-value" id="val-deploy">30%</span>
                         </div>
-                        <input type="range" id="slider-burn" min="0" max="10" value="2" step="0.5"
-                            oninput="document.getElementById('val-burn').textContent=this.value+'%'">
-                        <div class="slider-hint">Higher burn = more deflation, higher cost</div>
+                        <input type="range" id="slider-deploy" min="0" max="100" value="30" step="5"
+                            oninput="document.getElementById('val-deploy').textContent=this.value+'%'">
+                        <div class="slider-hint">How actively stakers fund proposals with their credits. Low = credits pile up. High = credits flow to research.</div>
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Proposal Success</span>
+                            <span class="slider-value" id="val-success">80%</span>
+                        </div>
+                        <input type="range" id="slider-success" min="20" max="100" value="80" step="5"
+                            oninput="document.getElementById('val-success').textContent=this.value+'%'">
+                        <div class="slider-hint">How often funded research delivers results. Low success = more churn.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
                             <span class="slider-label">Stakers</span>
                             <span class="slider-value" id="val-stakers">100</span>
                         </div>
-                        <input type="range" id="slider-stakers" min="10" max="500" value="100" step="10"
+                        <input type="range" id="slider-stakers" min="20" max="500" value="100" step="10"
                             oninput="document.getElementById('val-stakers').textContent=this.value">
-                        <div class="slider-hint">Population size</div>
-                    </div>
-                    <div class="slider-group">
-                        <div class="slider-header">
-                            <span class="slider-label">Success Rate</span>
-                            <span class="slider-value" id="val-success">80%</span>
-                        </div>
-                        <input type="range" id="slider-success" min="10" max="100" value="80" step="5"
-                            oninput="document.getElementById('val-success').textContent=this.value+'%'">
-                        <div class="slider-hint">Proposal completion probability</div>
+                        <div class="slider-hint">Total number of participants in the staking system.</div>
                     </div>
                 </div>
-                <button class="primary apply-params" onclick="resetWithParams()">Apply & Reset</button>
+                <div class="btn-row">
+                    <button class="primary" onclick="resetWithParams()">Apply & Reset</button>
+                    <button onclick="resetSliders()">Defaults</button>
+                </div>
             </div>
+        </div>
 
-            <!-- Archetype Mix -->
-            <div class="card span-6">
-                <div class="card-header">Archetype Mix (adjust population composition)</div>
+        <!-- Archetype Mix -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" onclick="toggleSection(this)">
+                Archetype Mix <span class="toggle">&#9660;</span>
+            </div>
+            <div class="sidebar-section-body">
                 <div class="archetype-bar" id="arch-bar"></div>
                 <div class="arch-legend">
                     <div class="arch-legend-item"><div class="arch-dot" style="background:var(--success)"></div> Believer</div>
-                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--accent)"></div> Yield Seeker</div>
-                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--purple)"></div> Governance</div>
-                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--danger)"></div> Speculator</div>
+                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--accent)"></div> Yield</div>
+                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--purple)"></div> Gov</div>
+                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--danger)"></div> Spec</div>
                 </div>
                 <div class="param-sliders">
                     <div class="slider-group">
@@ -623,553 +890,432 @@
                             <span class="slider-label" style="color:var(--success)">Believers</span>
                             <span class="slider-value" id="val-believer">25%</span>
                         </div>
-                        <input type="range" id="slider-believer" min="0" max="100" value="25" step="5"
-                            oninput="updateArchMixPreview()">
-                        <div class="slider-hint">Mission-aligned, long locks, active deployers</div>
+                        <input type="range" id="slider-believer" min="5" max="85" value="25" step="5"
+                            oninput="handleArchSliderChange('believer')">
+                        <div class="slider-hint">Mission-driven. Deploy eagerly, back risky research, stick around.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
                             <span class="slider-label" style="color:var(--accent)">Yield Seekers</span>
                             <span class="slider-value" id="val-yield_seeker">30%</span>
                         </div>
-                        <input type="range" id="slider-yield_seeker" min="0" max="100" value="30" step="5"
-                            oninput="updateArchMixPreview()">
-                        <div class="slider-hint">APY-motivated, moderate engagement</div>
+                        <input type="range" id="slider-yield_seeker" min="5" max="85" value="30" step="5"
+                            oninput="handleArchSliderChange('yield_seeker')">
+                        <div class="slider-hint">Return-focused. Deploy selectively, leave if returns disappoint.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
                             <span class="slider-label" style="color:var(--purple)">Governance</span>
                             <span class="slider-value" id="val-governance">20%</span>
                         </div>
-                        <input type="range" id="slider-governance" min="0" max="100" value="20" step="5"
-                            oninput="updateArchMixPreview()">
-                        <div class="slider-hint">Influence-focused, flexible tier, selective</div>
+                        <input type="range" id="slider-governance" min="5" max="85" value="20" step="5"
+                            oninput="handleArchSliderChange('governance')">
+                        <div class="slider-hint">Community-oriented. Moderate deployers, value ecosystem health.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
                             <span class="slider-label" style="color:var(--danger)">Speculators</span>
                             <span class="slider-value" id="val-speculator">25%</span>
                         </div>
-                        <input type="range" id="slider-speculator" min="0" max="100" value="25" step="5"
-                            oninput="updateArchMixPreview()">
-                        <div class="slider-hint">Price-driven, hoards credits, churn-prone</div>
+                        <input type="range" id="slider-speculator" min="5" max="85" value="25" step="5"
+                            oninput="handleArchSliderChange('speculator')">
+                        <div class="slider-hint">Short-term. Hoard credits, rarely deploy, first to churn.</div>
                     </div>
                 </div>
-                <div id="arch-mix-warn" style="font-size:10px;color:var(--danger);margin-top:8px;display:none"></div>
             </div>
+        </div>
 
-            <!-- Tier Distribution -->
-            <div class="card span-6">
-                <div class="card-header">Staking Tiers (driven by risk tolerance)</div>
+        <!-- Staking Tiers (moved from Time Series) -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" onclick="toggleSection(this)">
+                Staking Tiers <span class="toggle">&#9660;</span>
+            </div>
+            <div class="sidebar-section-body">
                 <div class="tier-bar" id="tier-bar"></div>
-                <div class="tier-legend">
+                <div class="tier-legend" style="gap:8px">
                     <div class="tier-legend-item"><div class="tier-dot" style="background:#536471"></div> Flexible 1x</div>
                     <div class="tier-legend-item"><div class="tier-dot" style="background:#4a9eff"></div> 3mo 1.5x</div>
                     <div class="tier-legend-item"><div class="tier-dot" style="background:#7856ff"></div> 6mo 2x</div>
                     <div class="tier-legend-item"><div class="tier-dot" style="background:#c9a227"></div> 12mo 3x</div>
                 </div>
             </div>
+        </div>
 
-            <!-- Archetype Behavioral Metrics -->
-            <div class="card span-6">
-                <div class="card-header">Archetype Behavior (per-group metrics)</div>
-                <div class="arch-metrics-grid" id="arch-metrics"></div>
+        <!-- Advanced -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" onclick="toggleSection(this)">
+                Advanced <span class="toggle">&#9654;</span>
             </div>
+            <div class="sidebar-section-body collapsed">
+                <div class="slider-group" style="margin-bottom:12px">
+                    <div class="slider-header">
+                        <span class="slider-label">Burn Rate</span>
+                        <span class="slider-value" id="val-burn">2%</span>
+                    </div>
+                    <input type="range" id="slider-burn" min="0.5" max="10" value="2" step="0.5"
+                        oninput="document.getElementById('val-burn').textContent=this.value+'%'">
+                    <div class="slider-hint">Fee burned when credits are deployed to proposals. Higher burn = more RSC removed from supply.</div>
+                </div>
+                <div class="design-toggle-row">
+                    <label><input type="checkbox" id="chk-credit-expiry" onchange="updateDesignLabState()"> Credit Expiry</label>
+                </div>
+                <div id="credit-expiry-controls" style="display:none">
+                    <div class="slider-group" style="margin-bottom:8px">
+                        <div class="slider-header">
+                            <span class="slider-label">Expiry Period</span>
+                            <span class="slider-value" id="val-expiry-weeks">8 wk</span>
+                        </div>
+                        <input type="range" id="slider-expiry-weeks" min="4" max="16" value="8" step="1"
+                            oninput="document.getElementById('val-expiry-weeks').textContent=this.value+' wk'">
+                    </div>
+                    <div class="design-hint">Unused credits expire, creating deployment urgency. Oldest credits consumed first (FIFO).</div>
+                </div>
 
-            <!-- Chart -->
-            <div class="card span-8">
-                <div class="card-header">Time Series</div>
-                <div class="chart-container">
-                    <canvas id="history-chart"></canvas>
+                <div class="design-toggle-row">
+                    <label>Failure Mode</label>
+                </div>
+                <select id="select-failure-mode" onchange="updateFailureModeHint()">
+                    <option value="nothing">Nothing (credits consumed)</option>
+                    <option value="partial_refund">Partial Refund (50% credits back)</option>
+                    <option value="satisfaction_only">Extra Satisfaction Penalty (-15%)</option>
+                </select>
+                <div class="design-hint" id="failure-mode-hint">Backers lose their deployed credits but stake is unaffected. Simple but may frustrate mission-aligned stakers.</div>
+
+                <div class="design-toggle-row" style="margin-top:8px">
+                    <label><input type="checkbox" id="chk-min-stake" onchange="updateDesignLabState()"> Min Stake</label>
+                </div>
+                <div id="min-stake-controls" style="display:none">
+                    <div class="slider-group" style="margin-bottom:8px">
+                        <div class="slider-header">
+                            <span class="slider-label">Minimum RSC</span>
+                            <span class="slider-value" id="val-min-stake">1000</span>
+                        </div>
+                        <input type="range" id="slider-min-stake" min="500" max="5000" value="1000" step="100"
+                            oninput="document.getElementById('val-min-stake').textContent=this.value">
+                    </div>
+                    <div class="design-hint">Agents below the minimum cannot stake. Filters out small speculators but reduces accessibility.</div>
                 </div>
             </div>
-
-            <!-- Proposals -->
-            <div class="card span-4">
-                <div class="card-header">Proposals</div>
-                <div class="list" id="proposals-list"></div>
-            </div>
-
-            <!-- Events -->
-            <div class="card span-12">
-                <div class="card-header">Event Log</div>
-                <div class="list" id="events-list" style="max-height: 150px;"></div>
-            </div>
         </div>
 
-        <!-- Round Narrative -->
-        <div class="card span-12" style="margin-top: 16px;">
-            <div class="card-header">This Week's Activity</div>
-            <div id="round-narrative" class="narrative">
-                <p class="narrative-placeholder">Run the simulation to see what happens each week...</p>
+        <!-- Scenario Save -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" onclick="toggleSection(this)">
+                Scenarios <span class="toggle">&#9654;</span>
             </div>
-        </div>
-
-        <!-- Agent Inspector -->
-        <div class="card span-12" style="margin-top: 16px;">
-            <div class="card-header">Agent Inspector</div>
-            <div class="agent-tabs">
-                <button class="agent-tab active" onclick="showAgentTab('top-stakers')">Top Stakers</button>
-                <button class="agent-tab" onclick="showAgentTab('recent-deployers')">Recent Deployers</button>
-                <button class="agent-tab" onclick="showAgentTab('by-archetype')">By Archetype</button>
-                <button class="agent-tab" onclick="showAgentTab('churned')">Churned</button>
-            </div>
-            <div id="agent-content" class="agent-content">
-                <div class="agent-placeholder">Loading agents...</div>
-            </div>
-        </div>
-
-        <!-- How It Works (Educational) -->
-        <div class="education-section" style="margin-top: 24px;">
-            <div class="card">
-                <div class="card-header" onclick="toggleEducation()" style="cursor: pointer;">
-                    How This Model Works <span id="edu-toggle" style="float:right;">&#9660;</span>
+            <div class="sidebar-section-body collapsed">
+                <div style="display:flex;gap:6px;margin-bottom:8px">
+                    <button onclick="saveScenario()" style="flex:1">Save Current</button>
+                    <button onclick="openScenarioModal()" style="flex:1">Compare</button>
                 </div>
-                <div id="education-content" class="education-content">
-                    <div class="edu-flow">
-                        <div class="flow-step">
-                            <div class="flow-icon">&#128176;</div>
-                            <div class="flow-title">1. Stake RSC</div>
-                            <div class="flow-desc">Stakers lock RSC and choose a tier based on their <strong>risk tolerance</strong>. Longer locks = higher APY multiplier.</div>
-                        </div>
-                        <div class="flow-arrow">&rarr;</div>
-                        <div class="flow-step">
-                            <div class="flow-icon">&#10024;</div>
-                            <div class="flow-title">2. Earn Credits</div>
-                            <div class="flow-desc">Each week, stakers earn funding credits (stake x APY x tier). Credits are deployment power, not tradeable tokens.</div>
-                        </div>
-                        <div class="flow-arrow">&rarr;</div>
-                        <div class="flow-step">
-                            <div class="flow-icon">&#127919;</div>
-                            <div class="flow-title">3. Deploy to Proposals</div>
-                            <div class="flow-desc"><strong>Engagement</strong> drives deployment probability. Mission-aligned stakers prefer near-funded proposals.</div>
-                        </div>
-                        <div class="flow-arrow">&rarr;</div>
-                        <div class="flow-step">
-                            <div class="flow-icon">&#128293;</div>
-                            <div class="flow-title">4. 2% Burn</div>
-                            <div class="flow-desc">When credits deploy, 2% of backer's RSC is burned. This creates deflationary pressure on the token.</div>
-                        </div>
-                    </div>
+                <div id="saved-scenarios-list" style="font-size:10px;color:var(--text-muted)">No saved scenarios</div>
+                <button onclick="clearScenarios()" style="width:100%;margin-top:8px;font-size:10px">Clear All</button>
+            </div>
+        </div>
 
-                    <div class="edu-section">
-                        <h3>Behavioral Model: B = f(P, E)</h3>
-                        <p>Each staker has <strong>Person attributes</strong> that interact with <strong>Environment conditions</strong> to produce behavior:</p>
-                        <ul>
-                            <li><strong>Mission Alignment</strong> (0-1): Cares about funding good research vs. just earning yield. Affects proposal selection.</li>
-                            <li><strong>Risk Tolerance</strong> (0-1): Willingness to lock longer for higher APY. Drives tier selection.</li>
-                            <li><strong>Engagement</strong> (0-1): How actively they deploy credits. Base probability of deploying each week.</li>
-                            <li><strong>Price Sensitivity</strong> (0-1): How much external conditions matter (future expansion).</li>
-                        </ul>
-                        <p style="margin-top:8px">These combine into <strong>4 archetypes</strong>: Believers (mission-driven), Yield Seekers (APY-driven), Governance (influence-driven), and Speculators (price-driven).</p>
-                    </div>
-
-                    <div class="edu-section">
-                        <h3>What Happens Each Step (Week)?</h3>
-                        <ol>
-                            <li><strong>Credit Generation:</strong> All active stakers earn credits based on tier APY</li>
-                            <li><strong>Deployment Decision:</strong> Each staker decides whether to deploy based on engagement + credit accumulation pressure + satisfaction</li>
-                            <li><strong>Proposal Selection:</strong> Mission-aligned stakers pick near-funded proposals; others pick randomly</li>
-                            <li><strong>Burn Event:</strong> 2% of deploying stakers' RSC is burned</li>
-                            <li><strong>Satisfaction Update:</strong> Based on proposal outcomes (did my backed proposals succeed?)</li>
-                            <li><strong>Churn Check:</strong> Unsatisfied, unlocked stakers may leave the system</li>
-                        </ol>
-                    </div>
-
-                    <div class="edu-section">
-                        <h3>Key Dynamics to Watch</h3>
-                        <ul>
-                            <li><strong>Archetype behavior:</strong> Believers deploy actively; Speculators hoard. Which behavior dominates?</li>
-                            <li><strong>Satisfaction & churn:</strong> Failed proposals reduce satisfaction. Low satisfaction + no lock = exit risk.</li>
-                            <li><strong>Tier distribution:</strong> Risk-tolerant agents lock longer. Does this create enough funding capacity?</li>
-                            <li><strong>Credit accumulation pressure:</strong> Agents with excess credits feel pressure to deploy (sigmoid function).</li>
-                            <li><strong>Proposal throughput:</strong> Are proposals getting funded at a healthy rate?</li>
-                        </ul>
-                    </div>
+        <!-- Education -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" onclick="toggleSection(this)">
+                How It Works <span class="toggle">&#9654;</span>
+            </div>
+            <div class="sidebar-section-body collapsed">
+                <div class="edu-section">
+                    <h3>B = f(P, E)</h3>
+                    <p>Each staker has <strong>Person attributes</strong> (mission alignment, risk tolerance, engagement, price sensitivity) that interact with <strong>Environment conditions</strong> to produce behavior.</p>
+                </div>
+                <div class="edu-section">
+                    <h3>Each Step (Week)</h3>
+                    <ol>
+                        <li><strong>Credit Generation:</strong> All active stakers earn credits</li>
+                        <li><strong>Deployment:</strong> Behavioral decision to deploy</li>
+                        <li><strong>Proposal Selection:</strong> Mission-aligned pick near-funded</li>
+                        <li><strong>Fee:</strong> Funding fee burned when credits deployed to proposals</li>
+                        <li><strong>Satisfaction:</strong> Updated from outcomes</li>
+                        <li><strong>Churn:</strong> Unsatisfied + unlocked may leave</li>
+                    </ol>
+                </div>
+                <div class="edu-section">
+                    <h3>Key Dynamics</h3>
+                    <ul>
+                        <li><strong>Archetypes:</strong> Believers deploy; Speculators hoard</li>
+                        <li><strong>Churn:</strong> Failed proposals reduce satisfaction</li>
+                        <li><strong>Tier distribution:</strong> Risk-tolerant lock longer</li>
+                        <li><strong>Credit pressure:</strong> Sigmoid forces deployment</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
         <!-- Design Questions -->
-        <div class="questions-section">
-            <div class="card">
-                <div class="card-header">Open Design Questions (for ResearchHub)</div>
-                <div id="design-questions"></div>
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" onclick="toggleSection(this)">
+                Design Questions <span class="toggle">&#9654;</span>
+            </div>
+            <div class="sidebar-section-body collapsed" id="design-questions"></div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN AREA ==================== -->
+    <div class="main">
+        <!-- Pinned Metrics Bar (3 KPIs) -->
+        <div class="metrics-bar">
+            <div class="metric" data-tooltip="Total RSC locked by active stakers">
+                <div class="metric-value" id="total-staked" style="font-size:22px">0</div>
+                <div class="metric-label">RSC Staked</div>
+            </div>
+            <div class="metric" data-tooltip="Average satisfaction across active stakers (1.0 = happy, 0 = churning)">
+                <div class="metric-value" id="metric-satisfaction" style="font-size:22px;color:var(--success)">1.00</div>
+                <div class="metric-label">Satisfaction</div>
+            </div>
+            <div class="metric" data-tooltip="Stakers who left the system (low satisfaction + unlocked)">
+                <div class="metric-value" id="churned-count" style="font-size:22px;color:var(--danger)">0</div>
+                <div class="metric-label">Churned</div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="agent-field">Agent Field</button>
+            <button class="tab-btn" data-tab="time-series">Time Series</button>
+            <button class="tab-btn" data-tab="proposals-funding">Proposals & Funding</button>
+            <button class="tab-btn" data-tab="agent-inspector">Agent Inspector</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- TAB: Agent Field -->
+            <div class="tab-pane active" id="tab-agent-field">
+                <div class="sim-canvas-wrap">
+                    <div id="agent-grid" class="agent-grid"></div>
+                    <div class="canvas-tooltip" id="canvas-tooltip"></div>
+                    <div class="canvas-legend">
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Believer</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Yield Seeker</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Governance</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Speculator</div>
+                        <div class="legend-divider"></div>
+                        <span class="legend-encoding">Opacity=Satisfaction</span>
+                        <span class="legend-encoding">Glow=Credit Pressure</span>
+                    </div>
+                </div>
+                <!-- Archetype Behavior (moved from Time Series) -->
+                <div class="card">
+                    <div class="card-header">Archetype Behavior</div>
+                    <div class="arch-metrics-grid" id="arch-metrics"></div>
+                </div>
+                <!-- Post-run summary -->
+                <div id="post-run-summary" style="display:none"></div>
+            </div>
+
+            <!-- TAB: Time Series -->
+            <div class="tab-pane" id="tab-time-series">
+                <div class="card">
+                    <div class="card-header">Time Series</div>
+                    <div class="chart-view-switcher">
+                        <button class="chart-view-btn active" data-view="token-economics" onclick="switchChartView('token-economics')">Token Economics</button>
+                        <button class="chart-view-btn" data-view="agent-health" onclick="switchChartView('agent-health')">Agent Health</button>
+                        <button class="chart-view-btn" data-view="funding-flow" onclick="switchChartView('funding-flow')">Funding Flow</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="history-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Proposals & Funding -->
+            <div class="tab-pane" id="tab-proposals-funding">
+                <div class="two-col">
+                    <div class="card">
+                        <div class="card-header">Proposals</div>
+                        <div class="list" id="proposals-list"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">Event Log</div>
+                        <div class="list" id="events-list" style="max-height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Agent Inspector -->
+            <div class="tab-pane" id="tab-agent-inspector">
+                <div class="card">
+                    <div class="agent-tabs">
+                        <button class="agent-tab active" onclick="showAgentTab('top-stakers', this)">Top Stakers</button>
+                        <button class="agent-tab" onclick="showAgentTab('recent-deployers', this)">Recent Deployers</button>
+                        <button class="agent-tab" onclick="showAgentTab('by-archetype', this)">By Archetype</button>
+                        <button class="agent-tab" onclick="showAgentTab('churned', this)">Churned</button>
+                    </div>
+                    <div id="agent-content" class="agent-content" style="max-height:600px;overflow-y:auto;">
+                        <div class="agent-placeholder">Loading agents...</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scenario Comparison Modal -->
+    <div class="modal-overlay" id="scenario-modal">
+        <div class="modal-body">
+            <div class="modal-header">
+                <div class="card-header" style="margin:0;padding:0;border:0">Scenario Comparison</div>
+                <button class="modal-close" onclick="closeScenarioModal()">&times;</button>
+            </div>
+            <div id="scenario-compare-content">
+                <p style="color:var(--text-dim);font-size:12px;">Save scenarios from the sidebar to compare them here. Run a simulation, then click "Save Current Scenario".</p>
             </div>
         </div>
     </div>
 
     <script>
         // ============================================
-        // SimCanvas — NetLogo-style agent field
+        // DotGrid -- GitHub-heatmap-style agent field
         // ============================================
-        class SimCanvas {
-            constructor(canvasId) {
-                this.canvas = document.getElementById(canvasId);
-                this.ctx = this.canvas.getContext('2d');
-                this.dpr = window.devicePixelRatio || 1;
-                this.W = 0;
-                this.H = 0;
-                this.agents = [];       // positioned agent objects
-                this.proposals = [];    // positioned proposal objects
-                this.arcs = [];         // active deployment arcs
-                this.churns = [];       // active churn animations
-                this.animating = false;
-                this.lastStakers = null;
-
-                // Archetype config
+        class DotGrid {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.cells = [];
                 this.archColors = {
                     believer:     '#50c878',
                     yield_seeker: '#c9a227',
                     governance:   '#7856ff',
                     speculator:   '#e05555',
                 };
-                this.archLabels = {
-                    believer:     'BELIEVERS',
-                    yield_seeker: 'YIELD SEEKERS',
-                    governance:   'GOVERNANCE',
-                    speculator:   'SPECULATORS',
-                };
-                // Quadrant layout: [xCenter fraction, yCenter fraction]
-                this.quadrants = {
-                    believer:     { cx: 0.25, cy: 0.30 },
-                    yield_seeker: { cx: 0.75, cy: 0.30 },
-                    governance:   { cx: 0.25, cy: 0.75 },
-                    speculator:   { cx: 0.75, cy: 0.75 },
-                };
-
-                this._resize();
-                window.addEventListener('resize', () => this._resize());
             }
 
-            _resize() {
-                const rect = this.canvas.parentElement.getBoundingClientRect();
-                this.W = rect.width;
-                this.H = Math.max(400, Math.min(500, this.W * 0.45));
-                this.canvas.width = this.W * this.dpr;
-                this.canvas.height = this.H * this.dpr;
-                this.canvas.style.height = this.H + 'px';
-                this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-                // Reposition agents if we have data
-                if (this.lastStakers) {
-                    this._positionAgents(this.lastStakers);
+            update(stakers, stepDeployments) {
+                // Sort: group by archetype, then by stake within group
+                const archOrder = ['believer', 'yield_seeker', 'governance', 'speculator'];
+                const sorted = [...stakers].sort((a, b) => {
+                    const ai = archOrder.indexOf(a.archetype);
+                    const bi = archOrder.indexOf(b.archetype);
+                    if (ai !== bi) return ai - bi;
+                    return b.stake - a.stake;
+                });
+
+                // Deployer set for flash
+                const deployerIds = new Set();
+                if (stepDeployments) {
+                    stepDeployments.forEach(d => deployerIds.add(d.staker_id));
                 }
-                this._drawStatic();
-            }
 
-            // Phyllotaxis spiral positioning within a quadrant
-            _phyllotaxis(agents, cx, cy, maxRadius) {
-                const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-                const n = agents.length;
-                // Sort by stake descending — big stakers center
-                agents.sort((a, b) => b._stake - a._stake);
-                const spacing = Math.max(maxRadius / Math.sqrt(n + 1), 8);
-                for (let i = 0; i < n; i++) {
-                    const r = spacing * Math.sqrt(i + 0.5);
-                    const theta = i * goldenAngle;
-                    agents[i].x = cx + r * Math.cos(theta);
-                    agents[i].y = cy + r * Math.sin(theta);
-                }
-            }
+                // Compute grid columns
+                const cols = Math.ceil(Math.sqrt(sorted.length));
+                this.container.style.gridTemplateColumns = 'repeat(' + cols + ', 28px)';
 
-            _positionAgents(stakers) {
-                this.lastStakers = stakers;
-                const groups = { believer: [], yield_seeker: [], governance: [], speculator: [] };
-
-                stakers.forEach(s => {
-                    if (!groups[s.archetype]) return;
-                    groups[s.archetype].push({
-                        id: s.id,
-                        archetype: s.archetype,
-                        active: s.active,
-                        _stake: s.stake,
-                        satisfaction: s.satisfaction,
-                        credits_pressure: s.credits_pressure || 0,
-                        // Radius: 4-18px based on stake
-                        radius: 4 + Math.min(14, (s.stake / 20000) * 14),
-                        x: 0, y: 0,
+                // Rebuild cells if count changed
+                if (this.cells.length !== sorted.length) {
+                    this.container.innerHTML = '';
+                    this.cells = [];
+                    sorted.forEach(() => {
+                        const cell = document.createElement('div');
+                        cell.className = 'agent-cell';
+                        this._attachEvents(cell);
+                        this.container.appendChild(cell);
+                        this.cells.push(cell);
                     });
-                });
-
-                const allAgents = [];
-                for (const [arch, agents] of Object.entries(groups)) {
-                    const q = this.quadrants[arch];
-                    const cx = q.cx * this.W;
-                    const cy = q.cy * this.H;
-                    const maxR = Math.min(this.W * 0.22, this.H * 0.30);
-                    this._phyllotaxis(agents, cx, cy, maxR);
-                    allAgents.push(...agents);
                 }
-                this.agents = allAgents;
-            }
 
-            _positionProposals(proposals) {
-                // Center horizontal band
-                const bandY = this.H * 0.52;
-                const openOrFunded = proposals.filter(p => p.status === 'open' || p.status === 'funded');
-                const n = openOrFunded.length;
-                if (n === 0) { this.proposals = []; return; }
-
-                const margin = this.W * 0.1;
-                const span = this.W - margin * 2;
-                this.proposals = openOrFunded.map((p, i) => {
-                    const x = margin + (n === 1 ? span / 2 : (i / (n - 1)) * span);
-                    return {
-                        id: p.id,
-                        status: p.status,
-                        funding_target: p.funding_target,
-                        funding_progress: p.funding_progress,
-                        x: x,
-                        y: bandY,
-                        radius: 5 + Math.min(10, (p.funding_target / 10000) * 10),
-                    };
+                // Update each cell
+                sorted.forEach((s, i) => {
+                    const cell = this.cells[i];
+                    cell._staker = s;
+                    this._updateCell(cell, s, deployerIds.has(s.id));
                 });
             }
 
-            // Main update called from updateUI
-            update(stakers, proposals, stepDeployments) {
-                this._positionAgents(stakers);
-                this._positionProposals(proposals);
+            _updateCell(cell, s, hasDeployment) {
+                const color = this.archColors[s.archetype] || '#888';
 
-                // Create deployment arcs
-                if (stepDeployments && stepDeployments.length > 0) {
-                    for (const d of stepDeployments) {
-                        const agent = this.agents.find(a => a.id === d.staker_id);
-                        const proposal = this.proposals.find(p => p.id === d.proposal_id);
-                        if (agent && proposal) {
-                            this.arcs.push({
-                                x0: agent.x, y0: agent.y,
-                                x1: proposal.x, y1: proposal.y,
-                                color: this.archColors[d.archetype] || '#888',
-                                width: Math.max(1, Math.min(3, d.credits / 100)),
-                                progress: 0,  // 0-1 for traveling dot
-                                alpha: 1.0,
-                                startTime: performance.now(),
-                                duration: 1500,
-                            });
-                        }
-                    }
+                if (!s.active) {
+                    cell.style.backgroundColor = color;
+                    cell.style.opacity = '0.06';
+                    cell.style.boxShadow = 'none';
+                    cell.className = 'agent-cell churned';
+                    return;
                 }
 
-                // Detect churn (agents that became inactive)
-                for (const a of this.agents) {
-                    if (!a.active && !a._churning && !a._churned) {
-                        a._churning = true;
-                        this.churns.push({
-                            agent: a,
-                            startTime: performance.now(),
-                            duration: 2000,
-                        });
-                    }
-                }
+                cell.className = 'agent-cell';
+                cell.style.backgroundColor = color;
+                cell.style.opacity = (0.15 + s.satisfaction * 0.85).toFixed(2);
 
-                if (this.arcs.length > 0 || this.churns.length > 0) {
-                    this._startAnimation();
+                // Credit pressure = inner white glow
+                const pressure = s.credits_pressure || 0;
+                if (pressure > 0.2) {
+                    const glowSize = 3 + pressure * 4;
+                    const glowAlpha = Math.min(pressure * 0.35, 0.7);
+                    cell.style.boxShadow = 'inset 0 0 ' + glowSize.toFixed(0) + 'px rgba(255,255,255,' + glowAlpha.toFixed(2) + ')';
                 } else {
-                    this._drawFrame();
+                    cell.style.boxShadow = 'none';
                 }
+
+                // Deployment flash via CSS animation
+                if (hasDeployment) {
+                    cell.classList.remove('deploy-flash');
+                    void cell.offsetWidth;
+                    cell.classList.add('deploy-flash');
+                }
+            }
+
+            _attachEvents(cell) {
+                cell.addEventListener('mouseenter', () => {
+                    const s = cell._staker;
+                    if (!s) return;
+                    const tooltip = document.getElementById('canvas-tooltip');
+                    tooltip.innerHTML =
+                        '<div><span class="tt-id">' + s.id + '</span> <span class="tt-label">(' + s.archetype + ')</span></div>' +
+                        '<div><span class="tt-label">Stake:</span> <span class="tt-val">' + formatNumber(s.stake) + '</span></div>' +
+                        '<div><span class="tt-label">Credits:</span> <span class="tt-val">' + formatNumber(s.credits) + '</span></div>' +
+                        '<div><span class="tt-label">Satisfaction:</span> <span class="tt-val">' + s.satisfaction.toFixed(2) + '</span></div>' +
+                        '<div><span class="tt-label">Pressure:</span> <span class="tt-val">' + (s.credits_pressure || 0).toFixed(2) + '</span></div>' +
+                        '<div><span class="tt-label">Deployed:</span> <span class="tt-val">' + formatNumber(s.total_deployed) + '</span></div>';
+                    tooltip.style.display = 'block';
+                    const rect = cell.getBoundingClientRect();
+                    const wrapRect = cell.closest('.sim-canvas-wrap').getBoundingClientRect();
+                    tooltip.style.left = Math.min(rect.right - wrapRect.left + 8, wrapRect.width - 220) + 'px';
+                    tooltip.style.top = (rect.top - wrapRect.top) + 'px';
+                });
+
+                cell.addEventListener('mouseleave', () => {
+                    document.getElementById('canvas-tooltip').style.display = 'none';
+                });
+
+                cell.addEventListener('click', () => {
+                    const s = cell._staker;
+                    if (s) {
+                        switchTab('agent-inspector');
+                        highlightedAgentId = s.id;
+                        showAgentTab('top-stakers', document.querySelector('.agent-tab'));
+                    }
+                });
             }
 
             reset() {
-                this.agents = [];
-                this.proposals = [];
-                this.arcs = [];
-                this.churns = [];
-                this.lastStakers = null;
-                this.animating = false;
-                this._drawStatic();
+                this.container.innerHTML = '';
+                this.cells = [];
             }
 
-            // Animation loop — only runs when there are active animations
-            _startAnimation() {
-                if (this.animating) return;
-                this.animating = true;
-                const loop = () => {
-                    if (!this.animating) return;
-                    const now = performance.now();
-
-                    // Update arcs
-                    this.arcs = this.arcs.filter(arc => {
-                        const elapsed = now - arc.startTime;
-                        if (elapsed >= arc.duration) return false;
-                        arc.progress = elapsed / arc.duration;
-                        arc.alpha = 1.0 - (elapsed / arc.duration) * 0.7;
-                        return true;
-                    });
-
-                    // Update churns
-                    this.churns = this.churns.filter(c => {
-                        const elapsed = now - c.startTime;
-                        if (elapsed >= c.duration) {
-                            c.agent._churned = true;
-                            c.agent._churning = false;
-                            return false;
-                        }
-                        c.agent._churnProgress = elapsed / c.duration;
-                        return true;
-                    });
-
-                    this._drawFrame();
-
-                    if (this.arcs.length === 0 && this.churns.length === 0) {
-                        this.animating = false;
-                        return;
-                    }
-                    requestAnimationFrame(loop);
-                };
-                requestAnimationFrame(loop);
-            }
-
-            _drawStatic() {
-                const ctx = this.ctx;
-                ctx.clearRect(0, 0, this.W, this.H);
-
-                // Background
-                ctx.fillStyle = '#080808';
-                ctx.fillRect(0, 0, this.W, this.H);
-
-                // Center proposal band highlight
-                const bandY = this.H * 0.52;
-                ctx.fillStyle = 'rgba(255,255,255,0.02)';
-                ctx.fillRect(0, bandY - 15, this.W, 30);
-
-                // Quadrant dividers (subtle)
-                ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([4, 8]);
-                // Vertical center
-                ctx.beginPath();
-                ctx.moveTo(this.W / 2, 0);
-                ctx.lineTo(this.W / 2, this.H);
-                ctx.stroke();
-                // Horizontal center
-                ctx.beginPath();
-                ctx.moveTo(0, this.H / 2);
-                ctx.lineTo(this.W, this.H / 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                // Quadrant labels
-                ctx.font = '10px SF Mono, Menlo, monospace';
-                ctx.textAlign = 'center';
-                for (const [arch, q] of Object.entries(this.quadrants)) {
-                    const x = q.cx * this.W;
-                    const yBase = q.cy * this.H;
-                    // Label above or below the quadrant center
-                    const labelY = yBase < this.H / 2 ? 16 : this.H - 8;
-                    ctx.fillStyle = this.archColors[arch];
-                    ctx.globalAlpha = 0.4;
-                    ctx.fillText(this.archLabels[arch], x, labelY);
-                }
-                ctx.globalAlpha = 1.0;
-                ctx.textAlign = 'start';
-            }
-
-            _drawFrame() {
-                const ctx = this.ctx;
-                this._drawStatic();
-
-                // 1. Deployment arcs (behind everything)
-                for (const arc of this.arcs) {
-                    const midX = (arc.x0 + arc.x1) / 2;
-                    const midY = Math.min(arc.y0, arc.y1) - 30;
-                    ctx.beginPath();
-                    ctx.moveTo(arc.x0, arc.y0);
-                    ctx.quadraticCurveTo(midX, midY, arc.x1, arc.y1);
-                    ctx.strokeStyle = arc.color;
-                    ctx.lineWidth = arc.width;
-                    ctx.globalAlpha = arc.alpha * 0.6;
-                    ctx.stroke();
-
-                    // Traveling dot
-                    const t = arc.progress;
-                    const dotX = (1-t)*(1-t)*arc.x0 + 2*(1-t)*t*midX + t*t*arc.x1;
-                    const dotY = (1-t)*(1-t)*arc.y0 + 2*(1-t)*t*midY + t*t*arc.y1;
-                    ctx.beginPath();
-                    ctx.arc(dotX, dotY, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = arc.color;
-                    ctx.globalAlpha = arc.alpha;
-                    ctx.fill();
-                }
-                ctx.globalAlpha = 1.0;
-
-                // 2. Proposals (center band)
-                for (const p of this.proposals) {
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    if (p.status === 'funded') {
-                        ctx.fillStyle = 'rgba(80,200,120,0.3)';
-                        ctx.strokeStyle = '#50c878';
-                    } else {
-                        ctx.fillStyle = 'rgba(74,158,255,0.2)';
-                        ctx.strokeStyle = '#4a9eff';
-                    }
-                    ctx.lineWidth = 1.5;
-                    ctx.fill();
-                    ctx.stroke();
-
-                    // Progress arc
-                    if (p.funding_progress > 0) {
-                        const endAngle = -Math.PI / 2 + (Math.min(p.funding_progress, 100) / 100) * Math.PI * 2;
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.radius + 3, -Math.PI / 2, endAngle);
-                        ctx.strokeStyle = p.status === 'funded' ? '#50c878' : '#4a9eff';
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-                    }
-                }
-
-                // 3. Agents
-                for (const a of this.agents) {
-                    if (a._churned) continue; // fully gone
-
-                    let scale = 1;
-                    let alpha = 0.3 + a.satisfaction * 0.7; // opacity = satisfaction
-
-                    if (a._churning) {
-                        const p = a._churnProgress || 0;
-                        scale = 1 - p;
-                        alpha *= (1 - p);
-                    }
-
-                    if (!a.active && !a._churning) {
-                        // Already churned in a previous step — dim ghost
-                        alpha = 0.1;
-                        scale = 0.4;
-                    }
-
-                    const r = a.radius * scale;
-                    if (r < 0.5) continue;
-
-                    const color = this.archColors[a.archetype] || '#888';
-
-                    // Credit ring (outer ring showing accumulation pressure)
-                    if (a.credits_pressure > 0.1 && a.active) {
-                        ctx.beginPath();
-                        ctx.arc(a.x, a.y, r + 2 + a.credits_pressure * 2, 0, Math.PI * 2);
-                        ctx.strokeStyle = color;
-                        ctx.lineWidth = 1;
-                        ctx.globalAlpha = alpha * 0.35 * Math.min(a.credits_pressure, 1);
-                        ctx.stroke();
-                    }
-
-                    // Agent circle
-                    ctx.beginPath();
-                    ctx.arc(a.x, a.y, r, 0, Math.PI * 2);
-                    ctx.fillStyle = color;
-                    ctx.globalAlpha = alpha;
-                    ctx.fill();
-                }
-                ctx.globalAlpha = 1.0;
+            forceRedraw() {
+                // CSS grid handles layout automatically
             }
         }
 
-        // Create the canvas instance
-        const simCanvas = new SimCanvas('sim-canvas');
+        const simCanvas = new DotGrid('agent-grid');
 
+        // ============================================
+        // State
+        // ============================================
         const API = '';
         let chart = null;
-        let historyData = { steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [] };
+        let currentChartView = 'token-economics';
+        let historyData = {
+            steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [],
+            sat_believer: [], sat_yield_seeker: [], sat_governance: [], sat_speculator: [],
+            credits_generated_step: [], credits_deployed_step: [], churn_step: [],
+        };
+        let highlightedAgentId = null;
+        let savedScenarios = [];
+        let initialSnapshot = null;
 
         async function fetchJson(url, options = {}) {
             const resp = await fetch(API + url, options);
@@ -1188,69 +1334,209 @@
             return 'var(--danger)';
         }
 
-        // Archetype mix preview
-        function updateArchMixPreview() {
-            const archs = ['believer', 'yield_seeker', 'governance', 'speculator'];
-            let total = 0;
-            archs.forEach(a => { total += parseInt(document.getElementById('slider-' + a).value); });
-            const warn = document.getElementById('arch-mix-warn');
-            if (total === 0) {
-                warn.style.display = 'block';
-                warn.textContent = 'Total is 0% — at least one archetype must be non-zero.';
-            } else if (total !== 100) {
-                warn.style.display = 'block';
-                warn.textContent = 'Total is ' + total + '% — will be normalized to 100% on reset.';
-            } else {
-                warn.style.display = 'none';
+        // ============================================
+        // Tab System
+        // ============================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelector('[data-tab="' + tabId + '"]').classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+
+            // Resize canvas/chart when switching to their tabs
+            if (tabId === 'agent-field') {
+                setTimeout(() => simCanvas.forceRedraw(), 50);
             }
+            if (tabId === 'time-series') {
+                setTimeout(() => {
+                    if (chart) chart.resize();
+                }, 50);
+            }
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+
+        // Sidebar section toggle
+        function toggleSection(header) {
+            const body = header.nextElementSibling;
+            const toggle = header.querySelector('.toggle');
+            body.classList.toggle('collapsed');
+            if (toggle) toggle.innerHTML = body.classList.contains('collapsed') ? '&#9654;' : '&#9660;';
+        }
+
+        // ============================================
+        // Archetype mix preview
+        // ============================================
+        function handleArchSliderChange(changedArch) {
+            const archs = ['believer', 'yield_seeker', 'governance', 'speculator'];
+            const slider = document.getElementById('slider-' + changedArch);
+            let newVal = Math.max(5, Math.min(85, Math.round(parseInt(slider.value) / 5) * 5));
+            slider.value = newVal;
+
+            const others = archs.filter(a => a !== changedArch);
+            const remaining = 100 - newVal;
+
+            // Get old values for proportional redistribution
+            let otherOldTotal = 0;
+            const oldVals = {};
+            others.forEach(a => {
+                oldVals[a] = parseInt(document.getElementById('slider-' + a).value);
+                otherOldTotal += oldVals[a];
+            });
+
+            // Distribute remaining proportionally
+            const newVals = {};
+            if (otherOldTotal > 0) {
+                others.forEach(a => {
+                    const proportion = oldVals[a] / otherOldTotal;
+                    newVals[a] = Math.max(5, Math.round(remaining * proportion / 5) * 5);
+                });
+            } else {
+                others.forEach(a => {
+                    newVals[a] = Math.max(5, Math.floor(remaining / 3 / 5) * 5);
+                });
+            }
+
+            // Fix rounding: adjust largest "other" to make sum exactly 100
+            let otherSum = 0;
+            others.forEach(a => { otherSum += newVals[a]; });
+            const diff = remaining - otherSum;
+            if (diff !== 0) {
+                // Find the largest other to absorb the rounding error
+                let largest = others[0];
+                others.forEach(a => { if (newVals[a] > newVals[largest]) largest = a; });
+                newVals[largest] = Math.max(5, newVals[largest] + diff);
+            }
+
+            // Apply values
+            others.forEach(a => {
+                document.getElementById('slider-' + a).value = newVals[a];
+                document.getElementById('val-' + a).textContent = newVals[a] + '%';
+            });
+            document.getElementById('val-' + changedArch).textContent = newVal + '%';
+
+            // Update archetype bar
+            updateArchBar();
+        }
+
+        function updateArchBar() {
+            const archs = ['believer', 'yield_seeker', 'governance', 'speculator'];
+            const colors = {
+                believer: 'var(--success)',
+                yield_seeker: 'var(--accent)',
+                governance: 'var(--purple)',
+                speculator: 'var(--danger)'
+            };
+            const bar = document.getElementById('arch-bar');
+            if (!bar) return;
+            bar.innerHTML = '';
             archs.forEach(a => {
                 const val = parseInt(document.getElementById('slider-' + a).value);
-                const pct = total > 0 ? Math.round(val / total * 100) : 0;
-                document.getElementById('val-' + a).textContent = pct + '%';
+                const seg = document.createElement('div');
+                seg.className = 'archetype-bar-segment';
+                seg.style.width = val + '%';
+                seg.style.background = colors[a];
+                bar.appendChild(seg);
             });
         }
 
         function getSliderParams() {
             const archs = ['believer', 'yield_seeker', 'governance', 'speculator'];
-            let total = 0;
-            const raw = {};
-            archs.forEach(a => {
-                raw[a] = parseInt(document.getElementById('slider-' + a).value);
-                total += raw[a];
-            });
             const mix = {};
-            if (total > 0) {
-                archs.forEach(a => { mix[a] = parseFloat((raw[a] / total).toFixed(4)); });
-            }
-            return {
+            archs.forEach(a => {
+                mix[a] = parseInt(document.getElementById('slider-' + a).value) / 100;
+            });
+
+            const params = {
                 num_stakers: parseInt(document.getElementById('slider-stakers').value),
-                base_apy: parseInt(document.getElementById('slider-apy').value) / 100,
-                burn_rate: parseFloat(document.getElementById('slider-burn').value) / 100,
+                base_apy: parseInt(document.getElementById('slider-yield').value) / 100,
+                deploy_probability: parseInt(document.getElementById('slider-deploy').value) / 100,
                 success_rate: parseInt(document.getElementById('slider-success').value) / 100,
+                burn_rate: parseFloat(document.getElementById('slider-burn').value) / 100,
                 archetype_mix: mix,
             };
+
+            // Design Lab params
+            if (document.getElementById('chk-credit-expiry').checked) {
+                params.credit_expiry_enabled = true;
+                params.credit_expiry_weeks = parseInt(document.getElementById('slider-expiry-weeks').value);
+            }
+            params.failure_mode = document.getElementById('select-failure-mode').value;
+            if (document.getElementById('chk-min-stake').checked) {
+                params.min_stake_enabled = true;
+                params.min_stake_amount = parseInt(document.getElementById('slider-min-stake').value);
+            }
+
+            return params;
         }
 
+        function resetSliders() {
+            document.getElementById('slider-yield').value = 10;
+            document.getElementById('val-yield').textContent = '10%';
+            document.getElementById('slider-deploy').value = 30;
+            document.getElementById('val-deploy').textContent = '30%';
+            document.getElementById('slider-success').value = 80;
+            document.getElementById('val-success').textContent = '80%';
+            document.getElementById('slider-stakers').value = 100;
+            document.getElementById('val-stakers').textContent = '100';
+            document.getElementById('slider-burn').value = 2;
+            document.getElementById('val-burn').textContent = '2%';
+            document.getElementById('slider-believer').value = 25;
+            document.getElementById('val-believer').textContent = '25%';
+            document.getElementById('slider-yield_seeker').value = 30;
+            document.getElementById('val-yield_seeker').textContent = '30%';
+            document.getElementById('slider-governance').value = 20;
+            document.getElementById('val-governance').textContent = '20%';
+            document.getElementById('slider-speculator').value = 25;
+            document.getElementById('val-speculator').textContent = '25%';
+            updateArchBar();
+        }
+
+        // Design Lab state
+        function updateFailureModeHint() {
+            const hints = {
+                'nothing': 'Backers lose their deployed credits but stake is unaffected. Simple but may frustrate mission-aligned stakers.',
+                'partial_refund': '50% of deployed credits returned to backers on failure. Reduces risk for deployers but weakens the commitment signal.',
+                'satisfaction_only': 'Credits are consumed but satisfaction takes a larger hit. Punishes backing bad proposals without financial cushion.',
+            };
+            const val = document.getElementById('select-failure-mode').value;
+            document.getElementById('failure-mode-hint').textContent = hints[val] || '';
+        }
+
+        function updateDesignLabState() {
+            document.getElementById('credit-expiry-controls').style.display =
+                document.getElementById('chk-credit-expiry').checked ? 'block' : 'none';
+            document.getElementById('min-stake-controls').style.display =
+                document.getElementById('chk-min-stake').checked ? 'block' : 'none';
+        }
+
+        // ============================================
         // Main UI update
+        // ============================================
         async function updateUI() {
             const state = await fetchJson('/api/state');
             const model = state.model;
 
+            // Status badges
             document.getElementById('step-count').textContent = model.step;
             document.getElementById('active-count').textContent = model.active_stakers;
             document.getElementById('total-count').textContent = model.num_stakers;
             document.getElementById('avg-sat').textContent = model.avg_satisfaction.toFixed(2);
 
-            document.getElementById('total-staked').textContent = formatNumber(model.total_staked);
-            document.getElementById('total-credits').textContent = formatNumber(model.total_credits);
-            document.getElementById('total-burned').textContent = formatNumber(model.total_burned);
-            document.getElementById('credit-rate').textContent = formatNumber(model.credit_generation_rate);
-            document.getElementById('deployment-rate').textContent = formatNumber(model.deployment_rate);
-            document.getElementById('churned-count').textContent = model.churned_stakers;
-            document.getElementById('success-rate').textContent =
-                model.completed_proposals + model.failed_proposals > 0
-                    ? (model.success_rate_actual * 100).toFixed(0) + '%'
-                    : '\u2014';
+            // Metrics bar (3 KPIs)
+            updateMetric('total-staked', model.total_staked);
+            updateMetric('churned-count', model.churned_stakers);
+            // Satisfaction (formatted differently)
+            const satEl = document.getElementById('metric-satisfaction');
+            const satText = model.avg_satisfaction.toFixed(2);
+            if (satEl.textContent !== satText) {
+                satEl.textContent = satText;
+                satEl.style.color = satColor(model.avg_satisfaction);
+                const satMetric = satEl.closest('.metric');
+                if (satMetric) { satMetric.classList.remove('pulse'); void satMetric.offsetWidth; satMetric.classList.add('pulse'); }
+            }
 
             // Tier distribution
             const dist = model.tier_distribution;
@@ -1261,7 +1547,7 @@
                 '<div class="tier-segment tier-6month" style="width:' + (dist['6_month'] / tierTotal * 100) + '%">' + dist['6_month'] + '</div>' +
                 '<div class="tier-segment tier-12month" style="width:' + (dist['12_month'] / tierTotal * 100) + '%">' + dist['12_month'] + '</div>';
 
-            // Archetype distribution bar
+            // Archetype bar (sidebar)
             const archDist = model.archetype_distribution || {};
             const archTotal = Object.values(archDist).reduce((a, b) => a + b, 0) || 1;
             document.getElementById('arch-bar').innerHTML =
@@ -1270,25 +1556,44 @@
                     return '<div class="arch-segment arch-' + a + '" style="width:' + (n / archTotal * 100) + '%">' + n + '</div>';
                 }).join('');
 
-            // Archetype metrics
+            // Archetype metrics with sparklines
             const archMetrics = model.archetype_metrics || {};
             const archNames = { believer: 'Believer', yield_seeker: 'Yield Seeker', governance: 'Governance', speculator: 'Speculator' };
+            const sparklineColors = { believer: '#50c878', yield_seeker: '#c9a227', governance: '#7856ff', speculator: '#e05555' };
+            const satHistoryKeys = { believer: 'sat_believer', yield_seeker: 'sat_yield_seeker', governance: 'sat_governance', speculator: 'sat_speculator' };
             document.getElementById('arch-metrics').innerHTML =
                 ['believer', 'yield_seeker', 'governance', 'speculator'].map(a => {
                     const m = archMetrics[a];
                     if (!m) return '<div class="arch-metric-card ' + a + '"><div class="arch-card-name ' + a + '">' + archNames[a] + '</div><div class="arch-stat" style="color:var(--text-dim)">No agents</div></div>';
+                    // Build sparkline SVG from history data
+                    const satHistory = historyData[satHistoryKeys[a]] || [];
+                    let sparklineSvg = '';
+                    if (satHistory.length >= 2) {
+                        const w = 56, h = 18;
+                        const vals = satHistory.filter(v => v !== null);
+                        if (vals.length >= 2) {
+                            const minV = 0, maxV = 1; // satisfaction range is 0-1
+                            const points = vals.map((v, i) => {
+                                const x = (i / (vals.length - 1)) * w;
+                                const y = h - ((v - minV) / (maxV - minV)) * h;
+                                return x.toFixed(1) + ',' + y.toFixed(1);
+                            }).join(' ');
+                            sparklineSvg = '<svg width="' + w + '" height="' + h + '" style="vertical-align:middle;margin-left:6px">' +
+                                '<polyline points="' + points + '" fill="none" stroke="' + sparklineColors[a] + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                        }
+                    }
                     return '<div class="arch-metric-card ' + a + '">' +
                         '<div class="arch-card-name ' + a + '">' + archNames[a] + '</div>' +
                         '<div class="arch-stat"><span>Active</span><span class="arch-stat-val">' + m.active + '/' + m.total + '</span></div>' +
                         '<div class="arch-stat"><span>Avg Stake</span><span class="arch-stat-val">' + formatNumber(m.avg_stake) + '</span></div>' +
-                        '<div class="arch-stat"><span>Satisfaction</span><span class="arch-stat-val" style="color:' + satColor(m.avg_satisfaction) + '">' + m.avg_satisfaction.toFixed(2) + '</span></div>' +
+                        '<div class="arch-stat"><span>Satisfaction</span><span class="arch-stat-val" style="color:' + satColor(m.avg_satisfaction) + '">' + m.avg_satisfaction.toFixed(2) + sparklineSvg + '</span></div>' +
                         '<div class="arch-stat"><span>Deployed</span><span class="arch-stat-val">' + formatNumber(m.total_deployed) + '</span></div>' +
                         '<div class="arch-stat"><span>Burned</span><span class="arch-stat-val" style="color:var(--danger)">' + formatNumber(m.total_burned) + '</span></div>' +
                         '</div>';
                 }).join('');
 
-            // Events (with churn support)
-            const eventsHtml = state.events.slice(0, 15).map(e =>
+            // Events
+            const eventsHtml = state.events.slice(0, 20).map(e =>
                 '<div class="event">' +
                 '<span class="event-step">[' + String(e.step).padStart(3, '0') + ']</span>' +
                 '<span class="event-type ' + e.type + '">' + e.type + '</span>' +
@@ -1299,16 +1604,17 @@
 
             // Proposals
             const proposals = await fetchJson('/api/proposals');
-            const proposalsHtml = proposals.slice(-8).reverse().map(p =>
+            const proposalsHtml = proposals.slice(-12).reverse().map(p =>
                 '<div class="list-item">' +
                 '<span class="proposal-id">' + p.id + '</span>' +
                 '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(p.funding_progress, 100) + '%"></div></div>' +
+                '<span class="progress-pct">' + Math.round(p.funding_progress) + '%</span>' +
                 '<span class="status status-' + p.status + '">' + p.status + '</span>' +
                 '</div>'
             ).join('');
             document.getElementById('proposals-list').innerHTML = proposalsHtml || '<div class="list-item" style="color:var(--text-dim)">No proposals</div>';
 
-            // Update chart history
+            // History data
             if (model.step > 0 && !historyData.steps.includes(model.step)) {
                 historyData.steps.push(model.step);
                 historyData.staked.push(model.total_staked);
@@ -1316,21 +1622,96 @@
                 historyData.burned.push(model.total_burned);
                 historyData.satisfaction.push(model.avg_satisfaction);
                 historyData.active.push(model.active_stakers);
+                // Per-archetype satisfaction
+                historyData.sat_believer.push(archMetrics.believer ? archMetrics.believer.avg_satisfaction : null);
+                historyData.sat_yield_seeker.push(archMetrics.yield_seeker ? archMetrics.yield_seeker.avg_satisfaction : null);
+                historyData.sat_governance.push(archMetrics.governance ? archMetrics.governance.avg_satisfaction : null);
+                historyData.sat_speculator.push(archMetrics.speculator ? archMetrics.speculator.avg_satisfaction : null);
+                // Per-step metrics from backend
+                historyData.credits_generated_step.push(model.credits_generated_step || 0);
+                historyData.credits_deployed_step.push(model.credits_deployed_step || 0);
+                historyData.churn_step.push(model.churn_step || 0);
                 updateChart();
             }
 
-            // Update narrative and agents
-            updateNarrative(model, state.events);
             await loadStakers();
 
-            // Update canvas with staker data, proposals, and deployment arcs
-            simCanvas.update(lastStakers, proposals, model.step_deployments || []);
+            // Canvas
+            simCanvas.update(lastStakers, model.step_deployments || []);
+
+            // Post-run summary
+            if (model.step >= 10 && initialSnapshot) {
+                updatePostRunSummary(model);
+            }
         }
 
-        function updateChart() {
-            const ctx = document.getElementById('history-chart').getContext('2d');
-            if (!chart) {
-                chart = new Chart(ctx, {
+        // Metric animation state
+        const metricAnimations = {};
+
+        function updateMetric(id, value) {
+            const el = document.getElementById(id);
+            const formatted = formatNumber(value);
+            if (el.textContent === formatted) return;
+
+            // Get previous numeric value from animation state
+            const prev = metricAnimations[id];
+            if (prev !== undefined && typeof value === 'number' && typeof prev === 'number') {
+                // Animate from prev to value over 400ms
+                const startVal = prev;
+                const endVal = value;
+                const startTime = performance.now();
+                const duration = 400;
+
+                function animateMetric(now) {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    // Ease-out cubic
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = startVal + (endVal - startVal) * eased;
+                    el.textContent = formatNumber(current);
+                    if (progress < 1) {
+                        requestAnimationFrame(animateMetric);
+                    } else {
+                        el.textContent = formatNumber(endVal);
+                    }
+                }
+                requestAnimationFrame(animateMetric);
+            } else {
+                el.textContent = formatted;
+            }
+
+            metricAnimations[id] = value;
+
+            // Pulse animation
+            const metric = el.closest('.metric');
+            if (metric) {
+                metric.classList.remove('pulse');
+                void metric.offsetWidth;
+                metric.classList.add('pulse');
+            }
+        }
+
+        // ============================================
+        // Chart System
+        // ============================================
+        function getChartConfig(view) {
+            const common = {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#888', font: { size: 10, family: 'monospace' }, boxWidth: 12 }
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
+                }
+            };
+
+            if (view === 'token-economics') {
+                return {
                     type: 'line',
                     data: {
                         labels: historyData.steps,
@@ -1340,31 +1721,66 @@
                             { label: 'Burned', data: historyData.burned, borderColor: '#e05555', backgroundColor: 'rgba(224,85,85,0.1)', tension: 0.3, fill: true, yAxisID: 'y' },
                         ]
                     },
+                    options: { ...common, scales: { ...common.scales, y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } } } }
+                };
+            }
+
+            if (view === 'agent-health') {
+                return {
+                    type: 'line',
+                    data: {
+                        labels: historyData.steps,
+                        datasets: [
+                            { label: 'Believer Sat', data: historyData.sat_believer, borderColor: '#50c878', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
+                            { label: 'Yield Sat', data: historyData.sat_yield_seeker, borderColor: '#c9a227', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
+                            { label: 'Gov Sat', data: historyData.sat_governance, borderColor: '#7856ff', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
+                            { label: 'Spec Sat', data: historyData.sat_speculator, borderColor: '#e05555', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
+                            { label: 'Churn', data: historyData.churn_step, borderColor: 'rgba(224,85,85,0.5)', backgroundColor: 'rgba(224,85,85,0.2)', type: 'bar', yAxisID: 'y1' },
+                        ]
+                    },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: { intersect: false, mode: 'index' },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: { color: '#888', font: { size: 10, family: 'monospace' }, boxWidth: 12 }
-                            }
-                        },
+                        ...common,
                         scales: {
-                            x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
-                            y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } }
+                            ...common.scales,
+                            y: { position: 'left', min: 0, max: 1, title: { display: true, text: 'Satisfaction', color: '#555' }, ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
+                            y1: { position: 'right', min: 0, title: { display: true, text: 'Churn', color: '#555' }, ticks: { color: '#555', font: { size: 10 } }, grid: { drawOnChartArea: false } },
                         }
                     }
-                });
-            } else {
-                chart.data.labels = historyData.steps;
-                chart.data.datasets[0].data = historyData.staked;
-                chart.data.datasets[1].data = historyData.credits;
-                chart.data.datasets[2].data = historyData.burned;
-                chart.update('none');
+                };
+            }
+
+            if (view === 'funding-flow') {
+                return {
+                    type: 'bar',
+                    data: {
+                        labels: historyData.steps,
+                        datasets: [
+                            { label: 'Generated', data: historyData.credits_generated_step, backgroundColor: 'rgba(80,200,120,0.5)', borderColor: '#50c878', borderWidth: 1 },
+                            { label: 'Deployed', data: historyData.credits_deployed_step, backgroundColor: 'rgba(74,158,255,0.5)', borderColor: '#4a9eff', borderWidth: 1 },
+                        ]
+                    },
+                    options: { ...common, scales: { ...common.scales, y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } } } }
+                };
             }
         }
 
+        function updateChart() {
+            const ctx = document.getElementById('history-chart').getContext('2d');
+            if (chart) { chart.destroy(); chart = null; }
+            const config = getChartConfig(currentChartView);
+            chart = new Chart(ctx, config);
+        }
+
+        function switchChartView(view) {
+            currentChartView = view;
+            document.querySelectorAll('.chart-view-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-view="' + view + '"]').classList.add('active');
+            updateChart();
+        }
+
+        // ============================================
+        // Actions
+        // ============================================
         async function step() {
             await fetchJson('/api/step', { method: 'POST' });
             await updateUI();
@@ -1383,8 +1799,18 @@
             historyData.burned = history.Total_Burned || [];
             historyData.satisfaction = history.Avg_Satisfaction || [];
             historyData.active = history.Active_Stakers || [];
+            // New fields from backend
+            historyData.sat_believer = history.Sat_Believer || [];
+            historyData.sat_yield_seeker = history.Sat_YieldSeeker || [];
+            historyData.sat_governance = history.Sat_Governance || [];
+            historyData.sat_speculator = history.Sat_Speculator || [];
+            historyData.credits_generated_step = history.Credits_Generated_Step || [];
+            historyData.credits_deployed_step = history.Credits_Deployed_Step || [];
+            historyData.churn_step = history.Churn_Step || [];
             updateChart();
             await updateUI();
+            // Force canvas redraw after bulk run
+            setTimeout(() => simCanvas.forceRedraw(), 100);
         }
 
         async function resetWithParams() {
@@ -1394,12 +1820,165 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(params)
             });
-            historyData = { steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [] };
+            historyData = {
+                steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [],
+                sat_believer: [], sat_yield_seeker: [], sat_governance: [], sat_speculator: [],
+                credits_generated_step: [], credits_deployed_step: [], churn_step: [],
+            };
             if (chart) { chart.destroy(); chart = null; }
             simCanvas.reset();
+            // Capture initial snapshot for post-run summary
+            const state = await fetchJson('/api/state');
+            initialSnapshot = {
+                total_staked: state.model.total_staked,
+                total_credits: state.model.total_credits,
+                active_stakers: state.model.active_stakers,
+                avg_satisfaction: state.model.avg_satisfaction,
+                total_burned: state.model.total_burned,
+            };
+            document.getElementById('post-run-summary').style.display = 'none';
             await updateUI();
         }
 
+        // ============================================
+        // Scenarios
+        // ============================================
+        async function saveScenario() {
+            if (savedScenarios.length >= 6) {
+                alert('Maximum 6 scenarios. Clear some first.');
+                return;
+            }
+            const state = await fetchJson('/api/state');
+            const model = state.model;
+            const params = model.params || {};
+            // Use slider display values for consistency with what user sees
+            const yieldDisplay = document.getElementById('slider-yield').value;
+            const deployDisplay = document.getElementById('slider-deploy').value;
+            const successDisplay = document.getElementById('slider-success').value;
+            const defaultName = 'Scenario ' + (savedScenarios.length + 1) + ' \u2014 ' +
+                yieldDisplay + '% yield, ' + deployDisplay + '% deploy, ' + successDisplay + '% success';
+            const name = prompt('Scenario name:', defaultName);
+            if (!name) return;
+
+            savedScenarios.push({
+                name: name,
+                step: model.step,
+                params: params,
+                metrics: {
+                    total_staked: model.total_staked,
+                    total_credits: model.total_credits,
+                    total_burned: model.total_burned,
+                    active_stakers: model.active_stakers,
+                    churned_stakers: model.churned_stakers,
+                    avg_satisfaction: model.avg_satisfaction,
+                    credit_generation_rate: model.credit_generation_rate,
+                    deployment_rate: model.deployment_rate,
+                    success_rate_actual: model.success_rate_actual,
+                    completed_proposals: model.completed_proposals,
+                    failed_proposals: model.failed_proposals,
+                    open_proposals: model.open_proposals,
+                    num_stakers: model.num_stakers,
+                },
+            });
+            updateScenariosList();
+            updateScenarioCompare();
+        }
+
+        function clearScenarios() {
+            savedScenarios = [];
+            updateScenariosList();
+            updateScenarioCompare();
+        }
+
+        function updateScenariosList() {
+            const el = document.getElementById('saved-scenarios-list');
+            if (savedScenarios.length === 0) {
+                el.innerHTML = 'No saved scenarios';
+                return;
+            }
+            el.innerHTML = savedScenarios.map((s, i) =>
+                '<div style="padding:3px 0;border-bottom:1px solid var(--border)">' +
+                '<span style="color:var(--accent)">' + (i + 1) + '.</span> ' + s.name +
+                ' <span style="color:var(--text-dim)">(wk ' + s.step + ')</span></div>'
+            ).join('');
+        }
+
+        function updateScenarioCompare() {
+            const el = document.getElementById('scenario-compare-content');
+            if (savedScenarios.length === 0) {
+                el.innerHTML = '<p style="color:var(--text-dim);font-size:12px;">Save scenarios from the sidebar to compare them here.</p>';
+                return;
+            }
+
+            const metricLabels = {
+                total_staked: 'RSC Staked',
+                total_credits: 'Credits',
+                total_burned: 'Burned',
+                active_stakers: 'Active Stakers',
+                churned_stakers: 'Churned',
+                avg_satisfaction: 'Avg Satisfaction',
+                credit_generation_rate: 'Credits/Wk',
+                deployment_rate: 'Deployed/Wk',
+                success_rate_actual: 'Success Rate',
+                completed_proposals: 'Completed',
+                failed_proposals: 'Failed',
+                open_proposals: 'Open',
+                num_stakers: 'Total Stakers',
+            };
+
+            let html = '<table class="scenario-table"><thead><tr><th>Metric</th>';
+            savedScenarios.forEach(s => { html += '<th>' + s.name + '</th>'; });
+            html += '</tr></thead><tbody>';
+
+            for (const [key, label] of Object.entries(metricLabels)) {
+                html += '<tr><td>' + label + '</td>';
+                savedScenarios.forEach(s => {
+                    const val = s.metrics[key];
+                    const formatted = key === 'avg_satisfaction' ? val.toFixed(3)
+                        : key === 'success_rate_actual' ? (val * 100).toFixed(0) + '%'
+                        : typeof val === 'number' ? formatNumber(val) : val;
+                    html += '<td>' + formatted + '</td>';
+                });
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            el.innerHTML = html;
+        }
+
+        // ============================================
+        // Scenario Modal
+        // ============================================
+        function openScenarioModal() {
+            document.getElementById('scenario-modal').classList.add('open');
+            updateScenarioCompare();
+        }
+
+        function closeScenarioModal() {
+            document.getElementById('scenario-modal').classList.remove('open');
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('scenario-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeScenarioModal();
+        });
+
+        // Metrics detail toggle
+        function toggleMetricDetails(e) {
+            e.preventDefault();
+            const details = document.getElementById('metric-details');
+            const link = e.target;
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                link.innerHTML = 'Hide detailed metrics &#9662;';
+            } else {
+                details.style.display = 'none';
+                link.innerHTML = 'Show detailed metrics &#9656;';
+            }
+        }
+
+        // ============================================
+        // Design Questions
+        // ============================================
         async function loadDesignQuestions() {
             const questions = await fetchJson('/api/design-questions');
             const html = questions.map(q =>
@@ -1411,14 +1990,17 @@
             document.getElementById('design-questions').innerHTML = html;
         }
 
+        // ============================================
         // Agent Inspector
+        // ============================================
         let currentAgentTab = 'top-stakers';
         let lastStakers = [];
 
-        function showAgentTab(tab) {
+        function showAgentTab(tab, btnEl) {
             currentAgentTab = tab;
             document.querySelectorAll('.agent-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (btnEl) btnEl.classList.add('active');
+            else document.querySelector('.agent-tab').classList.add('active');
             renderAgentTab();
         }
 
@@ -1435,13 +2017,13 @@
             }
 
             if (currentAgentTab === 'top-stakers') {
-                const sorted = [...lastStakers].filter(s => s.active).sort((a, b) => b.stake - a.stake).slice(0, 12);
+                const sorted = [...lastStakers].filter(s => s.active).sort((a, b) => b.stake - a.stake).slice(0, 20);
                 container.innerHTML =
                     '<table class="agent-table"><thead><tr>' +
                     '<th>ID</th><th>Archetype</th><th>Stake</th><th>Tier</th><th>Credits</th><th>Deployed</th><th>Satisfaction</th>' +
                     '</tr></thead><tbody>' +
                     sorted.map(s =>
-                        '<tr>' +
+                        '<tr class="' + (highlightedAgentId === s.id ? 'highlighted' : '') + '">' +
                         '<td class="agent-id">' + s.id + '</td>' +
                         '<td><span class="arch-badge ' + s.archetype + '">' + s.archetype + '</span></td>' +
                         '<td>' + formatNumber(s.stake) + '</td>' +
@@ -1454,13 +2036,13 @@
                     '</tbody></table>';
 
             } else if (currentAgentTab === 'recent-deployers') {
-                const deployers = [...lastStakers].filter(s => s.total_deployed > 0).sort((a, b) => b.total_deployed - a.total_deployed).slice(0, 12);
+                const deployers = [...lastStakers].filter(s => s.total_deployed > 0).sort((a, b) => b.total_deployed - a.total_deployed).slice(0, 20);
                 container.innerHTML = deployers.length ?
                     '<table class="agent-table"><thead><tr>' +
                     '<th>ID</th><th>Archetype</th><th>Deployed</th><th>Burned</th><th>Net Position</th><th>Satisfaction</th>' +
                     '</tr></thead><tbody>' +
                     deployers.map(s =>
-                        '<tr class="' + (s.active ? '' : 'churned') + '">' +
+                        '<tr class="' + (!s.active ? 'churned' : '') + (highlightedAgentId === s.id ? ' highlighted' : '') + '">' +
                         '<td class="agent-id">' + s.id + (s.active ? '' : ' [left]') + '</td>' +
                         '<td><span class="arch-badge ' + s.archetype + '">' + s.archetype + '</span></td>' +
                         '<td style="color:var(--success)">' + formatNumber(s.total_deployed) + '</td>' +
@@ -1515,15 +2097,19 @@
                         '</tr>'
                     ).join('') +
                     '</tbody></table>'
-                    : '<div class="agent-placeholder">No stakers have churned yet. Low satisfaction + expired locks = churn risk.</div>';
+                    : '<div class="agent-placeholder">No stakers have churned yet.</div>';
             }
+
+            // Clear highlight after render
+            setTimeout(() => { highlightedAgentId = null; }, 3000);
         }
 
-        // Round Narrative
+        // ============================================
+        // Narrative
+        // ============================================
         function generateNarrative(model, events) {
             const parts = [];
             const step = model.step;
-
             const stepEvents = events.filter(e => e.step === step);
             const funded = stepEvents.filter(e => e.type === 'funded').length;
             const completed = stepEvents.filter(e => e.type === 'completed').length;
@@ -1566,22 +2152,178 @@
             return parts.join('') || '<p class="narrative-placeholder">No significant activity this week.</p>';
         }
 
-        function updateNarrative(model, events) {
-            document.getElementById('round-narrative').innerHTML = generateNarrative(model, events);
+        // updateNarrative removed — "This Week's Activity" section was removed in Round 3
+
+        // ============================================
+        // Post-Run Summary
+        // ============================================
+        function generateNarrativeSummary(model, stakers) {
+            // Aggregate per-archetype data from staker list
+            const archetypes = ['believer', 'yield_seeker', 'governance', 'speculator'];
+            const archNames = { believer: 'Believers', yield_seeker: 'Yield Seekers', governance: 'Governance', speculator: 'Speculators' };
+            const archData = {};
+            let totalDeployed = 0;
+            let totalChurned = 0;
+
+            for (const arch of archetypes) {
+                const group = stakers.filter(s => s.archetype === arch);
+                const active = group.filter(s => s.active);
+                const churned = group.filter(s => !s.active);
+                const deployed = group.reduce((sum, s) => sum + s.total_deployed, 0);
+                const avgCredits = active.length > 0 ? active.reduce((sum, s) => sum + s.credits, 0) / active.length : 0;
+                const avgSat = active.length > 0 ? active.reduce((sum, s) => sum + s.satisfaction, 0) / active.length : 0;
+                archData[arch] = { total: group.length, active: active.length, churned: churned.length, deployed, avgCredits, avgSat };
+                totalDeployed += deployed;
+                totalChurned += churned.length;
+            }
+
+            // Find top deployer archetype
+            let topDeployer = archetypes[0];
+            for (const arch of archetypes) {
+                if (archData[arch].deployed > archData[topDeployer].deployed) topDeployer = arch;
+            }
+            const topDeployPct = totalDeployed > 0 ? ((archData[topDeployer].deployed / totalDeployed) * 100).toFixed(0) : 0;
+            const topDeployPopPct = ((archData[topDeployer].total / stakers.length) * 100).toFixed(0);
+
+            // Find highest credit hoarder
+            let hoarder = archetypes[0];
+            for (const arch of archetypes) {
+                if (archData[arch].avgCredits > archData[hoarder].avgCredits) hoarder = arch;
+            }
+            let lowestCredits = archetypes[0];
+            for (const arch of archetypes) {
+                if (archData[arch].active > 0 && archData[arch].avgCredits < archData[lowestCredits].avgCredits) lowestCredits = arch;
+            }
+            const hoardRatio = archData[lowestCredits].avgCredits > 0
+                ? (archData[hoarder].avgCredits / archData[lowestCredits].avgCredits).toFixed(1)
+                : 'N/A';
+
+            // Find fastest satisfaction decline
+            let fastestDrop = archetypes[0];
+            for (const arch of archetypes) {
+                if (archData[arch].active > 0 && archData[arch].avgSat < archData[fastestDrop].avgSat) fastestDrop = arch;
+            }
+
+            // Burn as % of initial stake
+            const burnPct = initialSnapshot.total_staked > 0
+                ? ((model.total_burned / initialSnapshot.total_staked) * 100).toFixed(1)
+                : '0';
+
+            // Build narrative
+            const parts = [];
+            parts.push('Over <span class="narrative-highlight">' + model.step + ' weeks</span>, the endowment generated ' +
+                '<span class="narrative-highlight">' + formatNumber(model.total_credits_generated) + ' funding credits</span> and burned ' +
+                '<span class="narrative-danger">' + formatNumber(model.total_burned) + ' RSC</span> (' + burnPct + '% of initial stake).');
+
+            parts.push(archNames[topDeployer] + ' were the most active deployers, contributing ' +
+                '<span class="narrative-success">' + topDeployPct + '% of all credit deployments</span> despite being ' +
+                topDeployPopPct + '% of the population.');
+
+            if (hoarder !== lowestCredits && hoardRatio !== 'N/A') {
+                parts.push(archNames[hoarder] + ' hoarded credits — their average credit balance was ' +
+                    '<span class="narrative-highlight">' + hoardRatio + 'x higher</span> than ' + archNames[lowestCredits] + '\'s.');
+            }
+
+            if (totalChurned > 0) {
+                const churnParts = archetypes.filter(a => archData[a].churned > 0)
+                    .map(a => archData[a].churned + ' ' + archNames[a].toLowerCase());
+                parts.push('<span class="narrative-danger">' + totalChurned + ' staker' + (totalChurned > 1 ? 's' : '') +
+                    ' churned</span> (' + churnParts.join(', ') + ').');
+            }
+
+            parts.push('Satisfaction declined from <span class="narrative-highlight">1.00 to ' +
+                model.avg_satisfaction.toFixed(2) + '</span>, with ' + archNames[fastestDrop] +
+                ' dropping fastest (to ' + archData[fastestDrop].avgSat.toFixed(2) + ').');
+
+            // Proposal stats
+            if (model.completed_proposals + model.failed_proposals > 0) {
+                const totalResolved = model.completed_proposals + model.failed_proposals;
+                const successPct = ((model.completed_proposals / totalResolved) * 100).toFixed(0);
+                parts.push(totalResolved + ' proposals resolved: <span class="narrative-success">' +
+                    model.completed_proposals + ' completed</span>' +
+                    (model.failed_proposals > 0 ? ', <span class="narrative-danger">' + model.failed_proposals + ' failed</span>' : '') +
+                    ' (' + successPct + '% success rate).');
+            }
+
+            return '<p>' + parts.join(' ') + '</p>';
         }
 
-        // Toggle Education
-        function toggleEducation() {
-            const content = document.getElementById('education-content');
-            const toggle = document.getElementById('edu-toggle');
-            content.classList.toggle('collapsed');
-            toggle.innerHTML = content.classList.contains('collapsed') ? '&#9654;' : '&#9660;';
+        function updatePostRunSummary(model) {
+            if (!initialSnapshot) return;
+            const el = document.getElementById('post-run-summary');
+
+            // Generate narrative prose from staker data
+            let html = '<div class="summary-panel"><div class="card-header">Run Summary (Week 0 &rarr; ' + model.step + ')</div>';
+            if (model.step >= 10 && lastStakers.length > 0) {
+                html += '<div class="narrative" style="margin-bottom:12px">' + generateNarrativeSummary(model, lastStakers) + '</div>';
+            }
+
+            // Collapsible metrics delta table
+            html += '<a href="#" class="detail-toggle" onclick="toggleMetricDetails(event)">Show detailed metrics &#9656;</a>';
+            html += '<div id="metric-details" style="display:none">';
+
+            const deltas = [
+                { label: 'RSC Staked', initial: initialSnapshot.total_staked, final: model.total_staked },
+                { label: 'Credits', initial: initialSnapshot.total_credits, final: model.total_credits },
+                { label: 'Active Stakers', initial: initialSnapshot.active_stakers, final: model.active_stakers },
+                { label: 'Satisfaction', initial: initialSnapshot.avg_satisfaction, final: model.avg_satisfaction, fmt: 'pct' },
+                { label: 'Total Burned', initial: initialSnapshot.total_burned, final: model.total_burned },
+                { label: 'Credits Deployed', initial: 0, final: model.total_credits_deployed },
+                { label: 'Completed Proposals', initial: 0, final: model.completed_proposals, fmt: 'int' },
+                { label: 'Failed Proposals', initial: 0, final: model.failed_proposals, fmt: 'int' },
+                { label: 'Open Proposals', initial: 0, final: model.open_proposals, fmt: 'int' },
+                { label: 'Total Churned', initial: 0, final: model.churned_stakers, fmt: 'int' },
+            ];
+
+            deltas.forEach(d => {
+                const diff = d.final - d.initial;
+                const sign = diff >= 0 ? '+' : '';
+                const cls = diff >= 0 ? 'delta-pos' : 'delta-neg';
+                let valStr, diffStr;
+                if (d.fmt === 'pct') {
+                    valStr = (d.final * 100).toFixed(1) + '%';
+                    diffStr = sign + (diff * 100).toFixed(1) + '%';
+                } else if (d.fmt === 'int') {
+                    valStr = d.final.toString();
+                    diffStr = d.initial > 0 ? sign + diff : '';
+                } else {
+                    valStr = formatNumber(d.final);
+                    diffStr = sign + formatNumber(diff);
+                }
+                const deltaHtml = diffStr ? ' <span class="' + cls + '">(' + diffStr + ')</span>' : '';
+                html += '<div class="summary-delta"><span class="delta-label">' + d.label + '</span><span>' + valStr + deltaHtml + '</span></div>';
+            });
+
+            // Tension detection
+            const tensions = [];
+            if (model.total_credits > model.total_credits_deployed * 2 && model.step > 10) {
+                tensions.push('Credits accumulating faster than deployed - deployment pressure may build.');
+            }
+            if (model.avg_satisfaction < 0.5) {
+                tensions.push('Low average satisfaction - churn risk is elevated.');
+            }
+            if (model.churned_stakers > model.active_stakers * 0.3) {
+                tensions.push('High churn rate - more than 30% of stakers have left.');
+            }
+
+            if (tensions.length > 0) {
+                html += '<div class="tension-warning"><strong>Tensions:</strong><ul>';
+                tensions.forEach(t => { html += '<li>' + t + '</li>'; });
+                html += '</ul></div>';
+            }
+
+            html += '</div>'; // close metric-details
+            html += '</div>'; // close summary-panel
+            el.innerHTML = html;
+            el.style.display = 'block';
         }
 
+        // ============================================
         // Init
+        // ============================================
         updateUI();
         loadDesignQuestions();
-        updateArchMixPreview();
+        updateArchBar();
     </script>
 </body>
 </html>

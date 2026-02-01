@@ -5,7 +5,7 @@
 This is the **simple Endowment** model matching ResearchHub's plan:
 
 ```
-Stake RSC -> Earn Credits (APY) -> Deploy to Proposals -> 2% Burn
+Stake RSC -> Earn Funding Credits -> Deploy to Research Proposals
 ```
 
 **Not to be confused with**: `rsc-process-fidelity-abm` (the complex model with panel voting, slashing, etc.)
@@ -22,19 +22,39 @@ python server.py
 
 | File | Purpose |
 |------|---------|
-| `src/model.py` | EndowmentModel (simple credit-based) |
-| `src/agents.py` | EndowmentStaker, EndowmentProposal |
-| `src/constants.py` | Tiers, design questions |
+| `src/model.py` | EndowmentModel (Mesa ABM, accepts all params) |
+| `src/agents.py` | EndowmentStaker (archetypes, B=f(P,E)), EndowmentProposal |
+| `src/constants.py` | Tiers, archetypes (Believer/Yield Seeker/Governance/Speculator), design questions |
 | `server.py` | Flask REST API |
-| `templates/index.html` | Interactive dashboard with educational features |
+| `templates/index.html` | Single-page dashboard (sidebar + 4-tab main area) |
+| `ARCHITECTURE.md` | System architecture with Mermaid diagrams |
 
-## Dashboard Features
+## Dashboard Layout
 
-The dashboard at `http://localhost:5000` includes:
-- **📖 This Week's Activity**: Round-by-round narrative
-- **🔍 Agent Inspector**: Individual staker exploration (3 tabs)
-- **📚 How This Model Works**: Visual flow + detailed explanations
-- **Tooltips**: Hover any metric for explanation
+**Sidebar sections:**
+- **Parameters**: Yield, Deploy Rate, Proposal Success, Stakers (Apply & Reset + Defaults)
+- **Archetype Mix**: Linked sliders (sum=100%, min 5% each) + stacked bar + behavioral hints
+- **Staking Tiers**: Distribution bar (Flexible/3mo/6mo/12mo)
+- **Advanced** (collapsed): Burn Rate, Credit Expiry, Failure Mode, Min Stake
+- **Scenarios** (collapsed): Save/Compare runs side-by-side
+- **How It Works** (collapsed): B=f(P,E) explanation, weekly step breakdown
+- **Design Questions** (collapsed): Open questions from `/api/design-questions`
+
+**Main area tabs:** Agent Field | Time Series | Proposals & Funding | Agent Inspector
+
+**Pinned KPIs:** RSC Staked, Satisfaction, Churned
+
+## Parameter Mapping (Slider -> Backend)
+
+| Slider | ID | Backend param | Section |
+|--------|----|---------------|---------|
+| Yield | `slider-yield` | `base_apy` (/ 100) | Parameters |
+| Deploy Rate | `slider-deploy` | `deploy_probability` (/ 100) | Parameters |
+| Proposal Success | `slider-success` | `success_rate` (/ 100) | Parameters |
+| Stakers | `slider-stakers` | `num_stakers` (int) | Parameters |
+| Burn Rate | `slider-burn` | `burn_rate` (/ 100) | Advanced |
+
+Archetype sliders (`slider-believer`, `slider-yield_seeker`, `slider-governance`, `slider-speculator`) -> `archetype_mix` dict (values / 100).
 
 ## Model Parameters
 
@@ -42,14 +62,30 @@ The dashboard at `http://localhost:5000` includes:
 EndowmentModel(
     num_stakers=100,
     num_proposals=10,
-    base_apy=0.10,        # 10% base APY
-    burn_rate=0.02,       # 2% burn on deployment
-    success_rate=0.80,    # 80% proposal completion
-    deploy_probability=0.3,
-    funding_target_min=1000,
-    funding_target_max=10000,
+    base_apy=0.10,            # 10% yield
+    burn_rate=0.02,           # 2% burn fee on deployment
+    success_rate=0.80,        # 80% proposal completion
+    deploy_probability=0.3,   # Scales behavioral deployment (0.3 = baseline)
+    archetype_mix={           # Population composition
+        "believer": 0.25,
+        "yield_seeker": 0.30,
+        "governance": 0.20,
+        "speculator": 0.25,
+    },
+    # Advanced / Design Lab
+    credit_expiry_enabled=False,
+    credit_expiry_weeks=8,
+    failure_mode="nothing",   # nothing | partial_refund | satisfaction_only
+    min_stake_enabled=False,
+    min_stake_amount=1000,
 )
 ```
+
+## Behavioral Model
+
+`deploy_probability` scales the behavioral deployment decision in `agents.py:_should_deploy()`:
+- `deploy_scale = self.model.deploy_probability / 0.3`
+- Default 0.3 -> scale=1.0 (unchanged). 0.0 -> nobody deploys. 1.0 -> 3.3x boost (capped 0.95).
 
 ## Staking Tiers
 
@@ -64,35 +100,24 @@ EndowmentModel(
 
 ```bash
 # Initialize
-curl -X POST localhost:5000/api/init -d '{"num_stakers": 50}'
+curl -X POST localhost:5000/api/init -d '{"num_stakers": 50, "deploy_probability": 0.5}'
 
-# Run 10 steps
-curl -X POST localhost:5000/api/run -d '{"steps": 10}'
+# Run 52 steps (1 year)
+curl -X POST localhost:5000/api/run -d '{"steps": 52}'
 
 # Get state
 curl localhost:5000/api/state
 
 # Get metrics
 curl localhost:5000/api/metrics
-
-# List tiers
-curl localhost:5000/api/tiers
 ```
-
-## Design Questions Endpoint
-
-The `/api/design-questions` endpoint surfaces open questions for ResearchHub:
-- Credit expiry policy
-- Pooled vs individual deployment
-- Failure consequences
-- Yield source
-- Success criteria
 
 ## Difference from Process Fidelity Model
 
 | Feature | Endowment (this) | Process Fidelity |
 |---------|------------------|------------------|
 | Credits | Yes | No |
+| Archetypes | Yes (4 types) | No |
 | Panel voting | No | Yes (5 stakers) |
 | Slashing | No | Yes (dissenters) |
 | Quality scores | No | Yes (0-6) |

@@ -1,21 +1,23 @@
 # RSC Decentralized Endowment ABM
 
-Agent-based model for RSC staking with **simple credit-based funding**.
+Agent-based model for RSC staking with **simple credit-based funding** and behavioral archetypes.
 
 ## Overview
 
 This model simulates the core endowment mechanism:
 
 ```
-Stake RSC -> Earn Credits (APY) -> Deploy to Proposals -> 2% Burn
+Stake RSC -> Earn Funding Credits -> Deploy to Research Proposals
 ```
 
 **Key features:**
+- 4 behavioral archetypes (Believers, Yield Seekers, Governance, Speculators)
 - 4 staking tiers based on lock period (Flexible/3mo/6mo/12mo)
-- APY multipliers reward longer commitments
+- Yield multipliers reward longer commitments
 - Credits are deployment tokens (no RSC value)
-- 2% of backing RSC burned when credits deployed
-- Simple binary proposal resolution (no panel voting)
+- Configurable burn fee on credit deployment
+- B=f(P,E) behavioral model: Person attributes + Environment = Behavior
+- Scenario save/compare for parameter exploration
 
 **Note**: The complex "Process Fidelity" model with panel voting, slashing, and quality scores is in the separate `rsc-process-fidelity-abm` project.
 
@@ -38,47 +40,86 @@ python server.py
 
 The web dashboard at `http://localhost:5000` provides:
 
-**Simulation Controls**
-- Step / Run 10 / Run 1 Year / Reset buttons
-- Real-time metrics: Staked, Credits, Burned, Generation Rate, Deployment Rate
+**Sidebar Controls**
 
-**Educational Features**
-- 📖 **This Week's Activity**: Narrative explanation of what happened each step
-- 🔍 **Agent Inspector**: Explore individual stakers (Top Stakers, Recent Deployers, Tier Breakdown)
-- 📚 **How This Model Works**: Visual flow diagram and detailed mechanics explanation
-- ❓ **Design Questions**: Open questions for ResearchHub team discussion
+| Section | Contents |
+|---------|----------|
+| Parameters | Yield, Deploy Rate, Proposal Success, Stakers |
+| Archetype Mix | Linked sliders (sum to 100%) with behavioral descriptions |
+| Staking Tiers | Distribution bar across Flexible/3mo/6mo/12mo |
+| Advanced | Burn Rate, Credit Expiry, Failure Mode, Min Stake |
+| Scenarios | Save/Compare parameter runs side-by-side |
+| How It Works | B=f(P,E) explanation, step-by-step mechanics |
+| Design Questions | Open questions for ResearchHub discussion |
 
-**Visualizations**
-- Time series chart (Staked/Credits/Burned)
-- Tier distribution bar
-- Proposal funding progress
-- Event log
+**Main Area (4 tabs)**
+- **Agent Field**: Grid visualization showing each staker as a cell (color = archetype, opacity = satisfaction, glow = credit pressure). Hover for tooltip, click for details.
+- **Time Series**: Staked/Credits/Burned over time
+- **Proposals & Funding**: Proposal status and funding progress
+- **Agent Inspector**: Individual staker deep-dive (Top Stakers, Recent Deployers, Tier Breakdown)
 
-## Model Mechanics
+**Pinned KPIs**: RSC Staked, Satisfaction, Churned (always visible)
 
-### Staking Tiers
+## Dashboard Parameters
 
-| Tier | Lock Period | APY Multiplier |
-|------|-------------|----------------|
+The dashboard exposes these as sliders mapped to backend params:
+
+| Slider | Range | Default | Backend param |
+|--------|-------|---------|---------------|
+| Yield | 1-25% | 10% | `base_apy` (/ 100) |
+| Deploy Rate | 0-100% | 30% | `deploy_probability` (/ 100) |
+| Proposal Success | 20-100% | 80% | `success_rate` (/ 100) |
+| Stakers | 20-500 | 100 | `num_stakers` (int) |
+| Burn Rate | 0.5-10% | 2% | `burn_rate` (/ 100) |
+
+Archetype sliders (Believers/Yield Seekers/Governance/Speculators) are linked: adjusting one proportionally redistributes the others, always summing to 100% with a 5% minimum each.
+
+## Behavioral Model
+
+### B = f(P, E)
+
+Each staker has **Person attributes** that interact with **Environment conditions** to produce behavior:
+
+**Person attributes** (continuous 0-1 scales):
+- `mission_alignment` - cares about funding research vs. earning yield
+- `risk_tolerance` - willingness to back uncertain proposals
+- `engagement` - how actively they participate
+- `price_sensitivity` - reactivity to RSC price changes
+
+### Archetypes
+
+| Archetype | Behavior | Default Mix |
+|-----------|----------|-------------|
+| Believer | Mission-driven. Deploy eagerly, back risky research, stick around. | 25% |
+| Yield Seeker | Return-focused. Deploy selectively, leave if returns disappoint. | 30% |
+| Governance | Community-oriented. Moderate deployers, value ecosystem health. | 20% |
+| Speculator | Short-term. Hoard credits, rarely deploy, first to churn. | 25% |
+
+### Deployment Decision
+
+`deploy_probability` acts as a scaling factor on the behavioral deployment decision:
+- Base probability from engagement level
+- Credit pressure boost (sigmoid, increases when credits accumulate)
+- Satisfaction dampening (low satisfaction reduces willingness)
+- Deploy scale = `deploy_probability / 0.3` (default 0.3 = no change)
+
+## Staking Tiers
+
+| Tier | Lock Period | Yield Multiplier |
+|------|-------------|------------------|
 | Flexible | None | 1.0x |
 | 3-Month | 90 days | 1.5x |
 | 6-Month | 180 days | 2.0x |
 | 12-Month | 365 days | 3.0x |
 
-Base APY: 10% (configurable)
+## Credit Flow
 
-### Credit Flow
-
-1. **Generation**: Stakers earn credits at `stake * APY * tier_multiplier / 52` per step (week)
-2. **Deployment**: Stakers deploy credits to fund proposals
-3. **Burn**: 2% of proportional backing RSC burned on deployment
-4. **Resolution**: Funded proposals complete or fail (80% success probability)
-
-### Proposals
-
-- Have a funding target (in credits)
-- Status: `open` -> `funded` -> `completed`/`failed`
-- No researcher stake required (unlike Process Fidelity model)
+1. **Generation**: Stakers earn credits at `stake * yield * tier_multiplier / 52` per step (week)
+2. **Deployment**: Behavioral decision to deploy credits to proposals
+3. **Fee**: Burn rate % of backing RSC burned on deployment
+4. **Resolution**: Funded proposals complete or fail (success_rate probability)
+5. **Satisfaction**: Updated from outcomes; affects future deployment and churn
+6. **Churn**: Unsatisfied + unlocked stakers may leave
 
 ## API Endpoints
 
@@ -101,25 +142,16 @@ Base APY: 10% (configurable)
 # Initialize with custom parameters
 curl -X POST http://localhost:5000/api/init \
   -H "Content-Type: application/json" \
-  -d '{"num_stakers": 50, "base_apy": 0.15}'
+  -d '{"num_stakers": 50, "base_apy": 0.15, "deploy_probability": 0.5}'
 
-# Run 20 steps
+# Run 52 steps (1 year)
 curl -X POST http://localhost:5000/api/run \
   -H "Content-Type: application/json" \
-  -d '{"steps": 20}'
+  -d '{"steps": 52}'
 
 # Get metrics
 curl http://localhost:5000/api/metrics
 ```
-
-## Key Metrics
-
-1. **Total Staked** - RSC locked across all tiers
-2. **Credit Generation Rate** - Credits/step
-3. **Deployment Rate** - Credits deployed/step
-4. **Burn Rate** - RSC burned per step
-5. **Tier Distribution** - Staker counts by tier
-6. **Success Rate** - % of proposals that complete
 
 ## Project Structure
 
@@ -127,13 +159,14 @@ curl http://localhost:5000/api/metrics
 rsc-endowment-abm/
 ├── src/
 │   ├── __init__.py
-│   ├── model.py      # EndowmentModel
-│   ├── agents.py     # EndowmentStaker, EndowmentProposal
-│   └── constants.py  # Tiers, design questions
+│   ├── model.py        # EndowmentModel (Mesa ABM)
+│   ├── agents.py       # EndowmentStaker, EndowmentProposal
+│   └── constants.py    # Tiers, archetypes, design questions
 ├── templates/
-│   └── index.html    # Interactive dashboard with educational features
-├── server.py         # Flask REST API
+│   └── index.html      # Single-page dashboard (HTML/CSS/JS)
+├── server.py           # Flask REST API
 ├── requirements.txt
+├── ARCHITECTURE.md     # System architecture with diagrams
 ├── README.md
 ├── CLAUDE.md
 └── rsc-staking-project-background.md
@@ -141,30 +174,38 @@ rsc-endowment-abm/
 
 ## Architecture
 
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed diagrams.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Flask Server (server.py)                  │
-│  /api/init  /api/step  /api/run  /api/state  /api/stakers  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
+│  /api/init  /api/step  /api/run  /api/state  /api/metrics  │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   EndowmentModel (Mesa ABM)                  │
-│  ┌───────────────┐    ┌───────────────┐    ┌─────────────┐ │
-│  │ EndowmentStaker│    │EndowmentProposal│  │ DataCollector│ │
-│  │ - stake        │───▶│ - funding_target│  │ - history   │ │
-│  │ - tier         │    │ - credits_recv  │  │ - metrics   │ │
-│  │ - credits      │    │ - backers       │  └─────────────┘ │
-│  │ - deploy()     │    │ - status        │                   │
-│  └───────────────┘    └───────────────┘                     │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
+│  ┌─────────────────┐  ┌──────────────────┐  ┌────────────┐ │
+│  │EndowmentStaker   │  │EndowmentProposal │  │DataCollector│ │
+│  │ - archetype      │  │ - funding_target │  │ - history  │ │
+│  │ - stake / tier   │─▶│ - credits_recv   │  │ - metrics  │ │
+│  │ - credits        │  │ - backers        │  └────────────┘ │
+│  │ - satisfaction   │  │ - status         │                  │
+│  │ - _should_deploy │  └──────────────────┘                  │
+│  └─────────────────┘                                         │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │              Interactive Dashboard (index.html)              │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────────────────┐│
-│  │ Metrics │ │ Charts  │ │ Agents  │ │ Educational Content ││
-│  └─────────┘ └─────────┘ └─────────┘ └─────────────────────┘│
+│  Sidebar                    Main Area                       │
+│  ┌──────────────┐  ┌─────────────────────────────────────┐  │
+│  │ Parameters   │  │ Agent Field │ Time Series │ ...     │  │
+│  │ Archetypes   │  │ ┌─────────────────────────────────┐ │  │
+│  │ Staking Tiers│  │ │  Grid: color=arch, opacity=sat  │ │  │
+│  │ Advanced     │  │ │  + archetype behavior cards      │ │  │
+│  │ Scenarios    │  │ └─────────────────────────────────┘ │  │
+│  └──────────────┘  └─────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -178,4 +219,4 @@ The model surfaces these questions for ResearchHub team discussion:
 4. **Yield Source**: Emissions vs revenue-funded?
 5. **Success Criteria**: How is proposal success determined?
 
-Access via `/api/design-questions`.
+Access via `/api/design-questions`. Credit expiry and failure mode are explorable in the Advanced section.
