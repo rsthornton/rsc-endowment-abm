@@ -167,9 +167,7 @@ rsc-endowment-abm/
 ├── server.py           # Flask REST API
 ├── requirements.txt
 ├── ARCHITECTURE.md     # System architecture with diagrams
-├── README.md
-├── CLAUDE.md
-└── rsc-staking-project-background.md
+└── README.md
 ```
 
 ## Architecture

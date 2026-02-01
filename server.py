@@ -4,6 +4,8 @@ Flask server for RSC Decentralized Endowment ABM
 Simple REST API for running simulations.
 """
 
+import os
+
 from flask import Flask, jsonify, request, render_template
 
 from src import (
@@ -255,4 +257,6 @@ if __name__ == "__main__":
     print("Open http://localhost:5000 in your browser")
     print("=" * 50)
 
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "true").lower() == "true"
+    app.run(debug=debug, host="0.0.0.0", port=port)
