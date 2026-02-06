@@ -1,8 +1,12 @@
 # RSC Decentralized Endowment ABM
 
-Agent-based model for RSC staking with **simple credit-based funding** and behavioral archetypes.
+An interactive agent-based model exploring how [ResearchHub](https://www.researchhub.com/) RSC staking with credit-based funding and behavioral archetypes could work in practice. Adjust parameters, watch agents react, and explore design tradeoffs — all in your browser.
+
+### **[Try the Live Demo](https://rsc-endowment-abm-production.up.railway.app)** — no install required
 
 ![Dashboard screenshot showing the Agent Field grid with archetype behavior cards, parameter sliders, and KPI metrics after a 52-week simulation run.](docs/screenshot.png)
+
+Built with Python, [Mesa](https://mesa.readthedocs.io/) (ABM framework), Flask, and Chart.js.
 
 ## Overview
 
@@ -25,22 +29,21 @@ Stake RSC -> Earn Funding Credits -> Deploy to Research Proposals
 
 ## Quick Start
 
+The fastest way to explore the model is the **[live demo](https://rsc-endowment-abm-production.up.railway.app)**.
+
+To run locally:
+
 ```bash
-# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run server
 python server.py
 # Open http://localhost:5000
 ```
 
 ## Interactive Dashboard
 
-The web dashboard at `http://localhost:5000` provides:
+The dashboard (available at the [live demo](https://rsc-endowment-abm-production.up.railway.app) or `localhost:5000` locally) provides:
 
 **Sidebar Controls**
 
