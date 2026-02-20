@@ -1,7 +1,8 @@
 """
 Flask server for RSC Decentralized Endowment ABM
 
-Simple REST API for running simulations.
+Real mechanism: RSC in RH account auto-earns yield (passive, no staking action).
+Primary question: What participation_rate does the market equilibrate to?
 """
 
 import os
@@ -10,12 +11,12 @@ from flask import Flask, jsonify, request, render_template
 
 from src import (
     EndowmentModel,
-    TIERS,
-    DESIGN_QUESTIONS,
+    TIME_WEIGHT_MULTIPLIERS,
+    EMISSION_PARAMS,
     DEFAULT_PARAMS,
     ARCHETYPES,
     DEFAULT_ARCHETYPE_MIX,
-    list_tiers,
+    list_multipliers,
     list_archetypes,
 )
 
@@ -55,20 +56,21 @@ def api_info():
     """API info."""
     return jsonify({
         "name": "RSC Decentralized Endowment ABM",
-        "description": "Simple model: Stake RSC -> Earn Credits -> Deploy -> 2% Burn",
+        "description": "RSC in RH account auto-earns yield. Yield = (your RSC / total RSC) x emissions x multiplier.",
+        "primary_question": "What participation rate does the market equilibrate to?",
         "endpoints": {
             "/api/init": "POST - Initialize model with parameters",
-            "/api/step": "POST - Advance simulation by 1 step",
+            "/api/step": "POST - Advance simulation by 1 step (1 week)",
             "/api/run": "POST - Run N steps",
             "/api/state": "GET - Get current model state",
             "/api/metrics": "GET - Get computed metrics",
-            "/api/stakers": "GET - List all stakers",
+            "/api/holders": "GET - List all holders",
             "/api/proposals": "GET - List all proposals",
             "/api/history": "GET - Get time series data",
             "/api/events": "GET - Get event log",
-            "/api/tiers": "GET - List staking tiers",
+            "/api/multipliers": "GET - List time-weight multipliers",
             "/api/archetypes": "GET - List behavioral archetypes",
-            "/api/design-questions": "GET - List open design questions",
+            "/api/participation": "GET - Participation rate data + reference scenarios",
         },
         "status": "ready",
     })
@@ -79,24 +81,22 @@ def api_init():
     """Initialize model with parameters."""
     data = request.get_json() or {}
 
-    # Extract parameters
     params = {
-        "num_stakers": data.get("num_stakers"),
+        "num_holders": data.get("num_holders") or data.get("num_stakers"),
         "num_proposals": data.get("num_proposals"),
-        "base_apy": data.get("base_apy"),
         "burn_rate": data.get("burn_rate"),
         "success_rate": data.get("success_rate"),
         "funding_target_min": data.get("funding_target_min"),
         "funding_target_max": data.get("funding_target_max"),
         "deploy_probability": data.get("deploy_probability"),
         "archetype_mix": data.get("archetype_mix"),
+        "yield_threshold_mean": data.get("yield_threshold_mean"),
+        "initial_participation_rate": data.get("initial_participation_rate"),
         "seed": data.get("seed"),
         # Design Lab params
         "credit_expiry_enabled": data.get("credit_expiry_enabled"),
         "credit_expiry_weeks": data.get("credit_expiry_weeks"),
         "failure_mode": data.get("failure_mode"),
-        "min_stake_enabled": data.get("min_stake_enabled"),
-        "min_stake_amount": data.get("min_stake_amount"),
     }
 
     # Remove None values
@@ -111,7 +111,7 @@ def api_init():
 
 @app.route("/api/step", methods=["POST"])
 def api_step():
-    """Advance model by one step."""
+    """Advance model by one step (1 week)."""
     m = get_model()
     m.step()
     return jsonify({
@@ -152,21 +152,28 @@ def api_metrics():
     return jsonify(m.get_metrics())
 
 
+@app.route("/api/holders")
+def api_holders():
+    """List all holders."""
+    m = get_model()
+    return jsonify(m.get_holders())
+
+
 @app.route("/api/stakers")
 def api_stakers():
-    """List all stakers."""
+    """Legacy alias for /api/holders."""
     m = get_model()
-    return jsonify(m.get_stakers())
+    return jsonify(m.get_holders())
 
 
-@app.route("/api/stakers/<int:staker_id>")
-def api_staker_detail(staker_id: int):
-    """Get single staker details."""
+@app.route("/api/holders/<int:holder_id>")
+def api_holder_detail(holder_id: int):
+    """Get single holder details."""
     m = get_model()
-    for staker in m.stakers:
-        if staker.unique_id == staker_id:
-            return jsonify(staker.to_dict())
-    return jsonify({"error": "Staker not found"}), 404
+    for holder in m.holders:
+        if holder.unique_id == holder_id:
+            return jsonify(holder.to_dict())
+    return jsonify({"error": "Holder not found"}), 404
 
 
 @app.route("/api/proposals")
@@ -201,10 +208,16 @@ def api_events():
     return jsonify(m.get_events(limit))
 
 
+@app.route("/api/multipliers")
+def api_multipliers():
+    """List time-weight multipliers."""
+    return jsonify(list_multipliers())
+
+
 @app.route("/api/tiers")
 def api_tiers():
-    """List staking tiers."""
-    return jsonify(list_tiers())
+    """Legacy alias for /api/multipliers."""
+    return jsonify(list_multipliers())
 
 
 @app.route("/api/archetypes")
@@ -219,16 +232,20 @@ def api_archetypes():
     })
 
 
-@app.route("/api/design-questions")
-def api_design_questions():
-    """List open design questions for ResearchHub discussion."""
-    return jsonify(DESIGN_QUESTIONS)
+@app.route("/api/participation")
+def api_participation():
+    """Participation rate data with reference scenarios from CSV model."""
+    m = get_model()
+    return jsonify(m.get_participation_data())
 
 
 @app.route("/api/defaults")
 def api_defaults():
     """Get default parameter values."""
-    return jsonify(DEFAULT_PARAMS)
+    return jsonify({
+        **DEFAULT_PARAMS,
+        "emission_params": EMISSION_PARAMS,
+    })
 
 
 # ============================================
@@ -236,26 +253,29 @@ def api_defaults():
 # ============================================
 
 if __name__ == "__main__":
-    # Initialize model on startup
     get_model()
 
-    print("=" * 50)
+    print("=" * 60)
     print("RSC Decentralized Endowment ABM Server")
-    print("=" * 50)
-    print("Model: Stake -> Credits -> Deploy -> 2% Burn")
+    print("=" * 60)
+    print("Mechanism: RSC held in RH account -> passive yield")
+    print("Yield = (your RSC / total RSC) x emissions x multiplier")
+    print("Emissions: E(t) = 9.5M / 2^(t/64)")
+    print()
+    print("Primary question: What participation rate equilibrates?")
     print()
     print("Endpoints:")
-    print("  GET  /             - API info")
-    print("  POST /api/init     - Initialize model")
-    print("  POST /api/step     - Advance 1 step")
-    print("  POST /api/run      - Run N steps")
-    print("  GET  /api/state    - Current state")
-    print("  GET  /api/metrics  - Computed metrics")
-    print("  GET  /api/stakers  - List stakers")
-    print("  GET  /api/proposals - List proposals")
+    print("  GET  /                   - Dashboard")
+    print("  POST /api/init           - Initialize model")
+    print("  POST /api/step           - Advance 1 week")
+    print("  POST /api/run            - Run N weeks")
+    print("  GET  /api/state          - Current state")
+    print("  GET  /api/participation  - Participation data + scenarios")
+    print("  GET  /api/multipliers    - Time-weight multipliers")
+    print("  GET  /api/holders        - List holders")
     print()
     print("Open http://localhost:5000 in your browser")
-    print("=" * 50)
+    print("=" * 60)
 
     port = int(os.environ.get("PORT", 5000))
     debug = os.environ.get("FLASK_DEBUG", "true").lower() == "true"

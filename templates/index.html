@@ -233,7 +233,7 @@
         }
         .arch-believer { background: var(--success); }
         .arch-yield_seeker { background: var(--accent); }
-        .arch-governance { background: var(--purple); }
+        .arch-governance, .arch-institution { background: var(--purple); }
         .arch-speculator { background: var(--danger); }
 
         .arch-legend { display: flex; gap: 8px; flex-wrap: wrap; font-size: 10px; margin-bottom: 8px; }
@@ -633,7 +633,7 @@
         }
         .arch-metric-card.believer { border-left-color: var(--success); }
         .arch-metric-card.yield_seeker { border-left-color: var(--accent); }
-        .arch-metric-card.governance { border-left-color: var(--purple); }
+        .arch-metric-card.governance, .arch-metric-card.institution { border-left-color: var(--purple); }
         .arch-metric-card.speculator { border-left-color: var(--danger); }
         .arch-card-name {
             font-weight: 600;
@@ -642,7 +642,7 @@
         }
         .arch-card-name.believer { color: var(--success); }
         .arch-card-name.yield_seeker { color: var(--accent); }
-        .arch-card-name.governance { color: var(--purple); }
+        .arch-card-name.governance, .arch-card-name.institution { color: var(--purple); }
         .arch-card-name.speculator { color: var(--danger); }
         .arch-stat { display: flex; justify-content: space-between; color: var(--text-muted); padding: 2px 0; }
         .arch-stat-val { color: var(--text); font-family: monospace; }
@@ -716,7 +716,7 @@
         }
         .arch-badge.believer { background: rgba(80,200,120,0.2); color: var(--success); }
         .arch-badge.yield_seeker { background: rgba(201,162,39,0.2); color: var(--accent); }
-        .arch-badge.governance { background: rgba(120,86,255,0.2); color: var(--purple); }
+        .arch-badge.governance, .arch-badge.institution { background: rgba(120,86,255,0.2); color: var(--purple); }
         .arch-badge.speculator { background: rgba(224,85,85,0.2); color: var(--danger); }
         .sat-bar {
             width: 40px; height: 4px;
@@ -887,7 +887,7 @@
                 <h1>RSC DECENTRALIZED ENDOWMENT</h1>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">Light</button>
             </div>
-            <div class="subtitle">Stake RSC &rarr; Earn Funding Credits &rarr; Deploy to Research Proposals</div>
+            <div class="subtitle">Hold RSC in RH &rarr; Earn Yield &rarr; Deploy to Research Proposals</div>
         </div>
 
         <!-- Controls -->
@@ -901,8 +901,8 @@
         <!-- Status Badges -->
         <div class="status-badges">
             <div class="step-badge">Week <span id="step-count">0</span></div>
+            <div class="step-badge">Yr <span id="year-display">0.0</span></div>
             <div class="step-badge">Active <span id="active-count">0</span> / <span id="total-count">0</span></div>
-            <div class="step-badge">Satisfaction <span id="avg-sat">1.00</span></div>
         </div>
 
         <!-- Parameters -->
@@ -914,12 +914,12 @@
                 <div class="param-sliders">
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label">Yield</span>
-                            <span class="slider-value" id="val-yield">10%</span>
+                            <span class="slider-label">Yield Threshold</span>
+                            <span class="slider-value" id="val-threshold">8%</span>
                         </div>
-                        <input type="range" id="slider-yield" min="1" max="25" value="10" step="1"
-                            oninput="document.getElementById('val-yield').textContent=this.value+'%'">
-                        <div class="slider-hint">Annual return paid to stakers as funding credits. Higher yield = more credits flowing into the system.</div>
+                        <input type="range" id="slider-threshold" min="2" max="30" value="8" step="1"
+                            oninput="document.getElementById('val-threshold').textContent=this.value+'%'">
+                        <div class="slider-hint">Average APY below which agents consider exiting. Higher = agents require better yield; lower participation equilibrium.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
@@ -928,7 +928,7 @@
                         </div>
                         <input type="range" id="slider-deploy" min="0" max="100" value="30" step="5"
                             oninput="document.getElementById('val-deploy').textContent=this.value+'%'">
-                        <div class="slider-hint">How actively stakers fund proposals with their credits. Low = credits pile up. High = credits flow to research.</div>
+                        <div class="slider-hint">How actively holders fund proposals with their credits. Low = credits pile up. High = credits flow to research.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
@@ -937,16 +937,16 @@
                         </div>
                         <input type="range" id="slider-success" min="20" max="100" value="80" step="5"
                             oninput="document.getElementById('val-success').textContent=this.value+'%'">
-                        <div class="slider-hint">How often funded research delivers results. Low success = more churn.</div>
+                        <div class="slider-hint">How often funded research delivers results. Affects credit deployment behavior.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label">Stakers</span>
-                            <span class="slider-value" id="val-stakers">100</span>
+                            <span class="slider-label">Holders</span>
+                            <span class="slider-value" id="val-holders">100</span>
                         </div>
-                        <input type="range" id="slider-stakers" min="20" max="500" value="100" step="10"
-                            oninput="document.getElementById('val-stakers').textContent=this.value">
-                        <div class="slider-hint">Total number of participants in the staking system.</div>
+                        <input type="range" id="slider-holders" min="20" max="500" value="100" step="10"
+                            oninput="document.getElementById('val-holders').textContent=this.value">
+                        <div class="slider-hint">Initial number of RSC holders in the simulation.</div>
                     </div>
                 </div>
                 <div class="btn-row">
@@ -966,7 +966,7 @@
                 <div class="arch-legend">
                     <div class="arch-legend-item"><div class="arch-dot" style="background:var(--success)"></div> Believer</div>
                     <div class="arch-legend-item"><div class="arch-dot" style="background:var(--accent)"></div> Yield</div>
-                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--purple)"></div> Gov</div>
+                    <div class="arch-legend-item"><div class="arch-dot" style="background:var(--purple)"></div> Inst</div>
                     <div class="arch-legend-item"><div class="arch-dot" style="background:var(--danger)"></div> Spec</div>
                 </div>
                 <div class="param-sliders">
@@ -977,25 +977,25 @@
                         </div>
                         <input type="range" id="slider-believer" min="5" max="85" value="25" step="5"
                             oninput="handleArchSliderChange('believer')">
-                        <div class="slider-hint">Mission-driven. Deploy eagerly, back risky research, stick around.</div>
+                        <div class="slider-hint">Mission-driven. Hold long-term (1.2x), deploy reliably, stay through low yields.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
                             <span class="slider-label" style="color:var(--accent)">Yield Seekers</span>
-                            <span class="slider-value" id="val-yield_seeker">30%</span>
+                            <span class="slider-value" id="val-yield_seeker">35%</span>
                         </div>
-                        <input type="range" id="slider-yield_seeker" min="5" max="85" value="30" step="5"
+                        <input type="range" id="slider-yield_seeker" min="5" max="85" value="35" step="5"
                             oninput="handleArchSliderChange('yield_seeker')">
-                        <div class="slider-hint">Return-focused. Deploy selectively, leave if returns disappoint.</div>
+                        <div class="slider-hint">Return-focused. Join when APY is high, exit when it falls. The self-balancing force.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label" style="color:var(--purple)">Governance</span>
-                            <span class="slider-value" id="val-governance">20%</span>
+                            <span class="slider-label" style="color:var(--purple)">Institutions</span>
+                            <span class="slider-value" id="val-institution">15%</span>
                         </div>
-                        <input type="range" id="slider-governance" min="5" max="85" value="20" step="5"
-                            oninput="handleArchSliderChange('governance')">
-                        <div class="slider-hint">Community-oriented. Moderate deployers, value ecosystem health.</div>
+                        <input type="range" id="slider-institution" min="5" max="85" value="15" step="5"
+                            oninput="handleArchSliderChange('institution')">
+                        <div class="slider-hint">Universities/foundations. Large RSC, very long-term, near-zero sensitivity. Anchors participation.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
@@ -1004,25 +1004,25 @@
                         </div>
                         <input type="range" id="slider-speculator" min="5" max="85" value="25" step="5"
                             oninput="handleArchSliderChange('speculator')">
-                        <div class="slider-hint">Short-term. Hoard credits, rarely deploy, first to churn.</div>
+                        <div class="slider-hint">Short-term. Enter on high yield, exit quickly. Amplifies participation swings.</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Staking Tiers (moved from Time Series) -->
+        <!-- Time-Weight Multipliers -->
         <div class="sidebar-section">
             <div class="sidebar-section-header" onclick="toggleSection(this)">
-                Staking Tiers <span class="toggle">&#9660;</span>
+                Time-Weight Multipliers <span class="toggle">&#9660;</span>
             </div>
             <div class="sidebar-section-body">
-                <div class="tier-bar" id="tier-bar"></div>
+                <div class="tier-bar" id="multiplier-bar"></div>
                 <div class="tier-legend" style="gap:8px">
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#536471"></div> Flexible 1x</div>
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#4a9eff"></div> 3mo 1.5x</div>
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#7856ff"></div> 6mo 2x</div>
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#c9a227"></div> 12mo 3x</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#536471"></div> New &lt;4wk 1.0x</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#4a9eff"></div> Holder 4wk–1yr 1.15x</div>
+                    <div class="tier-legend-item"><div class="tier-dot" style="background:#c9a227"></div> Long-Term &gt;1yr 1.20x</div>
                 </div>
+                <div class="slider-hint" style="margin-top:6px">No lockups — multipliers reward holding duration. Longer = higher effective APY share.</div>
             </div>
         </div>
 
@@ -1062,24 +1062,10 @@
                 <select id="select-failure-mode" onchange="updateFailureModeHint()">
                     <option value="nothing">Nothing (credits consumed)</option>
                     <option value="partial_refund">Partial Refund (50% credits back)</option>
-                    <option value="satisfaction_only">Extra Satisfaction Penalty (-15%)</option>
                 </select>
-                <div class="design-hint" id="failure-mode-hint">Backers lose their deployed credits but stake is unaffected. Simple but may frustrate mission-aligned stakers.</div>
+                <div class="design-hint" id="failure-mode-hint">Backers lose their deployed credits but RSC held is unaffected. Simple but may frustrate mission-aligned holders.</div>
 
-                <div class="design-toggle-row" style="margin-top:8px">
-                    <label><input type="checkbox" id="chk-min-stake" onchange="updateDesignLabState()"> Min Stake</label>
-                </div>
-                <div id="min-stake-controls" style="display:none">
-                    <div class="slider-group" style="margin-bottom:8px">
-                        <div class="slider-header">
-                            <span class="slider-label">Minimum RSC</span>
-                            <span class="slider-value" id="val-min-stake">1000</span>
-                        </div>
-                        <input type="range" id="slider-min-stake" min="500" max="5000" value="1000" step="100"
-                            oninput="document.getElementById('val-min-stake').textContent=this.value">
-                    </div>
-                    <div class="design-hint">Agents below the minimum cannot stake. Filters out small speculators but reduces accessibility.</div>
-                </div>
+                <div class="design-hint" style="margin-top:8px">No minimum holding requirement — RSC in RH account auto-earns regardless of amount.</div>
             </div>
         </div>
 
@@ -1106,37 +1092,49 @@
             <div class="sidebar-section-body collapsed">
                 <div class="edu-section">
                     <h3>B = f(P, E)</h3>
-                    <p>Each staker has <strong>Person attributes</strong> (mission alignment, risk tolerance, engagement, price sensitivity) that interact with <strong>Environment conditions</strong> to produce behavior.</p>
+                    <p>Each holder has <strong>Person attributes</strong> (mission alignment, engagement, price sensitivity, hold horizon) that interact with <strong>Environment conditions</strong> (current APY, yield threshold) to produce behavior.</p>
                 </div>
                 <div class="edu-section">
                     <h3>Each Step (Week)</h3>
                     <ol>
-                        <li><strong>Credit Generation:</strong> All active stakers earn credits</li>
-                        <li><strong>Deployment:</strong> Behavioral decision to deploy</li>
-                        <li><strong>Proposal Selection:</strong> Mission-aligned pick near-funded</li>
-                        <li><strong>Fee:</strong> Funding fee burned when credits deployed to proposals</li>
-                        <li><strong>Satisfaction:</strong> Updated from outcomes</li>
-                        <li><strong>Churn:</strong> Unsatisfied + unlocked may leave</li>
+                        <li><strong>Hold Duration:</strong> weeks_held increments → time-weight multiplier upgrades</li>
+                        <li><strong>Yield:</strong> Credits earned = weekly_emission × (my_RSC / total_RSC) × multiplier</li>
+                        <li><strong>Deploy:</strong> Behavioral decision to deploy credits to proposals</li>
+                        <li><strong>Burn:</strong> 2% of backing RSC burned on credit deployment</li>
+                        <li><strong>Exit Check:</strong> If APY &lt; yield_threshold, probabilistic exit</li>
+                        <li><strong>Re-entry:</strong> New Yield Seekers enter if APY &gt; entry threshold</li>
                     </ol>
                 </div>
                 <div class="edu-section">
-                    <h3>Key Dynamics</h3>
+                    <h3>Self-Balancing Mechanic</h3>
                     <ul>
-                        <li><strong>Archetypes:</strong> Believers deploy; Speculators hoard</li>
-                        <li><strong>Churn:</strong> Failed proposals reduce satisfaction</li>
-                        <li><strong>Tier distribution:</strong> Risk-tolerant lock longer</li>
-                        <li><strong>Credit pressure:</strong> Sigmoid forces deployment</li>
+                        <li><strong>High participation:</strong> APY falls → yield seekers exit</li>
+                        <li><strong>Low participation:</strong> APY rises → new yield seekers enter</li>
+                        <li><strong>Equilibrium:</strong> Participation rate stabilizes at yield threshold</li>
+                        <li><strong>Multipliers:</strong> Reward long-term holding without lockups</li>
+                        <li><strong>Emissions:</strong> E(t) = 9.5M / 2^(t/64) — halves every 64 years</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Design Questions -->
+        <!-- RH Design Questions -->
         <div class="sidebar-section">
             <div class="sidebar-section-header" onclick="toggleSection(this)">
-                Design Questions <span class="toggle">&#9654;</span>
+                RH Design Questions <span class="toggle">&#9654;</span>
             </div>
-            <div class="sidebar-section-body collapsed" id="design-questions"></div>
+            <div class="sidebar-section-body collapsed">
+                <div class="edu-section">
+                    <ol style="font-size:10px;line-height:1.6">
+                        <li>What participation rate will the market equilibrate to?</li>
+                        <li>How do time-weight multipliers affect long-term holding vs. churning?</li>
+                        <li>What does the ecosystem look like with different holder mixes?</li>
+                        <li>How quickly does yield self-balance after participation shifts?</li>
+                        <li>Year-over-year yield trajectories at different equilibrium rates?</li>
+                    </ol>
+                    <div class="slider-hint" style="margin-top:8px">Compare CSV scenarios: 15% / 30% / 70% participation → see APY reference lines in Yield Dynamics tab.</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1144,23 +1142,24 @@
     <div class="main">
         <!-- Pinned Metrics Bar (3 KPIs) -->
         <div class="metrics-bar">
-            <div class="metric" data-tooltip="Total RSC locked by active stakers">
-                <div class="metric-value" id="total-staked" style="font-size:22px">0</div>
-                <div class="metric-label">RSC Staked</div>
+            <div class="metric" data-tooltip="% of circulating RSC currently held in RH. The key equilibrium metric.">
+                <div class="metric-value" id="participation-rate" style="font-size:22px;color:var(--accent)">0%</div>
+                <div class="metric-label">Participation Rate</div>
             </div>
-            <div class="metric" data-tooltip="Average satisfaction across active stakers (1.0 = happy, 0 = churning)">
-                <div class="metric-value" id="metric-satisfaction" style="font-size:22px;color:var(--success)">1.00</div>
-                <div class="metric-label">Satisfaction</div>
+            <div class="metric" data-tooltip="Current annualized yield rate (base 1.0x). Higher multipliers earn more.">
+                <div class="metric-value" id="current-apy" style="font-size:22px;color:var(--success)">0%</div>
+                <div class="metric-label">Current APY</div>
             </div>
-            <div class="metric" data-tooltip="Stakers who left the system (low satisfaction + unlocked)">
-                <div class="metric-value" id="churned-count" style="font-size:22px;color:var(--danger)">0</div>
-                <div class="metric-label">Churned</div>
+            <div class="metric" data-tooltip="Holders who exited when APY fell below their yield threshold.">
+                <div class="metric-value" id="exited-count" style="font-size:22px;color:var(--danger)">0</div>
+                <div class="metric-label">Exited</div>
             </div>
         </div>
 
         <!-- Tab Bar -->
         <div class="tab-bar">
             <button class="tab-btn active" data-tab="agent-field">Agent Field</button>
+            <button class="tab-btn" data-tab="yield-dynamics">Yield Dynamics</button>
             <button class="tab-btn" data-tab="time-series">Time Series</button>
             <button class="tab-btn" data-tab="proposals-funding">Proposals & Funding</button>
             <button class="tab-btn" data-tab="agent-inspector">Agent Inspector</button>
@@ -1176,10 +1175,10 @@
                     <div class="canvas-legend">
                         <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Believer</div>
                         <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Yield Seeker</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Governance</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Institution</div>
                         <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Speculator</div>
                         <div class="legend-divider"></div>
-                        <span class="legend-encoding">Opacity=Satisfaction</span>
+                        <span class="legend-encoding">Opacity=Hold Duration</span>
                         <span class="legend-encoding">Glow=Credit Pressure</span>
                     </div>
                 </div>
@@ -1190,6 +1189,39 @@
                 </div>
                 <!-- Post-run summary -->
                 <div id="post-run-summary" style="display:none"></div>
+            </div>
+
+            <!-- TAB: Yield Dynamics -->
+            <div class="tab-pane" id="tab-yield-dynamics">
+                <div class="two-col">
+                    <div class="card">
+                        <div class="card-header">APY Over Time (vs. Reference Scenarios)</div>
+                        <div class="chart-container">
+                            <canvas id="apy-chart"></canvas>
+                        </div>
+                        <div class="slider-hint" style="padding:8px 0 0 0">Dashed lines: RH CSV model at 15% / 30% / 70% participation. Solid = actual sim APY.</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">Participation Rate Over Time</div>
+                        <div class="chart-container">
+                            <canvas id="participation-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top:12px">
+                    <div class="card-header">Time-Weight Distribution &amp; RSC by Holder Type</div>
+                    <div class="two-col" style="gap:12px">
+                        <div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Multiplier tier distribution (by holder count)</div>
+                            <div id="multiplier-detail-bar" style="display:flex;gap:4px;margin-bottom:6px"></div>
+                            <div id="multiplier-detail-legend" style="font-size:10px;color:var(--text-muted)"></div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">RSC held by archetype</div>
+                            <div id="rsc-by-archetype" style="font-size:11px;line-height:1.8"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- TAB: Time Series -->
@@ -1225,10 +1257,10 @@
             <div class="tab-pane" id="tab-agent-inspector">
                 <div class="card">
                     <div class="agent-tabs">
-                        <button class="agent-tab active" onclick="showAgentTab('top-stakers', this)">Top Stakers</button>
-                        <button class="agent-tab" onclick="showAgentTab('recent-deployers', this)">Recent Deployers</button>
+                        <button class="agent-tab active" onclick="showAgentTab('top-stakers', this)">Top Holders</button>
+                        <button class="agent-tab" onclick="showAgentTab('recent-deployers', this)">Deployers</button>
                         <button class="agent-tab" onclick="showAgentTab('by-archetype', this)">By Archetype</button>
-                        <button class="agent-tab" onclick="showAgentTab('churned', this)">Churned</button>
+                        <button class="agent-tab" onclick="showAgentTab('churned', this)">Exited</button>
                     </div>
                     <div id="agent-content" class="agent-content" style="max-height:600px;overflow-y:auto;">
                         <div class="agent-placeholder">Loading agents...</div>
@@ -1263,14 +1295,14 @@
                 this.archColors = {
                     believer:     '#50c878',
                     yield_seeker: '#c9a227',
-                    governance:   '#7856ff',
+                    institution:  '#7856ff',
                     speculator:   '#e05555',
                 };
             }
 
             update(stakers, stepDeployments) {
-                // Sort: group by archetype, then by stake within group
-                const archOrder = ['believer', 'yield_seeker', 'governance', 'speculator'];
+                // Sort: group by archetype, then by RSC within group
+                const archOrder = ['believer', 'yield_seeker', 'institution', 'speculator'];
                 const sorted = [...stakers].sort((a, b) => {
                     const ai = archOrder.indexOf(a.archetype);
                     const bi = archOrder.indexOf(b.archetype);
@@ -1322,7 +1354,9 @@
 
                 cell.className = 'agent-cell';
                 cell.style.backgroundColor = color;
-                cell.style.opacity = (0.15 + s.satisfaction * 0.85).toFixed(2);
+                // Opacity encodes holding duration: New(dim) -> LongTerm(bright)
+                const holdAlpha = s.multiplier_label === 'LongTerm' ? 0.95 : s.multiplier_label === 'Holder' ? 0.65 : 0.35;
+                cell.style.opacity = holdAlpha.toFixed(2);
 
                 // Credit pressure = inner white glow
                 const pressure = s.credits_pressure || 0;
@@ -1350,10 +1384,10 @@
                     const tooltip = document.getElementById('canvas-tooltip');
                     tooltip.innerHTML =
                         '<div><span class="tt-id">' + s.id + '</span> <span class="tt-label">(' + s.archetype + ')</span></div>' +
-                        '<div><span class="tt-label">Stake:</span> <span class="tt-val">' + formatNumber(s.stake) + '</span></div>' +
+                        '<div><span class="tt-label">RSC:</span> <span class="tt-val">' + formatNumber(s.rsc_held || s.stake || 0) + '</span></div>' +
+                        '<div><span class="tt-label">Hold:</span> <span class="tt-val">' + (s.weeks_held || 0) + 'wk (' + (s.multiplier_label || 'New') + ' ' + (s.multiplier || 1).toFixed(2) + 'x)</span></div>' +
                         '<div><span class="tt-label">Credits:</span> <span class="tt-val">' + formatNumber(s.credits) + '</span></div>' +
-                        '<div><span class="tt-label">Satisfaction:</span> <span class="tt-val">' + s.satisfaction.toFixed(2) + '</span></div>' +
-                        '<div><span class="tt-label">Pressure:</span> <span class="tt-val">' + (s.credits_pressure || 0).toFixed(2) + '</span></div>' +
+                        '<div><span class="tt-label">Threshold:</span> <span class="tt-val">' + ((s.yield_threshold || 0) * 100).toFixed(1) + '%</span></div>' +
                         '<div><span class="tt-label">Deployed:</span> <span class="tt-val">' + formatNumber(s.total_deployed) + '</span></div>';
                     tooltip.style.display = 'block';
                     const rect = cell.getBoundingClientRect();
@@ -1395,10 +1429,14 @@
         let chart = null;
         let currentChartView = 'token-economics';
         let historyData = {
-            steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [],
-            sat_believer: [], sat_yield_seeker: [], sat_governance: [], sat_speculator: [],
-            credits_generated_step: [], credits_deployed_step: [], churn_step: [],
+            steps: [], years: [], participation: [], apy: [], rsc_held: [], active: [],
+            rsc_believer: [], rsc_yield_seeker: [], rsc_institution: [], rsc_speculator: [],
+            credits_generated_step: [], credits_deployed_step: [], exits_step: [], entries_step: [],
+            // Reference scenario APYs from CSV (updated each step)
+            apy_15pct: [], apy_30pct: [], apy_70pct: [],
         };
+        let apyChart = null;
+        let participationChart = null;
         let highlightedAgentId = null;
         let savedScenarios = [];
         let initialSnapshot = null;
@@ -1434,8 +1472,13 @@
                 setTimeout(() => simCanvas.forceRedraw(), 50);
             }
             if (tabId === 'time-series') {
+                setTimeout(() => { if (chart) chart.resize(); }, 50);
+            }
+            if (tabId === 'yield-dynamics') {
                 setTimeout(() => {
-                    if (chart) chart.resize();
+                    if (apyChart) apyChart.resize();
+                    if (participationChart) participationChart.resize();
+                    updateYieldCharts();
                 }, 50);
             }
         }
@@ -1456,7 +1499,7 @@
         // Archetype mix preview
         // ============================================
         function handleArchSliderChange(changedArch) {
-            const archs = ['believer', 'yield_seeker', 'governance', 'speculator'];
+            const archs = ['believer', 'yield_seeker', 'institution', 'speculator'];
             const slider = document.getElementById('slider-' + changedArch);
             let newVal = Math.max(5, Math.min(85, Math.round(parseInt(slider.value) / 5) * 5));
             slider.value = newVal;
@@ -1508,11 +1551,11 @@
         }
 
         function updateArchBar() {
-            const archs = ['believer', 'yield_seeker', 'governance', 'speculator'];
+            const archs = ['believer', 'yield_seeker', 'institution', 'speculator'];
             const colors = {
                 believer: 'var(--success)',
                 yield_seeker: 'var(--accent)',
-                governance: 'var(--purple)',
+                institution: 'var(--purple)',
                 speculator: 'var(--danger)'
             };
             const bar = document.getElementById('arch-bar');
@@ -1529,15 +1572,15 @@
         }
 
         function getSliderParams() {
-            const archs = ['believer', 'yield_seeker', 'governance', 'speculator'];
+            const archs = ['believer', 'yield_seeker', 'institution', 'speculator'];
             const mix = {};
             archs.forEach(a => {
                 mix[a] = parseInt(document.getElementById('slider-' + a).value) / 100;
             });
 
             const params = {
-                num_stakers: parseInt(document.getElementById('slider-stakers').value),
-                base_apy: parseInt(document.getElementById('slider-yield').value) / 100,
+                num_holders: parseInt(document.getElementById('slider-holders').value),
+                yield_threshold_mean: parseInt(document.getElementById('slider-threshold').value) / 100,
                 deploy_probability: parseInt(document.getElementById('slider-deploy').value) / 100,
                 success_rate: parseInt(document.getElementById('slider-success').value) / 100,
                 burn_rate: parseFloat(document.getElementById('slider-burn').value) / 100,
@@ -1550,31 +1593,27 @@
                 params.credit_expiry_weeks = parseInt(document.getElementById('slider-expiry-weeks').value);
             }
             params.failure_mode = document.getElementById('select-failure-mode').value;
-            if (document.getElementById('chk-min-stake').checked) {
-                params.min_stake_enabled = true;
-                params.min_stake_amount = parseInt(document.getElementById('slider-min-stake').value);
-            }
 
             return params;
         }
 
         function resetSliders() {
-            document.getElementById('slider-yield').value = 10;
-            document.getElementById('val-yield').textContent = '10%';
+            document.getElementById('slider-threshold').value = 8;
+            document.getElementById('val-threshold').textContent = '8%';
             document.getElementById('slider-deploy').value = 30;
             document.getElementById('val-deploy').textContent = '30%';
             document.getElementById('slider-success').value = 80;
             document.getElementById('val-success').textContent = '80%';
-            document.getElementById('slider-stakers').value = 100;
-            document.getElementById('val-stakers').textContent = '100';
+            document.getElementById('slider-holders').value = 100;
+            document.getElementById('val-holders').textContent = '100';
             document.getElementById('slider-burn').value = 2;
             document.getElementById('val-burn').textContent = '2%';
             document.getElementById('slider-believer').value = 25;
             document.getElementById('val-believer').textContent = '25%';
-            document.getElementById('slider-yield_seeker').value = 30;
-            document.getElementById('val-yield_seeker').textContent = '30%';
-            document.getElementById('slider-governance').value = 20;
-            document.getElementById('val-governance').textContent = '20%';
+            document.getElementById('slider-yield_seeker').value = 35;
+            document.getElementById('val-yield_seeker').textContent = '35%';
+            document.getElementById('slider-institution').value = 15;
+            document.getElementById('val-institution').textContent = '15%';
             document.getElementById('slider-speculator').value = 25;
             document.getElementById('val-speculator').textContent = '25%';
             updateArchBar();
@@ -1583,9 +1622,8 @@
         // Design Lab state
         function updateFailureModeHint() {
             const hints = {
-                'nothing': 'Backers lose their deployed credits but stake is unaffected. Simple but may frustrate mission-aligned stakers.',
+                'nothing': 'Backers lose their deployed credits but RSC held is unaffected. Simple but may frustrate mission-aligned holders.',
                 'partial_refund': '50% of deployed credits returned to backers on failure. Reduces risk for deployers but weakens the commitment signal.',
-                'satisfaction_only': 'Credits are consumed but satisfaction takes a larger hit. Punishes backing bad proposals without financial cushion.',
             };
             const val = document.getElementById('select-failure-mode').value;
             document.getElementById('failure-mode-hint').textContent = hints[val] || '';
@@ -1594,8 +1632,6 @@
         function updateDesignLabState() {
             document.getElementById('credit-expiry-controls').style.display =
                 document.getElementById('chk-credit-expiry').checked ? 'block' : 'none';
-            document.getElementById('min-stake-controls').style.display =
-                document.getElementById('chk-min-stake').checked ? 'block' : 'none';
         }
 
         // ============================================
@@ -1604,77 +1640,83 @@
         async function updateUI() {
             const state = await fetchJson('/api/state');
             const model = state.model;
+            const pd = model.participation_data || {};
 
             // Status badges
             document.getElementById('step-count').textContent = model.step;
-            document.getElementById('active-count').textContent = model.active_stakers;
-            document.getElementById('total-count').textContent = model.num_stakers;
-            document.getElementById('avg-sat').textContent = model.avg_satisfaction.toFixed(2);
+            document.getElementById('year-display').textContent = (model.year || 0).toFixed(1);
+            document.getElementById('active-count').textContent = model.active_holders || model.active_stakers || 0;
+            document.getElementById('total-count').textContent = model.num_holders || model.num_stakers || 0;
 
-            // Metrics bar (3 KPIs)
-            updateMetric('total-staked', model.total_staked);
-            updateMetric('churned-count', model.churned_stakers);
-            // Satisfaction (formatted differently)
-            const satEl = document.getElementById('metric-satisfaction');
-            const satText = model.avg_satisfaction.toFixed(2);
-            if (satEl.textContent !== satText) {
-                satEl.textContent = satText;
-                satEl.style.color = satColor(model.avg_satisfaction);
-                const satMetric = satEl.closest('.metric');
-                if (satMetric) { satMetric.classList.remove('pulse'); void satMetric.offsetWidth; satMetric.classList.add('pulse'); }
+            // KPI metrics bar
+            const partRate = ((model.participation_rate || 0) * 100).toFixed(1) + '%';
+            const apyVal = ((model.current_apy || 0) * 100).toFixed(1) + '%';
+            const partEl = document.getElementById('participation-rate');
+            if (partEl.textContent !== partRate) {
+                partEl.textContent = partRate;
+                const m = partEl.closest('.metric');
+                if (m) { m.classList.remove('pulse'); void m.offsetWidth; m.classList.add('pulse'); }
             }
+            const apyEl = document.getElementById('current-apy');
+            if (apyEl.textContent !== apyVal) {
+                apyEl.textContent = apyVal;
+                const m = apyEl.closest('.metric');
+                if (m) { m.classList.remove('pulse'); void m.offsetWidth; m.classList.add('pulse'); }
+            }
+            updateMetric('exited-count', model.exited_holders || model.churned_stakers || 0);
 
-            // Tier distribution
-            const dist = model.tier_distribution;
-            const tierTotal = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
-            document.getElementById('tier-bar').innerHTML =
-                '<div class="tier-segment tier-flexible" style="width:' + (dist.flexible / tierTotal * 100) + '%">' + dist.flexible + '</div>' +
-                '<div class="tier-segment tier-3month" style="width:' + (dist['3_month'] / tierTotal * 100) + '%">' + dist['3_month'] + '</div>' +
-                '<div class="tier-segment tier-6month" style="width:' + (dist['6_month'] / tierTotal * 100) + '%">' + dist['6_month'] + '</div>' +
-                '<div class="tier-segment tier-12month" style="width:' + (dist['12_month'] / tierTotal * 100) + '%">' + dist['12_month'] + '</div>';
+            // Multiplier distribution bar (sidebar)
+            const mulDist = model.multiplier_distribution || {};
+            const mulTotal = Object.values(mulDist).reduce((a, b) => a + (b.count || 0), 0) || 1;
+            const mulColors = { New: '#536471', Holder: '#4a9eff', LongTerm: '#c9a227' };
+            document.getElementById('multiplier-bar').innerHTML =
+                ['New', 'Holder', 'LongTerm'].map(label => {
+                    const d = mulDist[label] || { count: 0 };
+                    return '<div class="tier-segment" style="width:' + (d.count / mulTotal * 100) + '%;background:' + mulColors[label] + '">' + d.count + '</div>';
+                }).join('');
 
             // Archetype bar (sidebar)
             const archDist = model.archetype_distribution || {};
             const archTotal = Object.values(archDist).reduce((a, b) => a + b, 0) || 1;
             document.getElementById('arch-bar').innerHTML =
-                ['believer', 'yield_seeker', 'governance', 'speculator'].map(a => {
+                ['believer', 'yield_seeker', 'institution', 'speculator'].map(a => {
                     const n = archDist[a] || 0;
                     return '<div class="arch-segment arch-' + a + '" style="width:' + (n / archTotal * 100) + '%">' + n + '</div>';
                 }).join('');
 
-            // Archetype metrics with sparklines
+            // Archetype metrics cards
             const archMetrics = model.archetype_metrics || {};
-            const archNames = { believer: 'Believer', yield_seeker: 'Yield Seeker', governance: 'Governance', speculator: 'Speculator' };
-            const sparklineColors = { believer: '#50c878', yield_seeker: '#c9a227', governance: '#7856ff', speculator: '#e05555' };
-            const satHistoryKeys = { believer: 'sat_believer', yield_seeker: 'sat_yield_seeker', governance: 'sat_governance', speculator: 'sat_speculator' };
+            const archNames = { believer: 'Believer', yield_seeker: 'Yield Seeker', institution: 'Institution', speculator: 'Speculator' };
+            const archColors = { believer: '#50c878', yield_seeker: '#c9a227', institution: '#7856ff', speculator: '#e05555' };
             document.getElementById('arch-metrics').innerHTML =
-                ['believer', 'yield_seeker', 'governance', 'speculator'].map(a => {
+                ['believer', 'yield_seeker', 'institution', 'speculator'].map(a => {
                     const m = archMetrics[a];
                     if (!m) return '<div class="arch-metric-card ' + a + '"><div class="arch-card-name ' + a + '">' + archNames[a] + '</div><div class="arch-stat" style="color:var(--text-dim)">No agents</div></div>';
-                    // Build sparkline SVG from history data
-                    const satHistory = historyData[satHistoryKeys[a]] || [];
+                    // Sparkline from participation history
+                    const rscHistory = historyData['rsc_' + a] || [];
                     let sparklineSvg = '';
-                    if (satHistory.length >= 2) {
+                    if (rscHistory.length >= 2) {
                         const w = 56, h = 18;
-                        const vals = satHistory.filter(v => v !== null);
+                        const vals = rscHistory.filter(v => v !== null && v > 0);
                         if (vals.length >= 2) {
-                            const minV = 0, maxV = 1; // satisfaction range is 0-1
+                            const minV = Math.min(...vals), maxV = Math.max(...vals);
+                            const range = maxV - minV || 1;
                             const points = vals.map((v, i) => {
                                 const x = (i / (vals.length - 1)) * w;
-                                const y = h - ((v - minV) / (maxV - minV)) * h;
+                                const y = h - ((v - minV) / range) * h;
                                 return x.toFixed(1) + ',' + y.toFixed(1);
                             }).join(' ');
                             sparklineSvg = '<svg width="' + w + '" height="' + h + '" style="vertical-align:middle;margin-left:6px">' +
-                                '<polyline points="' + points + '" fill="none" stroke="' + sparklineColors[a] + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                                '<polyline points="' + points + '" fill="none" stroke="' + archColors[a] + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                         }
                     }
                     return '<div class="arch-metric-card ' + a + '">' +
                         '<div class="arch-card-name ' + a + '">' + archNames[a] + '</div>' +
                         '<div class="arch-stat"><span>Active</span><span class="arch-stat-val">' + m.active + '/' + m.total + '</span></div>' +
-                        '<div class="arch-stat"><span>Avg Stake</span><span class="arch-stat-val">' + formatNumber(m.avg_stake) + '</span></div>' +
-                        '<div class="arch-stat"><span>Satisfaction</span><span class="arch-stat-val" style="color:' + satColor(m.avg_satisfaction) + '">' + m.avg_satisfaction.toFixed(2) + sparklineSvg + '</span></div>' +
-                        '<div class="arch-stat"><span>Deployed</span><span class="arch-stat-val">' + formatNumber(m.total_deployed) + '</span></div>' +
-                        '<div class="arch-stat"><span>Burned</span><span class="arch-stat-val" style="color:var(--danger)">' + formatNumber(m.total_burned) + '</span></div>' +
+                        '<div class="arch-stat"><span>Avg RSC</span><span class="arch-stat-val">' + formatNumber(m.avg_rsc || 0) + sparklineSvg + '</span></div>' +
+                        '<div class="arch-stat"><span>Avg Hold</span><span class="arch-stat-val">' + (m.avg_weeks_held || 0).toFixed(0) + 'wk ' + (m.avg_multiplier || 1).toFixed(2) + 'x</span></div>' +
+                        '<div class="arch-stat"><span>Deployed</span><span class="arch-stat-val">' + formatNumber(m.total_deployed || 0) + '</span></div>' +
+                        '<div class="arch-stat"><span>Exited</span><span class="arch-stat-val" style="color:var(--danger)">' + (m.exited || m.churned || 0) + '</span></div>' +
                         '</div>';
                 }).join('');
 
@@ -1700,24 +1742,52 @@
             ).join('');
             document.getElementById('proposals-list').innerHTML = proposalsHtml || '<div class="list-item" style="color:var(--text-dim)">No proposals</div>';
 
-            // History data
+            // Yield Dynamics tab detail panels
+            const detailBar = document.getElementById('multiplier-detail-bar');
+            if (detailBar) {
+                detailBar.innerHTML = ['New', 'Holder', 'LongTerm'].map(label => {
+                    const d = mulDist[label] || { count: 0 };
+                    return '<div style="flex:' + d.count + ';background:' + mulColors[label] + ';height:20px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;min-width:2px" title="' + label + ': ' + d.count + '">' + (d.count > 2 ? d.count : '') + '</div>';
+                }).join('');
+            }
+            const detailLegend = document.getElementById('multiplier-detail-legend');
+            if (detailLegend) {
+                detailLegend.innerHTML = ['New', 'Holder', 'LongTerm'].map(label => {
+                    const d = mulDist[label] || { count: 0, rsc: 0 };
+                    return label + ': ' + d.count + ' holders, ' + formatNumber(d.rsc || 0) + ' RSC';
+                }).join(' | ');
+            }
+            const rscByArch = document.getElementById('rsc-by-archetype');
+            if (rscByArch) {
+                rscByArch.innerHTML = ['believer', 'yield_seeker', 'institution', 'speculator'].map(a => {
+                    const am = archMetrics[a];
+                    const total = am ? (am.avg_rsc || 0) * (am.active || 0) : 0;
+                    return '<div style="display:flex;justify-content:space-between"><span style="color:' + archColors[a] + '">' + archNames[a] + '</span><span>' + formatNumber(total) + ' RSC</span></div>';
+                }).join('');
+            }
+
+            // History data accumulation (for step-by-step)
             if (model.step > 0 && !historyData.steps.includes(model.step)) {
+                const scenarios = pd.scenarios || {};
                 historyData.steps.push(model.step);
-                historyData.staked.push(model.total_staked);
-                historyData.credits.push(model.total_credits);
-                historyData.burned.push(model.total_burned);
-                historyData.satisfaction.push(model.avg_satisfaction);
-                historyData.active.push(model.active_stakers);
-                // Per-archetype satisfaction
-                historyData.sat_believer.push(archMetrics.believer ? archMetrics.believer.avg_satisfaction : null);
-                historyData.sat_yield_seeker.push(archMetrics.yield_seeker ? archMetrics.yield_seeker.avg_satisfaction : null);
-                historyData.sat_governance.push(archMetrics.governance ? archMetrics.governance.avg_satisfaction : null);
-                historyData.sat_speculator.push(archMetrics.speculator ? archMetrics.speculator.avg_satisfaction : null);
-                // Per-step metrics from backend
+                historyData.years.push(model.year || 0);
+                historyData.participation.push((model.participation_rate || 0) * 100);
+                historyData.apy.push((model.current_apy || 0) * 100);
+                historyData.rsc_held.push(model.total_rsc_held || model.total_staked || 0);
+                historyData.active.push(model.active_holders || model.active_stakers || 0);
+                historyData.rsc_believer.push(archMetrics.believer ? (archMetrics.believer.avg_rsc || 0) * (archMetrics.believer.active || 0) : 0);
+                historyData.rsc_yield_seeker.push(archMetrics.yield_seeker ? (archMetrics.yield_seeker.avg_rsc || 0) * (archMetrics.yield_seeker.active || 0) : 0);
+                historyData.rsc_institution.push(archMetrics.institution ? (archMetrics.institution.avg_rsc || 0) * (archMetrics.institution.active || 0) : 0);
+                historyData.rsc_speculator.push(archMetrics.speculator ? (archMetrics.speculator.avg_rsc || 0) * (archMetrics.speculator.active || 0) : 0);
                 historyData.credits_generated_step.push(model.credits_generated_step || 0);
                 historyData.credits_deployed_step.push(model.credits_deployed_step || 0);
-                historyData.churn_step.push(model.churn_step || 0);
+                historyData.exits_step.push(model.exits_step || 0);
+                historyData.entries_step.push(model.entries_step || 0);
+                historyData.apy_15pct.push((scenarios['15pct'] || 0) * 100);
+                historyData.apy_30pct.push((scenarios['30pct'] || 0) * 100);
+                historyData.apy_70pct.push((scenarios['70pct'] || 0) * 100);
                 updateChart();
+                updateYieldCharts();
             }
 
             await loadStakers();
@@ -1780,12 +1850,11 @@
         // ============================================
         // Chart System
         // ============================================
-        function getChartConfig(view) {
-            const light = isLightMode();
+        function chartCommon(light) {
             const tickColor = light ? '#666' : '#555';
             const gridColor = light ? '#ddd' : '#1a1a1a';
             const legendColor = light ? '#666' : '#888';
-            const common = {
+            return {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { intersect: false, mode: 'index' },
@@ -1797,8 +1866,17 @@
                 },
                 scales: {
                     x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } },
-                }
+                },
+                _tickColor: tickColor,
+                _gridColor: gridColor,
             };
+        }
+
+        function getChartConfig(view) {
+            const light = isLightMode();
+            const common = chartCommon(light);
+            const tickColor = common._tickColor, gridColor = common._gridColor;
+            const yAxis = { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } };
 
             if (view === 'token-economics') {
                 return {
@@ -1806,12 +1884,11 @@
                     data: {
                         labels: historyData.steps,
                         datasets: [
-                            { label: 'Staked', data: historyData.staked, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.1)', tension: 0.3, fill: true, yAxisID: 'y' },
-                            { label: 'Credits', data: historyData.credits, borderColor: '#50c878', backgroundColor: 'rgba(80,200,120,0.1)', tension: 0.3, fill: true, yAxisID: 'y' },
-                            { label: 'Burned', data: historyData.burned, borderColor: '#e05555', backgroundColor: 'rgba(224,85,85,0.1)', tension: 0.3, fill: true, yAxisID: 'y' },
+                            { label: 'RSC Held', data: historyData.rsc_held, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.1)', tension: 0.3, fill: true, yAxisID: 'y' },
+                            { label: 'Active Holders', data: historyData.active, borderColor: '#50c878', tension: 0.3, yAxisID: 'y1', pointRadius: 1 },
                         ]
                     },
-                    options: { ...common, scales: { ...common.scales, y: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } } } }
+                    options: { ...common, scales: { ...common.scales, y: yAxis, y1: { position: 'right', ticks: { color: tickColor, font: { size: 10 } }, grid: { drawOnChartArea: false } } } }
                 };
             }
 
@@ -1821,19 +1898,19 @@
                     data: {
                         labels: historyData.steps,
                         datasets: [
-                            { label: 'Believer Sat', data: historyData.sat_believer, borderColor: '#50c878', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
-                            { label: 'Yield Sat', data: historyData.sat_yield_seeker, borderColor: '#c9a227', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
-                            { label: 'Gov Sat', data: historyData.sat_governance, borderColor: '#7856ff', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
-                            { label: 'Spec Sat', data: historyData.sat_speculator, borderColor: '#e05555', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
-                            { label: 'Churn', data: historyData.churn_step, borderColor: 'rgba(224,85,85,0.5)', backgroundColor: 'rgba(224,85,85,0.2)', type: 'bar', yAxisID: 'y1' },
+                            { label: 'Believer RSC', data: historyData.rsc_believer, borderColor: '#50c878', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
+                            { label: 'YieldSeeker RSC', data: historyData.rsc_yield_seeker, borderColor: '#c9a227', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
+                            { label: 'Institution RSC', data: historyData.rsc_institution, borderColor: '#7856ff', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
+                            { label: 'Speculator RSC', data: historyData.rsc_speculator, borderColor: '#e05555', tension: 0.3, yAxisID: 'y', pointRadius: 1 },
+                            { label: 'Exits', data: historyData.exits_step, borderColor: 'rgba(224,85,85,0.5)', backgroundColor: 'rgba(224,85,85,0.2)', type: 'bar', yAxisID: 'y1' },
                         ]
                     },
                     options: {
                         ...common,
                         scales: {
                             ...common.scales,
-                            y: { position: 'left', min: 0, max: 1, title: { display: true, text: 'Satisfaction', color: tickColor }, ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } },
-                            y1: { position: 'right', min: 0, title: { display: true, text: 'Churn', color: tickColor }, ticks: { color: tickColor, font: { size: 10 } }, grid: { drawOnChartArea: false } },
+                            y: { position: 'left', title: { display: true, text: 'RSC', color: tickColor }, ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } },
+                            y1: { position: 'right', min: 0, title: { display: true, text: 'Exits/Step', color: tickColor }, ticks: { color: tickColor, font: { size: 10 } }, grid: { drawOnChartArea: false } },
                         }
                     }
                 };
@@ -1845,11 +1922,11 @@
                     data: {
                         labels: historyData.steps,
                         datasets: [
-                            { label: 'Generated', data: historyData.credits_generated_step, backgroundColor: 'rgba(80,200,120,0.5)', borderColor: '#50c878', borderWidth: 1 },
-                            { label: 'Deployed', data: historyData.credits_deployed_step, backgroundColor: 'rgba(74,158,255,0.5)', borderColor: '#4a9eff', borderWidth: 1 },
+                            { label: 'Credits Generated', data: historyData.credits_generated_step, backgroundColor: 'rgba(80,200,120,0.5)', borderColor: '#50c878', borderWidth: 1 },
+                            { label: 'Credits Deployed', data: historyData.credits_deployed_step, backgroundColor: 'rgba(74,158,255,0.5)', borderColor: '#4a9eff', borderWidth: 1 },
                         ]
                     },
-                    options: { ...common, scales: { ...common.scales, y: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } } } }
+                    options: { ...common, scales: { ...common.scales, y: yAxis } }
                 };
             }
         }
@@ -1868,6 +1945,61 @@
             updateChart();
         }
 
+        function updateYieldCharts() {
+            const light = isLightMode();
+            const common = chartCommon(light);
+            const tickColor = common._tickColor, gridColor = common._gridColor;
+
+            // APY chart
+            const apyCtx = document.getElementById('apy-chart');
+            if (apyCtx) {
+                if (apyChart) { apyChart.destroy(); apyChart = null; }
+                apyChart = new Chart(apyCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: historyData.steps,
+                        datasets: [
+                            { label: 'Sim APY', data: historyData.apy, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.1)', tension: 0.3, fill: true, borderWidth: 2 },
+                            { label: '15% Part.', data: historyData.apy_15pct, borderColor: '#50c878', borderDash: [4,3], tension: 0.1, borderWidth: 1, pointRadius: 0 },
+                            { label: '30% Part.', data: historyData.apy_30pct, borderColor: '#4a9eff', borderDash: [4,3], tension: 0.1, borderWidth: 1, pointRadius: 0 },
+                            { label: '70% Part.', data: historyData.apy_70pct, borderColor: '#e05555', borderDash: [4,3], tension: 0.1, borderWidth: 1, pointRadius: 0 },
+                        ]
+                    },
+                    options: {
+                        ...common,
+                        scales: {
+                            x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } },
+                            y: { ticks: { color: tickColor, font: { size: 10 }, callback: v => v.toFixed(0) + '%' }, grid: { color: gridColor }, title: { display: true, text: 'APY %', color: tickColor } }
+                        }
+                    }
+                });
+            }
+
+            // Participation rate chart
+            const partCtx = document.getElementById('participation-chart');
+            if (partCtx) {
+                if (participationChart) { participationChart.destroy(); participationChart = null; }
+                participationChart = new Chart(partCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: historyData.steps,
+                        datasets: [
+                            { label: 'Participation %', data: historyData.participation, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.15)', tension: 0.3, fill: true, borderWidth: 2 },
+                            { label: 'Active Holders', data: historyData.active, borderColor: '#7856ff', tension: 0.3, yAxisID: 'y1', borderWidth: 1.5, pointRadius: 0 },
+                        ]
+                    },
+                    options: {
+                        ...common,
+                        scales: {
+                            x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } },
+                            y: { ticks: { color: tickColor, font: { size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: gridColor }, title: { display: true, text: 'Participation %', color: tickColor } },
+                            y1: { position: 'right', ticks: { color: tickColor, font: { size: 10 } }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Holders', color: tickColor } },
+                        }
+                    }
+                });
+            }
+        }
+
         // ============================================
         // Actions
         // ============================================
@@ -1884,20 +2016,27 @@
             });
             const history = await fetchJson('/api/history');
             historyData.steps = history.Step || [];
-            historyData.staked = history.Total_Staked || [];
-            historyData.credits = history.Total_Credits || [];
-            historyData.burned = history.Total_Burned || [];
-            historyData.satisfaction = history.Avg_Satisfaction || [];
-            historyData.active = history.Active_Stakers || [];
-            // New fields from backend
-            historyData.sat_believer = history.Sat_Believer || [];
-            historyData.sat_yield_seeker = history.Sat_YieldSeeker || [];
-            historyData.sat_governance = history.Sat_Governance || [];
-            historyData.sat_speculator = history.Sat_Speculator || [];
+            historyData.years = history.Year || [];
+            historyData.participation = (history.Participation_Rate || []).map(v => (v || 0) * 100);
+            historyData.apy = (history.Current_APY || []).map(v => (v || 0) * 100);
+            historyData.rsc_held = history.Total_RSC_Held || [];
+            historyData.active = history.Active_Holders || history.Active_Stakers || [];
+            historyData.rsc_believer = history.RSC_Believer || [];
+            historyData.rsc_yield_seeker = history.RSC_YieldSeeker || [];
+            historyData.rsc_institution = history.RSC_Institution || [];
+            historyData.rsc_speculator = history.RSC_Speculator || [];
             historyData.credits_generated_step = history.Credits_Generated_Step || [];
             historyData.credits_deployed_step = history.Credits_Deployed_Step || [];
-            historyData.churn_step = history.Churn_Step || [];
+            historyData.exits_step = history.Exits_Step || [];
+            historyData.entries_step = history.Entries_Step || [];
+            // Reference scenarios: compute from participation history
+            // These come from the participation_data.scenarios in each step's state
+            // We rebuild by using the step APYs from history
+            historyData.apy_15pct = [];
+            historyData.apy_30pct = [];
+            historyData.apy_70pct = [];
             updateChart();
+            updateYieldCharts();
             await updateUI();
             // Force canvas redraw after bulk run
             setTimeout(() => simCanvas.forceRedraw(), 100);
@@ -1911,20 +2050,22 @@
                 body: JSON.stringify(params)
             });
             historyData = {
-                steps: [], staked: [], credits: [], burned: [], satisfaction: [], active: [],
-                sat_believer: [], sat_yield_seeker: [], sat_governance: [], sat_speculator: [],
-                credits_generated_step: [], credits_deployed_step: [], churn_step: [],
+                steps: [], years: [], participation: [], apy: [], rsc_held: [], active: [],
+                rsc_believer: [], rsc_yield_seeker: [], rsc_institution: [], rsc_speculator: [],
+                credits_generated_step: [], credits_deployed_step: [], exits_step: [], entries_step: [],
+                apy_15pct: [], apy_30pct: [], apy_70pct: [],
             };
             if (chart) { chart.destroy(); chart = null; }
+            if (apyChart) { apyChart.destroy(); apyChart = null; }
+            if (participationChart) { participationChart.destroy(); participationChart = null; }
             simCanvas.reset();
             // Capture initial snapshot for post-run summary
             const state = await fetchJson('/api/state');
             initialSnapshot = {
-                total_staked: state.model.total_staked,
-                total_credits: state.model.total_credits,
-                active_stakers: state.model.active_stakers,
-                avg_satisfaction: state.model.avg_satisfaction,
-                total_burned: state.model.total_burned,
+                participation_rate: state.model.participation_rate,
+                current_apy: state.model.current_apy,
+                active_holders: state.model.active_holders || state.model.active_stakers,
+                total_rsc_held: state.model.total_rsc_held || state.model.total_staked,
             };
             document.getElementById('post-run-summary').style.display = 'none';
             await updateUI();
@@ -1941,12 +2082,10 @@
             const state = await fetchJson('/api/state');
             const model = state.model;
             const params = model.params || {};
-            // Use slider display values for consistency with what user sees
-            const yieldDisplay = document.getElementById('slider-yield').value;
+            const threshDisplay = document.getElementById('slider-threshold').value;
             const deployDisplay = document.getElementById('slider-deploy').value;
-            const successDisplay = document.getElementById('slider-success').value;
             const defaultName = 'Scenario ' + (savedScenarios.length + 1) + ' \u2014 ' +
-                yieldDisplay + '% yield, ' + deployDisplay + '% deploy, ' + successDisplay + '% success';
+                threshDisplay + '% threshold, ' + ((model.participation_rate || 0) * 100).toFixed(1) + '% participation';
             const name = prompt('Scenario name:', defaultName);
             if (!name) return;
 
@@ -1955,19 +2094,18 @@
                 step: model.step,
                 params: params,
                 metrics: {
-                    total_staked: model.total_staked,
-                    total_credits: model.total_credits,
+                    participation_rate: model.participation_rate,
+                    current_apy: model.current_apy,
+                    total_rsc_held: model.total_rsc_held || model.total_staked,
+                    active_holders: model.active_holders || model.active_stakers,
+                    exited_holders: model.exited_holders || model.churned_stakers,
+                    annual_emission: model.annual_emission,
                     total_burned: model.total_burned,
-                    active_stakers: model.active_stakers,
-                    churned_stakers: model.churned_stakers,
-                    avg_satisfaction: model.avg_satisfaction,
-                    credit_generation_rate: model.credit_generation_rate,
                     deployment_rate: model.deployment_rate,
                     success_rate_actual: model.success_rate_actual,
                     completed_proposals: model.completed_proposals,
-                    failed_proposals: model.failed_proposals,
                     open_proposals: model.open_proposals,
-                    num_stakers: model.num_stakers,
+                    num_holders: model.num_holders || model.num_stakers,
                 },
             });
             updateScenariosList();
@@ -2001,19 +2139,18 @@
             }
 
             const metricLabels = {
-                total_staked: 'RSC Staked',
-                total_credits: 'Credits',
+                participation_rate: 'Participation Rate',
+                current_apy: 'Current APY',
+                total_rsc_held: 'RSC Held',
+                active_holders: 'Active Holders',
+                exited_holders: 'Exited',
+                annual_emission: 'Annual Emission',
                 total_burned: 'Burned',
-                active_stakers: 'Active Stakers',
-                churned_stakers: 'Churned',
-                avg_satisfaction: 'Avg Satisfaction',
-                credit_generation_rate: 'Credits/Wk',
                 deployment_rate: 'Deployed/Wk',
                 success_rate_actual: 'Success Rate',
                 completed_proposals: 'Completed',
-                failed_proposals: 'Failed',
                 open_proposals: 'Open',
-                num_stakers: 'Total Stakers',
+                num_holders: 'Total Holders',
             };
 
             let html = '<table class="scenario-table"><thead><tr><th>Metric</th>';
@@ -2024,9 +2161,9 @@
                 html += '<tr><td>' + label + '</td>';
                 savedScenarios.forEach(s => {
                     const val = s.metrics[key];
-                    const formatted = key === 'avg_satisfaction' ? val.toFixed(3)
-                        : key === 'success_rate_actual' ? (val * 100).toFixed(0) + '%'
-                        : typeof val === 'number' ? formatNumber(val) : val;
+                    const formatted = key === 'participation_rate' || key === 'current_apy' ? ((val || 0) * 100).toFixed(1) + '%'
+                        : key === 'success_rate_actual' ? ((val || 0) * 100).toFixed(0) + '%'
+                        : typeof val === 'number' ? formatNumber(val) : (val ?? '—');
                     html += '<td>' + formatted + '</td>';
                 });
                 html += '</tr>';
@@ -2067,19 +2204,6 @@
         }
 
         // ============================================
-        // Design Questions
-        // ============================================
-        async function loadDesignQuestions() {
-            const questions = await fetchJson('/api/design-questions');
-            const html = questions.map(q =>
-                '<div class="question">' +
-                '<div class="question-text">' + q.question + '</div>' +
-                '<div class="question-current">Current: <span>' + q.current + '</span></div>' +
-                '</div>'
-            ).join('');
-            document.getElementById('design-questions').innerHTML = html;
-        }
-
         // ============================================
         // Agent Inspector
         // ============================================
@@ -2095,32 +2219,33 @@
         }
 
         async function loadStakers() {
-            lastStakers = await fetchJson('/api/stakers');
+            lastStakers = await fetchJson('/api/holders');
             renderAgentTab();
         }
 
         function renderAgentTab() {
             const container = document.getElementById('agent-content');
             if (!lastStakers.length) {
-                container.innerHTML = '<div class="agent-placeholder">No stakers yet. Run the simulation.</div>';
+                container.innerHTML = '<div class="agent-placeholder">No holders yet. Run the simulation.</div>';
                 return;
             }
+            const archNames = { believer: 'Believer', yield_seeker: 'Yield Seeker', institution: 'Institution', speculator: 'Speculator' };
 
             if (currentAgentTab === 'top-stakers') {
-                const sorted = [...lastStakers].filter(s => s.active).sort((a, b) => b.stake - a.stake).slice(0, 20);
+                const sorted = [...lastStakers].filter(s => s.active).sort((a, b) => (b.rsc_held || 0) - (a.rsc_held || 0)).slice(0, 20);
                 container.innerHTML =
                     '<table class="agent-table"><thead><tr>' +
-                    '<th>ID</th><th>Archetype</th><th>Stake</th><th>Tier</th><th>Credits</th><th>Deployed</th><th>Satisfaction</th>' +
+                    '<th>ID</th><th>Archetype</th><th>RSC Held</th><th>Hold Duration</th><th>Multiplier</th><th>Credits</th><th>Deployed</th>' +
                     '</tr></thead><tbody>' +
                     sorted.map(s =>
                         '<tr class="' + (highlightedAgentId === s.id ? 'highlighted' : '') + '">' +
                         '<td class="agent-id">' + s.id + '</td>' +
                         '<td><span class="arch-badge ' + s.archetype + '">' + s.archetype + '</span></td>' +
-                        '<td>' + formatNumber(s.stake) + '</td>' +
-                        '<td><span class="tier-badge tier-' + s.tier_id + '">' + s.tier + '</span></td>' +
+                        '<td>' + formatNumber(s.rsc_held || s.stake || 0) + '</td>' +
+                        '<td>' + (s.weeks_held || 0) + 'wk</td>' +
+                        '<td><span style="color:var(--accent)">' + (s.multiplier_label || 'New') + ' ' + (s.multiplier || 1).toFixed(2) + 'x</span></td>' +
                         '<td>' + formatNumber(s.credits) + '</td>' +
                         '<td>' + formatNumber(s.total_deployed) + '</td>' +
-                        '<td><div class="sat-bar"><div class="sat-fill" style="width:' + (s.satisfaction * 100) + '%;background:' + satColor(s.satisfaction) + '"></div></div>' + s.satisfaction.toFixed(2) + '</td>' +
                         '</tr>'
                     ).join('') +
                     '</tbody></table>';
@@ -2129,65 +2254,62 @@
                 const deployers = [...lastStakers].filter(s => s.total_deployed > 0).sort((a, b) => b.total_deployed - a.total_deployed).slice(0, 20);
                 container.innerHTML = deployers.length ?
                     '<table class="agent-table"><thead><tr>' +
-                    '<th>ID</th><th>Archetype</th><th>Deployed</th><th>Burned</th><th>Net Position</th><th>Satisfaction</th>' +
+                    '<th>ID</th><th>Archetype</th><th>Deployed</th><th>Burned</th><th>Threshold</th><th>Status</th>' +
                     '</tr></thead><tbody>' +
                     deployers.map(s =>
                         '<tr class="' + (!s.active ? 'churned' : '') + (highlightedAgentId === s.id ? ' highlighted' : '') + '">' +
-                        '<td class="agent-id">' + s.id + (s.active ? '' : ' [left]') + '</td>' +
+                        '<td class="agent-id">' + s.id + (s.active ? '' : ' [exited]') + '</td>' +
                         '<td><span class="arch-badge ' + s.archetype + '">' + s.archetype + '</span></td>' +
                         '<td style="color:var(--success)">' + formatNumber(s.total_deployed) + '</td>' +
                         '<td style="color:var(--danger)">' + formatNumber(s.total_burned) + '</td>' +
-                        '<td style="color:' + (s.stake > s.initial_stake ? 'var(--success)' : 'var(--danger)') + '">' +
-                        (s.stake > s.initial_stake ? '+' : '') + formatNumber(s.stake - s.initial_stake) + '</td>' +
-                        '<td>' + s.satisfaction.toFixed(2) + '</td>' +
+                        '<td>' + ((s.yield_threshold || 0) * 100).toFixed(1) + '%</td>' +
+                        '<td>' + (s.active ? '<span style="color:var(--success)">Holding</span>' : '<span style="color:var(--danger)">Exited</span>') + '</td>' +
                         '</tr>'
                     ).join('') +
                     '</tbody></table>'
                     : '<div class="agent-placeholder">No deployments yet. Run more steps.</div>';
 
             } else if (currentAgentTab === 'by-archetype') {
-                const archetypes = ['believer', 'yield_seeker', 'governance', 'speculator'];
-                const archNames = { believer: 'Believer', yield_seeker: 'Yield Seeker', governance: 'Governance', speculator: 'Speculator' };
+                const archetypes = ['believer', 'yield_seeker', 'institution', 'speculator'];
                 const rows = archetypes.map(a => {
                     const group = lastStakers.filter(s => s.archetype === a);
                     const active = group.filter(s => s.active);
-                    const totalStake = active.reduce((acc, s) => acc + s.stake, 0);
+                    const totalRsc = active.reduce((acc, s) => acc + (s.rsc_held || s.stake || 0), 0);
                     const totalDeployed = group.reduce((acc, s) => acc + s.total_deployed, 0);
-                    const avgSat = active.length > 0 ? active.reduce((acc, s) => acc + s.satisfaction, 0) / active.length : 0;
-                    const avgEng = active.length > 0 ? active.reduce((acc, s) => acc + s.engagement, 0) / active.length : 0;
+                    const avgWeeks = active.length > 0 ? active.reduce((acc, s) => acc + (s.weeks_held || 0), 0) / active.length : 0;
+                    const avgMult = active.length > 0 ? active.reduce((acc, s) => acc + (s.multiplier || 1), 0) / active.length : 1;
                     return '<tr>' +
                         '<td><span class="arch-badge ' + a + '">' + archNames[a] + '</span></td>' +
                         '<td>' + active.length + '/' + group.length + '</td>' +
-                        '<td>' + formatNumber(totalStake) + '</td>' +
+                        '<td>' + formatNumber(totalRsc) + '</td>' +
                         '<td>' + formatNumber(totalDeployed) + '</td>' +
-                        '<td style="color:' + satColor(avgSat) + '">' + avgSat.toFixed(2) + '</td>' +
-                        '<td>' + avgEng.toFixed(2) + '</td>' +
+                        '<td>' + avgWeeks.toFixed(0) + 'wk</td>' +
+                        '<td>' + avgMult.toFixed(2) + 'x</td>' +
                         '</tr>';
                 });
                 container.innerHTML =
                     '<table class="agent-table"><thead><tr>' +
-                    '<th>Archetype</th><th>Active/Total</th><th>Total Stake</th><th>Total Deployed</th><th>Avg Satisfaction</th><th>Avg Engagement</th>' +
+                    '<th>Archetype</th><th>Active/Total</th><th>Total RSC</th><th>Total Deployed</th><th>Avg Hold</th><th>Avg Multiplier</th>' +
                     '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
 
             } else if (currentAgentTab === 'churned') {
-                const churned = lastStakers.filter(s => !s.active);
-                container.innerHTML = churned.length ?
+                const exited = lastStakers.filter(s => !s.active);
+                container.innerHTML = exited.length ?
                     '<table class="agent-table"><thead><tr>' +
-                    '<th>ID</th><th>Archetype</th><th>Final Stake</th><th>Tier</th><th>Total Deployed</th><th>Final Satisfaction</th><th>Idle Steps</th>' +
+                    '<th>ID</th><th>Archetype</th><th>RSC Held</th><th>Hold Duration</th><th>Threshold</th><th>Deployed</th>' +
                     '</tr></thead><tbody>' +
-                    churned.map(s =>
+                    exited.map(s =>
                         '<tr class="churned">' +
                         '<td class="agent-id">' + s.id + '</td>' +
                         '<td><span class="arch-badge ' + s.archetype + '">' + s.archetype + '</span></td>' +
-                        '<td>' + formatNumber(s.stake) + '</td>' +
-                        '<td><span class="tier-badge tier-' + s.tier_id + '">' + s.tier + '</span></td>' +
+                        '<td>' + formatNumber(s.rsc_held || s.stake || 0) + '</td>' +
+                        '<td>' + (s.weeks_held || 0) + 'wk</td>' +
+                        '<td style="color:var(--danger)">' + ((s.yield_threshold || 0) * 100).toFixed(1) + '%</td>' +
                         '<td>' + formatNumber(s.total_deployed) + '</td>' +
-                        '<td style="color:var(--danger)">' + s.satisfaction.toFixed(2) + '</td>' +
-                        '<td>' + s.idle_steps + '</td>' +
                         '</tr>'
                     ).join('') +
                     '</tbody></table>'
-                    : '<div class="agent-placeholder">No stakers have churned yet.</div>';
+                    : '<div class="agent-placeholder">No holders have exited yet.</div>';
             }
 
             // Clear highlight after render
@@ -2211,9 +2333,9 @@
             const deployed = model.deployment_rate;
             const burned = model.burn_rate_per_step;
 
-            parts.push('<p><strong>Week ' + step + ':</strong> <span class="narrative-highlight">' + model.active_stakers + ' active stakers</span> (' + model.churned_stakers + ' churned) earned credits. ' +
+            parts.push('<p><strong>Week ' + step + ':</strong> <span class="narrative-highlight">' + (model.active_holders || model.active_stakers || 0) + ' active holders</span> (' + (model.exited_holders || model.churned_stakers || 0) + ' exited) earned yield credits. ' +
                 'Generation: <span class="narrative-highlight">' + formatNumber(creditsGen) + ' credits</span>. ' +
-                'Avg satisfaction: ' + model.avg_satisfaction.toFixed(2) + '.</p>');
+                'Participation: ' + ((model.participation_rate || 0) * 100).toFixed(1) + '% APY: ' + ((model.current_apy || 0) * 100).toFixed(1) + '%.</p>');
 
             if (deployed > 0) {
                 parts.push('<p><span class="narrative-success">' + formatNumber(deployed) + ' credits</span> deployed to proposals, ' +
@@ -2232,7 +2354,7 @@
             }
 
             if (churned > 0) {
-                parts.push('<p><span class="narrative-danger">' + churned + ' staker' + (churned > 1 ? 's' : '') + ' left the system</span> (low satisfaction).</p>');
+                parts.push('<p><span class="narrative-danger">' + churned + ' holder' + (churned > 1 ? 's' : '') + ' exited</span> (yield below threshold).</p>');
             }
 
             if (newProposals > 0) {
@@ -2249,8 +2371,8 @@
         // ============================================
         function generateNarrativeSummary(model, stakers) {
             // Aggregate per-archetype data from staker list
-            const archetypes = ['believer', 'yield_seeker', 'governance', 'speculator'];
-            const archNames = { believer: 'Believers', yield_seeker: 'Yield Seekers', governance: 'Governance', speculator: 'Speculators' };
+            const archetypes = ['believer', 'yield_seeker', 'institution', 'speculator'];
+            const archNames = { believer: 'Believers', yield_seeker: 'Yield Seekers', institution: 'Institutions', speculator: 'Speculators' };
             const archData = {};
             let totalDeployed = 0;
             let totalChurned = 0;
@@ -2258,13 +2380,13 @@
             for (const arch of archetypes) {
                 const group = stakers.filter(s => s.archetype === arch);
                 const active = group.filter(s => s.active);
-                const churned = group.filter(s => !s.active);
+                const exited = group.filter(s => !s.active);
                 const deployed = group.reduce((sum, s) => sum + s.total_deployed, 0);
                 const avgCredits = active.length > 0 ? active.reduce((sum, s) => sum + s.credits, 0) / active.length : 0;
-                const avgSat = active.length > 0 ? active.reduce((sum, s) => sum + s.satisfaction, 0) / active.length : 0;
-                archData[arch] = { total: group.length, active: active.length, churned: churned.length, deployed, avgCredits, avgSat };
+                const avgWeeks = active.length > 0 ? active.reduce((sum, s) => sum + s.weeks_held, 0) / active.length : 0;
+                archData[arch] = { total: group.length, active: active.length, churned: exited.length, deployed, avgCredits, avgWeeks };
                 totalDeployed += deployed;
-                totalChurned += churned.length;
+                totalChurned += exited.length;
             }
 
             // Find top deployer archetype
@@ -2288,15 +2410,15 @@
                 ? (archData[hoarder].avgCredits / archData[lowestCredits].avgCredits).toFixed(1)
                 : 'N/A';
 
-            // Find fastest satisfaction decline
-            let fastestDrop = archetypes[0];
+            // Find longest-holding archetype
+            let longestHolder = archetypes[0];
             for (const arch of archetypes) {
-                if (archData[arch].active > 0 && archData[arch].avgSat < archData[fastestDrop].avgSat) fastestDrop = arch;
+                if (archData[arch].active > 0 && archData[arch].avgWeeks > archData[longestHolder].avgWeeks) longestHolder = arch;
             }
 
-            // Burn as % of initial stake
-            const burnPct = initialSnapshot.total_staked > 0
-                ? ((model.total_burned / initialSnapshot.total_staked) * 100).toFixed(1)
+            // Burn as % of initial RSC held
+            const burnPct = initialSnapshot.total_rsc_held > 0
+                ? ((model.total_burned / initialSnapshot.total_rsc_held) * 100).toFixed(1)
                 : '0';
 
             // Build narrative
@@ -2317,13 +2439,14 @@
             if (totalChurned > 0) {
                 const churnParts = archetypes.filter(a => archData[a].churned > 0)
                     .map(a => archData[a].churned + ' ' + archNames[a].toLowerCase());
-                parts.push('<span class="narrative-danger">' + totalChurned + ' staker' + (totalChurned > 1 ? 's' : '') +
-                    ' churned</span> (' + churnParts.join(', ') + ').');
+                parts.push('<span class="narrative-danger">' + totalChurned + ' holder' + (totalChurned > 1 ? 's' : '') +
+                    ' exited</span> (yield fell below threshold) (' + churnParts.join(', ') + ').');
             }
 
-            parts.push('Satisfaction declined from <span class="narrative-highlight">1.00 to ' +
-                model.avg_satisfaction.toFixed(2) + '</span>, with ' + archNames[fastestDrop] +
-                ' dropping fastest (to ' + archData[fastestDrop].avgSat.toFixed(2) + ').');
+            if (archData[longestHolder].active > 0) {
+                parts.push(archNames[longestHolder] + ' held longest on average (' +
+                    archData[longestHolder].avgWeeks.toFixed(0) + ' weeks), earning higher time-weight multipliers.');
+            }
 
             // Proposal stats
             if (model.completed_proposals + model.failed_proposals > 0) {
@@ -2353,16 +2476,17 @@
             html += '<div id="metric-details" style="display:none">';
 
             const deltas = [
-                { label: 'RSC Staked', initial: initialSnapshot.total_staked, final: model.total_staked },
-                { label: 'Credits', initial: initialSnapshot.total_credits, final: model.total_credits },
-                { label: 'Active Stakers', initial: initialSnapshot.active_stakers, final: model.active_stakers },
-                { label: 'Satisfaction', initial: initialSnapshot.avg_satisfaction, final: model.avg_satisfaction, fmt: 'pct' },
-                { label: 'Total Burned', initial: initialSnapshot.total_burned, final: model.total_burned },
-                { label: 'Credits Deployed', initial: 0, final: model.total_credits_deployed },
-                { label: 'Completed Proposals', initial: 0, final: model.completed_proposals, fmt: 'int' },
-                { label: 'Failed Proposals', initial: 0, final: model.failed_proposals, fmt: 'int' },
-                { label: 'Open Proposals', initial: 0, final: model.open_proposals, fmt: 'int' },
-                { label: 'Total Churned', initial: 0, final: model.churned_stakers, fmt: 'int' },
+                { label: 'RSC Held in RH', initial: initialSnapshot.total_rsc_held || initialSnapshot.total_staked || 0, final: model.total_rsc_held || model.total_staked || 0 },
+                { label: 'Credits', initial: initialSnapshot.total_credits || 0, final: model.total_credits || 0 },
+                { label: 'Active Holders', initial: initialSnapshot.active_holders || initialSnapshot.active_stakers || 0, final: model.active_holders || model.active_stakers || 0, fmt: 'int' },
+                { label: 'Participation Rate', initial: initialSnapshot.participation_rate || 0, final: model.participation_rate || 0, fmt: 'pct' },
+                { label: 'Current APY', initial: initialSnapshot.current_apy || 0, final: model.current_apy || 0, fmt: 'pct' },
+                { label: 'Total Burned', initial: initialSnapshot.total_burned || 0, final: model.total_burned || 0 },
+                { label: 'Credits Deployed', initial: 0, final: model.total_credits_deployed || 0 },
+                { label: 'Completed Proposals', initial: 0, final: model.completed_proposals || 0, fmt: 'int' },
+                { label: 'Failed Proposals', initial: 0, final: model.failed_proposals || 0, fmt: 'int' },
+                { label: 'Open Proposals', initial: 0, final: model.open_proposals || 0, fmt: 'int' },
+                { label: 'Total Exited', initial: 0, final: model.exited_holders || model.churned_stakers || 0, fmt: 'int' },
             ];
 
             deltas.forEach(d => {
@@ -2389,11 +2513,13 @@
             if (model.total_credits > model.total_credits_deployed * 2 && model.step > 10) {
                 tensions.push('Credits accumulating faster than deployed - deployment pressure may build.');
             }
-            if (model.avg_satisfaction < 0.5) {
-                tensions.push('Low average satisfaction - churn risk is elevated.');
+            if ((model.current_apy || 0) > 0.5) {
+                tensions.push('APY above 50% — participation rate very low, strong incentive for new entrants.');
             }
-            if (model.churned_stakers > model.active_stakers * 0.3) {
-                tensions.push('High churn rate - more than 30% of stakers have left.');
+            const exited = model.exited_holders || model.churned_stakers || 0;
+            const active = model.active_holders || model.active_stakers || 1;
+            if (exited > active * 0.3) {
+                tensions.push('High exit rate — more than 30% of holders have left (yield below thresholds).');
             }
 
             if (tensions.length > 0) {
@@ -2440,7 +2566,6 @@
         // Init
         // ============================================
         updateUI();
-        loadDesignQuestions();
         updateArchBar();
     </script>
 </body>

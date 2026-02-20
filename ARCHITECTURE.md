@@ -15,7 +15,7 @@ graph TB
 
     subgraph Model["Mesa ABM (src/)"]
         EM[EndowmentModel]
-        ES[EndowmentStaker]
+        EH[EndowmentHolder]
         EP[EndowmentProposal]
         DC[DataCollector]
         CT[Constants & Archetypes]
@@ -24,10 +24,10 @@ graph TB
     UI -->|fetch /api/*| API
     API -->|JSON response| UI
     API --> EM
-    EM --> ES
+    EM --> EH
     EM --> EP
     EM --> DC
-    CT --> ES
+    CT --> EH
 ```
 
 ## Data Flow
@@ -47,54 +47,96 @@ sequenceDiagram
 
     U->>D: Click Run 1 Year
     D->>S: POST /api/run {steps: 52}
-    loop Each step
+    loop Each step (1 week)
         S->>M: model.step()
-        Note over M: Credit generation
+        Note over M: weekly_emission() = E(t)/52
+        Note over M: Earn credits (dilution-based)
         Note over M: Deployment decisions
         Note over M: Proposal resolution
-        Note over M: Satisfaction + churn
+        Note over M: Exit decisions (yield vs threshold)
+        Note over M: Spawn new entrants (if APY attractive)
     end
     S-->>D: {state, events, history}
     D->>D: Render grid, charts, metrics
+```
+
+## Emissions Engine
+
+```mermaid
+graph LR
+    T[Step count t] --> YR[t_years = t / 52]
+    YR --> AE["annual_emission = 9,500,000 / 2^(t_years/64)"]
+    AE --> WE[weekly_emission = annual / 52]
+    WE --> SHARE[× my_effective_share]
+    SHARE --> CREDITS[Credits earned this week]
+```
+
+## Yield & Participation Rate
+
+```mermaid
+graph LR
+    HELD[Total RSC held in RH] --> APY["current_apy = annual_emission / total_rsc_held"]
+    CS[Circulating supply] --> PR["participation_rate = total_rsc_held / circulating"]
+    APY --> EXIT{APY < yield_threshold?}
+    EXIT -->|Yes| EXITHOLDER[Holder exits]
+    EXIT -->|No| STAY[Holder stays]
+    EXITHOLDER --> HELD
+    APY --> ENTRY{APY > entry_threshold?}
+    ENTRY -->|Yes| SPAWN[New yield seeker enters]
+    SPAWN --> HELD
+```
+
+## Self-Balancing Mechanic
+
+```mermaid
+graph LR
+    HP[High participation] --> LAPY[Low APY]
+    LAPY --> EXITYS[Yield Seekers exit]
+    EXITYS --> LP[Lower participation]
+    LP --> HAPY[Higher APY]
+    HAPY --> ENTRANTS[New entrants spawn]
+    ENTRANTS --> HP
+
+    BELIEVERS[Believers + Institutions] -->|Never exit| EQ[Stable floor]
 ```
 
 ## Behavioral Model: B = f(P, E)
 
 ```mermaid
 graph LR
-    subgraph Person["Person Attributes"]
+    subgraph Person["Person Attributes (P)"]
         MA[Mission Alignment]
-        RT[Risk Tolerance]
         EN[Engagement]
         PS[Price Sensitivity]
+        HH[Hold Horizon]
+        YT[Yield Threshold]
     end
 
-    subgraph Environment
-        APY[Yield Rate]
-        SR[Success Rate]
+    subgraph Environment["Environment (E)"]
+        APY[Current APY]
+        WE[Weekly Emission]
+        TRSW[Total Effective RSC]
         DP[Deploy Probability]
-        SAT[Satisfaction History]
         CP[Credit Pressure]
     end
 
-    subgraph Behavior
-        DEP[Deploy?]
-        SEL[Select Proposal]
-        CHR[Churn?]
+    subgraph Behavior["Behavior (B)"]
+        DEP[Deploy credits?]
+        SEL[Select proposal]
+        EXIT[Exit? Pull RSC?]
     end
 
     MA --> DEP
     EN --> DEP
     CP --> DEP
-    SAT --> DEP
     DP --> DEP
 
     MA --> SEL
-    RT --> SEL
 
-    SAT --> CHR
-    PS --> CHR
-    RT --> CHR
+    APY --> EXIT
+    YT --> EXIT
+    PS --> EXIT
+    HH --> EXIT
 ```
 
 ## Deployment Decision (_should_deploy)
@@ -104,12 +146,24 @@ graph TD
     A[Credits > 0?] -->|No| Z[Don't deploy]
     A -->|Yes| B[base_prob = engagement * 0.6]
     B --> C[pressure_boost = sigmoid of credit accumulation]
-    C --> D[sat_factor = 0.3 + 0.7 * satisfaction]
-    D --> E["deploy_scale = deploy_probability / 0.3"]
-    E --> F["final_prob = (base + pressure) * sat * scale"]
+    C --> D["deploy_scale = deploy_probability / 0.3"]
+    D --> F["final_prob = (base + pressure) * scale"]
     F --> G{random < final_prob?}
     G -->|Yes| Y[Deploy credits]
     G -->|No| Z
+```
+
+## Exit Decision (_consider_exit)
+
+```mermaid
+graph TD
+    A[current_apy >= yield_threshold?] -->|Yes| STAY[Stay, no exit pressure]
+    A -->|No| GAP["gap = (threshold - apy) / threshold"]
+    GAP --> EP["exit_prob = gap × price_sensitivity × 0.15"]
+    EP --> HH["exit_prob × (1 - hold_horizon × 0.8)"]
+    HH --> R{random < exit_prob?}
+    R -->|Yes| EXIT[Agent exits]
+    R -->|No| STAY
 ```
 
 ## Archetypes
@@ -118,31 +172,48 @@ graph TD
 graph TD
     subgraph Believer["Believer (25%)"]
         B1[Mission: 0.7-1.0]
-        B2[Risk: 0.6-0.9]
         B3[Engagement: 0.7-1.0]
         B4[Price Sens: 0.0-0.3]
+        B5[Hold Horizon: 0.7-1.0]
+        B6[Threshold: mean - 0.03]
     end
 
     subgraph YieldSeeker["Yield Seeker (30%)"]
         Y1[Mission: 0.2-0.5]
-        Y2[Risk: 0.3-0.6]
         Y3[Engagement: 0.5-0.8]
         Y4[Price Sens: 0.5-0.9]
+        Y5[Hold Horizon: 0.2-0.6]
+        Y6[Threshold: mean + 0.05]
     end
 
-    subgraph Governance["Governance (20%)"]
-        G1[Mission: 0.5-0.8]
-        G2[Risk: 0.3-0.5]
-        G3[Engagement: 0.6-0.9]
-        G4[Price Sens: 0.2-0.5]
+    subgraph Institution["Institution (20%)"]
+        G1[Mission: 0.6-0.9]
+        G3[Engagement: 0.4-0.7]
+        G4[Price Sens: 0.1-0.4]
+        G5[Hold Horizon: 0.8-1.0]
+        G6[Threshold: mean - 0.04]
+        G7["RSC: 5K-50K"]
     end
 
     subgraph Speculator["Speculator (25%)"]
         S1[Mission: 0.0-0.3]
-        S2[Risk: 0.7-1.0]
         S3[Engagement: 0.2-0.5]
         S4[Price Sens: 0.7-1.0]
+        S5[Hold Horizon: 0.0-0.3]
+        S6[Threshold: mean + 0.08]
     end
+```
+
+## Time-Weight Multipliers
+
+```mermaid
+graph LR
+    W0[weeks_held = 0] --> NEW[New: 1.00x < 4 weeks]
+    NEW --> HOLD[Holder: 1.15x 4wk–1yr]
+    HOLD --> LT[LongTerm: 1.20x > 1yr]
+
+    MY[my_effective_rsc = rsc × multiplier] --> SHARE["share = my_eff / total_eff"]
+    SHARE --> YIELD["credits = weekly_emission × share"]
 ```
 
 ## Dashboard Layout
@@ -151,23 +222,23 @@ graph TD
 graph TB
     subgraph Sidebar
         direction TB
-        P[Parameters<br/>Yield / Deploy Rate / Success / Stakers]
+        P[Parameters<br/>Yield Threshold / Deploy Rate / Success / Holders]
         AM[Archetype Mix<br/>Linked sliders sum=100%]
-        ST[Staking Tiers<br/>Distribution bar]
-        ADV[Advanced<br/>Burn Rate / Expiry / Failure / Min Stake]
+        TW[Time-Weight Multipliers<br/>Distribution bar]
+        ADV[Advanced<br/>Burn Rate / Expiry / Failure Mode]
         SC[Scenarios<br/>Save / Compare]
         HW[How It Works]
-        DQ[Design Questions]
     end
 
     subgraph Main["Main Area"]
         direction TB
-        KPI[Pinned KPIs: Staked / Satisfaction / Churned]
+        KPI[Pinned KPIs: Participation Rate / APY / Exited]
         subgraph Tabs
             AF[Agent Field<br/>Grid + archetype cards]
-            TS[Time Series<br/>Staked/Credits/Burned]
-            PF[Proposals & Funding<br/>Status + progress]
-            AI[Agent Inspector<br/>Individual deep-dive]
+            YD[Yield Dynamics<br/>APY + reference lines]
+            TS[Time Series<br/>RSC/Credits/Burned]
+            PF[Proposals & Funding]
+            AI[Agent Inspector]
         end
     end
 
@@ -182,20 +253,20 @@ Each cell in the Agent Field grid encodes three dimensions:
 
 | Visual Property | Data | Meaning |
 |----------------|------|---------|
-| Color | Archetype | Green=Believer, Gold=Yield Seeker, Purple=Governance, Red=Speculator |
-| Opacity | Satisfaction | 1.0=fully satisfied, fading=losing satisfaction |
-| Glow | Credit pressure | Bright edge=credits piling up, needs to deploy |
-| Grey | Churned | Agent has left the system |
+| Color | Archetype | Green=Believer, Gold=Yield Seeker, Purple=Institution, Red=Speculator |
+| Opacity | Holding duration | 0.35=New (< 4wk), 0.65=Holder (4wk–1yr), 0.95=LongTerm (> 1yr) |
+| Glow | Credit pressure | Bright edge = credits accumulating, needs to deploy |
+| Grey | Exited | Holder pulled RSC from RH account |
 
 ## Parameter Flow (Slider to Backend)
 
 ```mermaid
 graph LR
     subgraph Dashboard["Dashboard Sliders"]
-        SY[Yield 1-25%]
+        SY[Yield Threshold 1-25%]
         SD[Deploy Rate 0-100%]
         SS[Success 20-100%]
-        SN[Stakers 20-500]
+        SN[Holders 20-500]
         SB[Burn Rate 0.5-10%]
         SA[Archetype Mix]
     end
@@ -207,18 +278,18 @@ graph LR
     end
 
     subgraph Backend["EndowmentModel"]
-        base_apy
+        yield_threshold_mean
         deploy_probability
         success_rate
-        num_stakers
+        num_holders
         burn_rate
         archetype_mix
     end
 
-    SY --> T1 --> base_apy
+    SY --> T1 --> yield_threshold_mean
     SD --> T1 --> deploy_probability
     SS --> T1 --> success_rate
-    SN --> T2 --> num_stakers
+    SN --> T2 --> num_holders
     SB --> T1 --> burn_rate
     SA --> T3 --> archetype_mix
 ```
@@ -227,13 +298,14 @@ graph LR
 
 ```mermaid
 graph LR
-    STAKE[RSC Staked] -->|yield * tier_mult / 52| CREDITS[Credits Generated]
+    RSC[RSC held in RH] -->|× time_weight_mult| EFF[Effective RSC share]
+    EFF -->|× weekly_emission| CREDITS[Credits Generated]
     CREDITS -->|behavioral decision| DEPLOY[Credits Deployed]
     DEPLOY -->|fund proposal| PROP[Proposal]
     DEPLOY -->|burn_rate %| BURN[RSC Burned]
     PROP -->|success_rate| COMPLETE[Completed]
     PROP -->|1 - success_rate| FAIL[Failed]
-    COMPLETE -->|+satisfaction| SAT[Satisfaction]
-    FAIL -->|−satisfaction| SAT
-    SAT -->|low + unlocked| CHURN[Churn]
+    APY[APY < threshold] -->|probabilistic| EXIT[Holder Exits]
+    EXIT --> LESSPILE[Less total RSC]
+    LESSPILE --> HIGHERAPY[Higher APY for remaining]
 ```

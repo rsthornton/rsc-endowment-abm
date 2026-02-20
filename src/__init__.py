@@ -1,28 +1,32 @@
 """
 RSC Decentralized Endowment ABM
 
-Simple model: Stake RSC -> Earn Credits (APY) -> Deploy to Proposals -> 2% Burn
+Real mechanism: RSC in RH account auto-earns yield (passive).
+Yield = (your RSC / total RH RSC) x annual_emissions x time_weight_multiplier
+Emissions decay: E(t) = 9,500,000 / 2^(t/64)
 """
 
 from .model import EndowmentModel
-from .agents import EndowmentStaker, EndowmentProposal
+from .agents import EndowmentHolder, EndowmentStaker, EndowmentProposal
 from .constants import (
-    TIERS, DESIGN_QUESTIONS, DEFAULT_PARAMS,
+    TIME_WEIGHT_MULTIPLIERS, EMISSION_PARAMS, DEFAULT_PARAMS,
     ARCHETYPES, DEFAULT_ARCHETYPE_MIX,
-    get_tier, list_tiers, get_archetype, list_archetypes,
+    get_time_weight_multiplier, list_multipliers,
+    get_archetype, list_archetypes,
 )
 
 __all__ = [
     "EndowmentModel",
-    "EndowmentStaker",
+    "EndowmentHolder",
+    "EndowmentStaker",  # legacy alias
     "EndowmentProposal",
-    "TIERS",
-    "DESIGN_QUESTIONS",
+    "TIME_WEIGHT_MULTIPLIERS",
+    "EMISSION_PARAMS",
     "DEFAULT_PARAMS",
     "ARCHETYPES",
     "DEFAULT_ARCHETYPE_MIX",
-    "get_tier",
-    "list_tiers",
+    "get_time_weight_multiplier",
+    "list_multipliers",
     "get_archetype",
     "list_archetypes",
 ]

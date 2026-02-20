@@ -1,35 +1,44 @@
 # RSC Decentralized Endowment ABM
 
-An interactive agent-based model exploring how [ResearchHub](https://www.researchhub.com/) RSC staking with credit-based funding and behavioral archetypes could work in practice. Adjust parameters, watch agents react, and explore design tradeoffs — all in your browser.
+An interactive agent-based model simulating [ResearchHub's](https://www.researchhub.com/) 2026 Endowment mechanism. Adjust population parameters, watch the self-balancing yield mechanic play out, and explore what participation rate equilibrates — all in your browser.
 
 ### **[Try the Live Demo](https://rsc-endowment-abm-production.up.railway.app)** — no install required
-
-![Dashboard screenshot showing the Agent Field grid with archetype behavior cards, parameter sliders, and KPI metrics after a 52-week simulation run.](docs/screenshot.png)
 
 Built with Python, [Mesa](https://mesa.readthedocs.io/) (ABM framework), Flask, and Chart.js.
 
 ## Overview
 
-This model simulates the core endowment mechanism:
+This model simulates the real RH Endowment mechanism:
 
 ```
-Stake RSC -> Earn Funding Credits -> Deploy to Research Proposals
+Hold RSC in RH account → Passive yield (dilution-based) → Deploy credits to Research Proposals
 ```
+
+**No lockups. No staking action required.** RSC held in a ResearchHub account automatically earns yield proportional to your share of total held RSC.
+
+**Yield formula:**
+```
+Weekly yield = (your RSC / total RSC in RH) × weekly_emission × time_weight_multiplier
+Annual emission: E(t) = 9,500,000 / 2^(t/64)   [halves every 64 years]
+```
+
+**Primary design question:** What participation rate (% of circulating RSC held in RH) does the market equilibrate to?
 
 **Key features:**
-- 4 behavioral archetypes (Believers, Yield Seekers, Governance, Speculators)
-- 4 staking tiers based on lock period (Flexible/3mo/6mo/12mo)
-- Yield multipliers reward longer commitments
-- Credits are deployment tokens (no RSC value)
-- Configurable burn fee on credit deployment
-- B=f(P,E) behavioral model: Person attributes + Environment = Behavior
-- Scenario save/compare for parameter exploration
+- Self-balancing yield: more RSC → lower APY → yield seekers exit → APY recovers → new entrants join
+- 4 behavioral archetypes (Believers, Yield Seekers, Institutions, Speculators)
+- Time-weight multipliers (1.0x → 1.15x → 1.2x) reward continuous holding
+- Decaying emission schedule matched to RH's actual plan (9.5M RSC/yr, year 0)
+- Participation rate as the primary emergent output — not a fixed input
+- New entrant spawning: yield seekers re-enter when APY rises above their threshold
+- B=f(P,E) behavioral model: Person attributes × Environment = Behavior
+- Scenario save/compare for exploring equilibrium under different archetype mixes
 
-**Note**: The complex "Process Fidelity" model with panel voting, slashing, and quality scores is in the separate `rsc-process-fidelity-abm` project.
+**Reference docs**: `docs/rh-reference/` — 5 files from RH's product doc, community doc, and yield model CSV
 
 ## Quick Start
 
-The fastest way to explore the model is the **[live demo](https://rsc-endowment-abm-production.up.railway.app)**.
+The fastest way to explore is the **[live demo](https://rsc-endowment-abm-production.up.railway.app)**.
 
 To run locally:
 
@@ -43,119 +52,111 @@ python server.py
 
 ## Interactive Dashboard
 
-The dashboard (available at the [live demo](https://rsc-endowment-abm-production.up.railway.app) or `localhost:5000` locally) provides:
-
 **Sidebar Controls**
 
 | Section | Contents |
 |---------|----------|
-| Parameters | Yield, Deploy Rate, Proposal Success, Stakers |
+| Parameters | Yield Threshold, Deploy Rate, Proposal Success, Holders |
 | Archetype Mix | Linked sliders (sum to 100%) with behavioral descriptions |
-| Staking Tiers | Distribution bar across Flexible/3mo/6mo/12mo |
-| Advanced | Burn Rate, Credit Expiry, Failure Mode, Min Stake |
+| Time-Weight Multipliers | Distribution bar (New/Holder/LongTerm) |
+| Advanced | Burn Rate, Credit Expiry, Failure Mode |
 | Scenarios | Save/Compare parameter runs side-by-side |
-| How It Works | B=f(P,E) explanation, step-by-step mechanics |
-| Design Questions | Open questions for ResearchHub discussion |
+| How It Works | Mechanism explanation, self-balancing description |
 
-**Main Area (4 tabs)**
-- **Agent Field**: Grid visualization showing each staker as a cell (color = archetype, opacity = satisfaction, glow = credit pressure). Hover for tooltip, click for details.
-- **Time Series**: Staked/Credits/Burned over time
+**Main Area (5 tabs)**
+- **Agent Field**: Grid visualization. Color = archetype, opacity = holding duration (LongTerm holders glow at full opacity). Hover for tooltip.
+- **Yield Dynamics**: APY over time with 15%/30%/70% reference lines from RH's CSV model. Participation rate trajectory.
+- **Time Series**: RSC held, credits, burned over time
 - **Proposals & Funding**: Proposal status and funding progress
-- **Agent Inspector**: Individual staker deep-dive (Top Stakers, Recent Deployers, Tier Breakdown)
+- **Agent Inspector**: Individual holder deep-dive (Top Holders, Deployers, By Archetype, Exited)
 
-**Pinned KPIs**: RSC Staked, Satisfaction, Churned (always visible)
+**Pinned KPIs**: Participation Rate, Current APY, Exited (always visible)
 
-## Dashboard Parameters
+## Self-Balancing Mechanic
 
-The dashboard exposes these as sliders mapped to backend params:
+The core equilibrium dynamic:
 
-| Slider | Range | Default | Backend param |
-|--------|-------|---------|---------------|
-| Yield | 1-25% | 10% | `base_apy` (/ 100) |
-| Deploy Rate | 0-100% | 30% | `deploy_probability` (/ 100) |
-| Proposal Success | 20-100% | 80% | `success_rate` (/ 100) |
-| Stakers | 20-500 | 100 | `num_stakers` (int) |
-| Burn Rate | 0.5-10% | 2% | `burn_rate` (/ 100) |
+1. High APY → Yield Seekers join → total RSC increases → APY falls
+2. Low APY → Yield Seekers exit (below their `yield_threshold`) → total RSC decreases → APY rises
+3. Believers and Institutions stay throughout (mission-driven, high hold_horizon)
+4. Equilibrium emerges when exits ≈ entrants
 
-Archetype sliders (Believers/Yield Seekers/Governance/Speculators) are linked: adjusting one proportionally redistributes the others, always summing to 100% with a 5% minimum each.
+The `yield_threshold_mean` slider controls the average APY below which agents exit — this is the primary lever for the equilibrium participation rate.
 
 ## Behavioral Model
 
 ### B = f(P, E)
 
-Each staker has **Person attributes** that interact with **Environment conditions** to produce behavior:
+Each holder has **Person attributes** that interact with **Environment conditions** to produce behavior:
 
 **Person attributes** (continuous 0-1 scales):
 - `mission_alignment` - cares about funding research vs. earning yield
-- `risk_tolerance` - willingness to back uncertain proposals
-- `engagement` - how actively they participate
-- `price_sensitivity` - reactivity to RSC price changes
+- `engagement` - how actively they deploy credits to proposals
+- `price_sensitivity` - reactivity to APY changes (drives exit decisions)
+- `hold_horizon` - tendency toward long-term holding (dampens exits)
+
+**Environment**:
+- `current_apy` - annual yield at current participation rate
+- `yield_threshold` - personal minimum APY to stay (agent-specific)
 
 ### Archetypes
 
-| Archetype | Behavior | Default Mix |
-|-----------|----------|-------------|
-| Believer | Mission-driven. Deploy eagerly, back risky research, stick around. | 25% |
-| Yield Seeker | Return-focused. Deploy selectively, leave if returns disappoint. | 30% |
-| Governance | Community-oriented. Moderate deployers, value ecosystem health. | 20% |
-| Speculator | Short-term. Hoard credits, rarely deploy, first to churn. | 25% |
+| Archetype | Behavior | Default Mix | Hold Horizon |
+|-----------|----------|-------------|--------------|
+| Believer | Mission-driven. Holds long-term, deploys credits reliably. | 25% | High |
+| Yield Seeker | Return-focused. Enters when APY is attractive, exits when it falls. | 30% | Medium |
+| Institution | Large RSC stake (universities, foundations). Very long-term. Reaches 1.2x multiplier. | 20% | Very high |
+| Speculator | Short-term. Deploys rarely, exits quickly on APY decline. | 25% | Low |
 
-### Deployment Decision
+### Time-Weight Multipliers
 
-`deploy_probability` acts as a scaling factor on the behavioral deployment decision:
-- Base probability from engagement level
-- Credit pressure boost (sigmoid, increases when credits accumulate)
-- Satisfaction dampening (low satisfaction reduces willingness)
-- Deploy scale = `deploy_probability / 0.3` (default 0.3 = no change)
+Continuous holding duration determines the multiplier (no lockups — just time):
 
-## Staking Tiers
+| Tier | Duration | Multiplier |
+|------|----------|-----------|
+| New | < 4 weeks | 1.00x |
+| Holder | 4 weeks – 1 year | 1.15x |
+| LongTerm | > 1 year | 1.20x |
 
-| Tier | Lock Period | Yield Multiplier |
-|------|-------------|------------------|
-| Flexible | None | 1.0x |
-| 3-Month | 90 days | 1.5x |
-| 6-Month | 180 days | 2.0x |
-| 12-Month | 365 days | 3.0x |
+Effective share = `(your RSC × your multiplier) / sum(all RSC × multipliers)`
 
 ## Credit Flow
 
-1. **Generation**: Stakers earn credits at `stake * yield * tier_multiplier / 52` per step (week)
-2. **Deployment**: Behavioral decision to deploy credits to proposals
-3. **Fee**: Burn rate % of backing RSC burned on deployment
-4. **Resolution**: Funded proposals complete or fail (success_rate probability)
-5. **Satisfaction**: Updated from outcomes; affects future deployment and churn
-6. **Churn**: Unsatisfied + unlocked stakers may leave
+1. **Earn**: Each week, earn credits = `weekly_emission × (effective_RSC / total_effective_RSC)`
+2. **Deploy**: Behavioral decision to deploy credits to open proposals
+3. **Burn**: 2% of backing RSC burned on deployment
+4. **Resolve**: Funded proposals complete or fail (success_rate probability)
 
 ## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/init` | POST | Initialize model with parameters |
-| `/api/step` | POST | Advance simulation by 1 step |
-| `/api/run` | POST | Run N steps `{steps: 10}` |
-| `/api/state` | GET | Get current model state |
-| `/api/metrics` | GET | Get computed metrics |
-| `/api/stakers` | GET | List all stakers |
+| `/api/step` | POST | Advance simulation by 1 step (1 week) |
+| `/api/run` | POST | Run N steps `{"steps": 52}` |
+| `/api/state` | GET | Current model state |
+| `/api/metrics` | GET | Computed metrics |
+| `/api/holders` | GET | List all holders |
 | `/api/proposals` | GET | List all proposals |
 | `/api/history` | GET | Time series data |
-| `/api/tiers` | GET | List staking tiers |
-| `/api/design-questions` | GET | Open design questions |
+| `/api/multipliers` | GET | Time-weight multiplier tiers |
+| `/api/participation` | GET | Participation rate + reference scenarios (15%/30%/70%) |
 
 ### Example Usage
 
 ```bash
-# Initialize with custom parameters
+# Initialize: 100 holders, yield threshold 8%, starting at 30% participation
 curl -X POST http://localhost:5000/api/init \
   -H "Content-Type: application/json" \
-  -d '{"num_stakers": 50, "base_apy": 0.15, "deploy_probability": 0.5}'
+  -d '{"num_holders": 100, "yield_threshold_mean": 0.08, "initial_participation_rate": 0.30}'
 
-# Run 52 steps (1 year)
+# Run 1 year
 curl -X POST http://localhost:5000/api/run \
   -H "Content-Type: application/json" \
   -d '{"steps": 52}'
 
-# Get metrics
-curl http://localhost:5000/api/metrics
+# Check equilibrium
+curl http://localhost:5000/api/participation
 ```
 
 ## Project Structure
@@ -164,14 +165,16 @@ curl http://localhost:5000/api/metrics
 rsc-endowment-abm/
 ├── src/
 │   ├── __init__.py
-│   ├── model.py        # EndowmentModel (Mesa ABM)
-│   ├── agents.py       # EndowmentStaker, EndowmentProposal
-│   └── constants.py    # Tiers, archetypes, design questions
+│   ├── model.py        # EndowmentModel (emissions engine, participation tracking)
+│   ├── agents.py       # EndowmentHolder (passive yield, exit dynamics), EndowmentProposal
+│   └── constants.py    # TIME_WEIGHT_MULTIPLIERS, EMISSION_PARAMS, ARCHETYPES
 ├── templates/
 │   └── index.html      # Single-page dashboard (HTML/CSS/JS)
+├── docs/
+│   └── rh-reference/   # RH product doc, community doc, yield CSV (5 files)
 ├── server.py           # Flask REST API
 ├── requirements.txt
-├── ARCHITECTURE.md     # System architecture with diagrams
+├── ARCHITECTURE.md     # System architecture with Mermaid diagrams
 └── README.md
 ```
 
@@ -182,20 +185,24 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed diagrams.
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Flask Server (server.py)                  │
-│  /api/init  /api/step  /api/run  /api/state  /api/metrics  │
+│  /api/init  /api/step  /api/run  /api/participation  ...   │
 └──────────────────────────┬──────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   EndowmentModel (Mesa ABM)                  │
 │  ┌─────────────────┐  ┌──────────────────┐  ┌────────────┐ │
-│  │EndowmentStaker   │  │EndowmentProposal │  │DataCollector│ │
+│  │EndowmentHolder   │  │EndowmentProposal │  │DataCollector│ │
 │  │ - archetype      │  │ - funding_target │  │ - history  │ │
-│  │ - stake / tier   │─▶│ - credits_recv   │  │ - metrics  │ │
-│  │ - credits        │  │ - backers        │  └────────────┘ │
-│  │ - satisfaction   │  │ - status         │                  │
-│  │ - _should_deploy │  └──────────────────┘                  │
+│  │ - rsc_held       │─▶│ - credits_recv   │  │ - metrics  │ │
+│  │ - weeks_held     │  │ - backers        │  └────────────┘ │
+│  │ - yield_threshold│  │ - status         │                  │
+│  │ - _consider_exit │  └──────────────────┘                  │
 │  └─────────────────┘                                         │
+│                                                              │
+│  weekly_emission() → E(t) = 9.5M / 2^(t/64)               │
+│  participation_rate → total_rsc_held / circulating_supply   │
+│  current_apy() → annual_emission / total_rsc_held           │
 └──────────────────────────┬──────────────────────────────────┘
                            │
                            ▼
@@ -203,23 +210,23 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed diagrams.
 │              Interactive Dashboard (index.html)              │
 │  Sidebar                    Main Area                       │
 │  ┌──────────────┐  ┌─────────────────────────────────────┐  │
-│  │ Parameters   │  │ Agent Field │ Time Series │ ...     │  │
+│  │ Parameters   │  │ Agent Field │ Yield Dynamics │ ...  │  │
 │  │ Archetypes   │  │ ┌─────────────────────────────────┐ │  │
-│  │ Staking Tiers│  │ │  Grid: color=arch, opacity=sat  │ │  │
+│  │ Multipliers  │  │ │  Grid: color=arch, opacity=dur  │ │  │
 │  │ Advanced     │  │ │  + archetype behavior cards      │ │  │
 │  │ Scenarios    │  │ └─────────────────────────────────┘ │  │
 │  └──────────────┘  └─────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Open Design Questions
+## Reference Scenarios (from RH Yield Model CSV)
 
-The model surfaces these questions for ResearchHub team discussion:
+At different participation rates (% of 134M circulating RSC):
 
-1. **Credit Expiry**: Should credits expire if not deployed?
-2. **Pooled vs Individual**: Individual staker deployment or common pool?
-3. **Failure Consequences**: What happens when funded proposals fail?
-4. **Yield Source**: Emissions vs revenue-funded?
-5. **Success Criteria**: How is proposal success determined?
+| Participation | RSC Held | Year 0 APY | Year 5 APY | Year 10 APY |
+|---|---|---|---|---|
+| 15% | ~20.1M RSC | ~47.3% | ~33.5% | ~23.7% |
+| 30% | ~40.2M RSC | ~23.6% | ~16.7% | ~11.8% |
+| 70% | ~93.9M RSC | ~10.1% | ~7.2% | ~5.1% |
 
-Access via `/api/design-questions`. Credit expiry and failure mode are explorable in the Advanced section.
+See `/api/participation` for these reference lines, and the Yield Dynamics tab to compare your simulation against them.
