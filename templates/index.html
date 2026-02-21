@@ -883,20 +883,19 @@
     <!-- ==================== SIDEBAR ==================== -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                <h1>RSC DECENTRALIZED ENDOWMENT</h1>
-                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">Light</button>
-            </div>
-            <div class="subtitle">Hold RSC in RH &rarr; Earn Yield &rarr; Deploy to Research Proposals</div>
+            <h1>RSC ENDOWMENT SIMULATOR</h1>
+            <div class="subtitle">Model how $1M RSC earns yield and funds science — before you commit.</div>
         </div>
 
         <!-- Controls -->
         <div class="controls">
             <button class="primary" onclick="runToEquilibrium()" style="flex:1 1 100%" title="Run 4 years — self-balancing stabilizes around week 100-150">&#9654; Run to Equilibrium</button>
+            <div class="slider-label" style="width:100%;font-size:10px;color:var(--text-dim);margin-top:2px">Manual controls:</div>
             <button onclick="run(52)">1 Year</button>
             <button onclick="run(10)">10 Wk</button>
             <button onclick="step()">Step</button>
             <button onclick="resetWithParams()">Reset</button>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" style="margin-top:4px;width:100%">Light</button>
         </div>
 
         <!-- Status Badges -->
@@ -992,7 +991,7 @@
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label" style="color:var(--accent)">Yield Seekers</span>
+                            <span class="slider-label" style="color:var(--accent)">Return-Sensitive Holders</span>
                             <span class="slider-value" id="val-yield_seeker">35%</span>
                         </div>
                         <input type="range" id="slider-yield_seeker" min="5" max="85" value="35" step="5"
@@ -1006,7 +1005,7 @@
                         </div>
                         <input type="range" id="slider-institution" min="5" max="85" value="15" step="5"
                             oninput="handleArchSliderChange('institution')">
-                        <div class="slider-hint">Universities/foundations. Large RSC, very long-term, near-zero sensitivity. Anchors participation.</div>
+                        <div class="slider-hint">Universities/foundations. Large RSC, very long-term, near-zero sensitivity. Anchors participation. &rarr; This models universities and foundations — RH's primary pitch target.</div>
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
@@ -1018,22 +1017,6 @@
                         <div class="slider-hint">Short-term. Enter on high yield, exit quickly. Amplifies participation swings.</div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Time-Weight Multipliers -->
-        <div class="sidebar-section">
-            <div class="sidebar-section-header" onclick="toggleSection(this)">
-                Time-Weight Multipliers <span class="toggle">&#9660;</span>
-            </div>
-            <div class="sidebar-section-body">
-                <div class="tier-bar" id="multiplier-bar"></div>
-                <div class="tier-legend" style="gap:8px">
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#536471"></div> New &lt;4wk 1.0x</div>
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#4a9eff"></div> Holder 4wk–1yr 1.15x</div>
-                    <div class="tier-legend-item"><div class="tier-dot" style="background:#c9a227"></div> Long-Term &gt;1yr 1.20x</div>
-                </div>
-                <div class="slider-hint" style="margin-top:6px">No lockups — multipliers reward holding duration. Longer = higher effective APY share.</div>
             </div>
         </div>
 
@@ -1080,88 +1063,42 @@
             </div>
         </div>
 
-        <!-- Scenario Save -->
+        <!-- Quick Scenarios -->
         <div class="sidebar-section">
             <div class="sidebar-section-header" onclick="toggleSection(this)">
-                Scenarios <span class="toggle">&#9654;</span>
+                Quick Scenarios <span class="toggle">&#9654;</span>
             </div>
             <div class="sidebar-section-body collapsed">
-                <div style="display:flex;gap:6px;margin-bottom:8px">
-                    <button onclick="saveScenario()" style="flex:1">Save Current</button>
-                    <button onclick="openScenarioModal()" style="flex:1">Compare</button>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px">
+                    <button onclick="loadScenario(0.15, 0.04)" style="text-align:left;font-size:11px">Conservative (15%) &rarr; ~47% APY</button>
+                    <button onclick="loadScenario(0.30, 0.08)" style="text-align:left;font-size:11px">Expected (30%) &rarr; ~24% APY</button>
+                    <button onclick="loadScenario(0.70, 0.15)" style="text-align:left;font-size:11px">High (70%) &rarr; ~10% APY</button>
                 </div>
-                <div id="saved-scenarios-list" style="font-size:10px;color:var(--text-muted)">No saved scenarios</div>
-                <button onclick="clearScenarios()" style="width:100%;margin-top:8px;font-size:10px">Clear All</button>
+                <div style="font-size:10px;color:var(--text-dim)">Sets sliders to matching CSV scenario and resets. <a href="#" style="color:var(--text-muted)" onclick="openScenarioModal();return false">Advanced &rarr;</a></div>
+                <div id="saved-scenarios-list" style="display:none">No saved scenarios</div>
             </div>
         </div>
 
-        <!-- Education -->
+        <!-- Methodology -->
         <div class="sidebar-section">
             <div class="sidebar-section-header" onclick="toggleSection(this)">
-                How It Works <span class="toggle">&#9654;</span>
+                Methodology <span class="toggle">&#9654;</span>
             </div>
             <div class="sidebar-section-body collapsed">
-                <div class="edu-section">
-                    <h3>B = f(P, E)</h3>
-                    <p>Each holder has <strong>Person attributes</strong> (mission alignment, engagement, price sensitivity, hold horizon) that interact with <strong>Environment conditions</strong> (current APY, yield threshold) to produce behavior.</p>
-                </div>
-                <div class="edu-section">
-                    <h3>Each Step (Week)</h3>
-                    <ol>
-                        <li><strong>Hold Duration:</strong> weeks_held increments → time-weight multiplier upgrades</li>
-                        <li><strong>Yield:</strong> Credits earned = weekly_emission × (my_RSC / total_RSC) × multiplier</li>
-                        <li><strong>Deploy:</strong> Behavioral decision to deploy credits to proposals</li>
-                        <li><strong>Burn:</strong> 2% of backing RSC burned on credit deployment</li>
-                        <li><strong>Exit Check:</strong> If APY &lt; yield_threshold, probabilistic exit</li>
-                        <li><strong>Re-entry:</strong> New Yield Seekers enter if APY &gt; entry threshold</li>
-                    </ol>
-                </div>
-                <div class="edu-section">
-                    <h3>Self-Balancing Mechanic</h3>
-                    <ul>
-                        <li><strong>High participation:</strong> APY falls → yield seekers exit</li>
-                        <li><strong>Low participation:</strong> APY rises → new yield seekers enter</li>
-                        <li><strong>Equilibrium:</strong> Participation rate stabilizes at yield threshold</li>
-                        <li><strong>Multipliers:</strong> Reward long-term holding without lockups</li>
-                        <li><strong>Emissions:</strong> E(t) = 9.5M / 2^(t/64) — halves every 64 years</li>
-                    </ul>
-                </div>
-                <div class="edu-section" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px">
-                    <h3 style="color:var(--success)">&#10003; CSV Grounding</h3>
-                    <ul>
-                        <li>Emission schedule exact match to RH yield model CSV (Year 0–50)</li>
-                        <li>134.2M circulating RSC at Year 0 (from CSV)</li>
-                        <li>Agent RSC calibrated: 30% target → ~40.2M RSC held collectively</li>
-                        <li>APY formula: annual_emission / total_rsc_held (verified vs. CSV)</li>
-                        <li>Reference lines (15%/30%/70%) read from CSV; sim APY should converge toward one</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- RH Design Questions -->
-        <div class="sidebar-section">
-            <div class="sidebar-section-header" onclick="toggleSection(this)">
-                RH Design Questions <span class="toggle">&#9654;</span>
-            </div>
-            <div class="sidebar-section-body collapsed">
-                <div class="edu-section">
-                    <ol style="font-size:10px;line-height:1.6">
-                        <li>What participation rate will the market equilibrate to?</li>
-                        <li>How do time-weight multipliers affect long-term holding vs. churning?</li>
-                        <li>What does the ecosystem look like with different holder mixes?</li>
-                        <li>How quickly does yield self-balance after participation shifts?</li>
-                        <li>Year-over-year yield trajectories at different equilibrium rates?</li>
-                    </ol>
-                    <div class="slider-hint" style="margin-top:8px">Compare CSV scenarios: 15% / 30% / 70% participation → see APY reference lines in Yield Dynamics tab.</div>
-                </div>
+                <ul style="font-size:10px;line-height:1.8;color:var(--text-muted);padding-left:14px">
+                    <li>Yield = your RSC &divide; total RSC held in RH &times; annual emission</li>
+                    <li>Emission starts at 9.5M RSC/year at launch, halves every 64 years</li>
+                    <li>High yield attracts holders &rarr; dilutes yield &rarr; market finds equilibrium</li>
+                    <li>Holding 1+ year earns 1.2&times; more credits than new holders (no lockup required)</li>
+                    <li>Calibrated to 134.2M circulating RSC at Year 0 (RH yield model CSV)</li>
+                </ul>
             </div>
         </div>
     </div>
 
     <!-- ==================== MAIN AREA ==================== -->
     <div class="main">
-        <!-- Pinned Metrics Bar (3 KPIs) -->
+        <!-- Pinned Metrics Bar (4 KPIs) -->
         <div class="metrics-bar">
             <div class="metric" data-tooltip="% of circulating RSC currently held in RH. The key equilibrium metric.">
                 <div class="metric-value" id="participation-rate" style="font-size:22px;color:var(--accent)">0%</div>
@@ -1171,14 +1108,21 @@
                 <div class="metric-value" id="current-apy" style="font-size:22px;color:var(--success)">0%</div>
                 <div class="metric-label">Current APY</div>
             </div>
-            <div class="metric" data-tooltip="Holders who exited when APY fell below their yield threshold.">
-                <div class="metric-value" id="exited-count" style="font-size:22px;color:var(--danger)">0</div>
-                <div class="metric-label">Exited</div>
+            <div class="metric" data-tooltip="Holders who exited when APY fell below their yield threshold. Zero exits is a good signal.">
+                <div class="metric-value" id="exited-count" style="font-size:22px;color:var(--text-muted)">0</div>
+                <div class="metric-label">Holders Exited</div>
+            </div>
+            <div class="metric" data-tooltip="Which of RH's three CSV reference scenarios current participation is closest to.">
+                <div class="metric-value" id="csv-scenario" style="font-size:14px;color:var(--success)">—</div>
+                <div class="metric-label">CSV Scenario</div>
             </div>
         </div>
 
         <!-- Live Interpretation (shown after sim runs) -->
         <div id="rh-design-reading" style="display:none;padding:8px 16px;font-size:11.5px;line-height:1.6;border-bottom:1px solid var(--border);border-left:3px solid var(--accent);background:var(--bg-alt)"></div>
+
+        <!-- Post-Run Summary (elevated above tabs) -->
+        <div id="post-run-summary" style="display:none"></div>
 
         <!-- Tab Bar (3 tabs) -->
         <div class="tab-bar">
@@ -1199,9 +1143,7 @@
                         <span style="font-size:10px;color:var(--success);font-weight:600">&#10003; Calibrated</span>
                     </div>
                     <div style="font-size:12px;line-height:1.7;color:var(--text-muted);padding:4px 0 2px">
-                        Agent RSC scaled to <strong style="color:var(--text)">Initial Participation × 134.2M circulating RSC</strong>.
-                        Emission formula <strong style="color:var(--text)">E(t) = 9.5M / 2^(t/64)</strong> and APY match RH's CSV exactly.
-                        Dashed reference lines are the three CSV scenarios.
+                        &#10003; Calibrated to ResearchHub's published yield model (February 2026). Participation rates and APY match RH's own projections. Dashed lines = three CSV reference scenarios.
                     </div>
                 </div>
 
@@ -1222,8 +1164,7 @@
                             <canvas id="participation-chart"></canvas>
                         </div>
                         <div class="slider-hint" style="padding:8px 0 0 0">
-                            Watch this converge. Equilibrium = where exits (APY &lt; threshold) balance re-entries.
-                            Adjust <strong>Yield Threshold</strong> to shift where it stabilizes.
+                            The market self-corrects. Too many holders &rarr; yield falls &rarr; some exit. Too few &rarr; yield rises &rarr; new holders enter. Convergence into the green zone = healthy equilibrium.
                         </div>
                     </div>
                 </div>
@@ -1245,12 +1186,15 @@
 
             <!-- TAB: Holder Activity -->
             <div class="tab-pane" id="tab-holder-activity">
+                <div style="padding:6px 0 8px;font-size:11px;color:var(--text-muted);line-height:1.6">
+                    Each square = one holder. Color = type. Bright = holding 1+ year (1.2&times; yield). Glow = credits building up. Click any square to inspect.
+                </div>
                 <div class="sim-canvas-wrap">
                     <div id="agent-grid" class="agent-grid"></div>
                     <div class="canvas-tooltip" id="canvas-tooltip"></div>
                     <div class="canvas-legend">
                         <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Believer</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Yield Seeker</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Return-Sensitive</div>
                         <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Institution</div>
                         <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Speculator</div>
                         <div class="legend-divider"></div>
@@ -1273,7 +1217,6 @@
                         <div class="agent-placeholder">Run the simulation to inspect holders.</div>
                     </div>
                 </div>
-                <div id="post-run-summary" style="display:none"></div>
             </div>
 
             <!-- TAB: Details -->
@@ -1698,7 +1641,26 @@
                 const m = apyEl.closest('.metric');
                 if (m) { m.classList.remove('pulse'); void m.offsetWidth; m.classList.add('pulse'); }
             }
-            updateMetric('exited-count', model.exited_holders || model.churned_stakers || 0);
+            const exitedVal = model.exited_holders || model.churned_stakers || 0;
+            updateMetric('exited-count', exitedVal);
+            const exitedEl = document.getElementById('exited-count');
+            if (exitedEl) exitedEl.style.color = exitedVal > 0 ? 'var(--danger)' : 'var(--text-muted)';
+
+            // 4th KPI: CSV Scenario verdict
+            const partNum = model.participation_rate || 0;
+            const csvEl = document.getElementById('csv-scenario');
+            if (csvEl) {
+                if (partNum < 0.225) {
+                    csvEl.textContent = '~15% scenario (47% APY)';
+                    csvEl.style.color = 'var(--accent)';
+                } else if (partNum < 0.50) {
+                    csvEl.textContent = '~30% scenario (24% APY)';
+                    csvEl.style.color = 'var(--success)';
+                } else {
+                    csvEl.textContent = '~70% scenario (10% APY)';
+                    csvEl.style.color = 'var(--text-muted)';
+                }
+            }
 
             // Multiplier distribution bar (sidebar)
             const mulDist = model.multiplier_distribution || {};
@@ -1721,7 +1683,7 @@
 
             // Archetype metrics cards
             const archMetrics = model.archetype_metrics || {};
-            const archNames = { believer: 'Believer', yield_seeker: 'Yield Seeker', institution: 'Institution', speculator: 'Speculator' };
+            const archNames = { believer: 'Believer', yield_seeker: 'Return-Sensitive', institution: 'Institution', speculator: 'Speculator' };
             const archColors = { believer: '#50c878', yield_seeker: '#c9a227', institution: '#7856ff', speculator: '#e05555' };
             document.getElementById('arch-metrics').innerHTML =
                 ['believer', 'yield_seeker', 'institution', 'speculator'].map(a => {
@@ -1755,12 +1717,21 @@
                         '</div>';
                 }).join('');
 
-            // Events
+            // Events (plain-English humanized messages)
+            function humanizeEvent(e) {
+                const w = 'Week ' + e.step + ': ';
+                if (e.type === 'funded')       return w + 'Research proposal reached its funding goal';
+                if (e.type === 'completed')    return w + 'Funded research delivered results';
+                if (e.type === 'failed')       return w + 'Research proposal was unsuccessful';
+                if (e.type === 'entry')        return w + 'New holders joined — APY was attractive';
+                if (e.type === 'exit' || e.type === 'churn') return w + 'Holders exited — APY fell below their threshold';
+                if (e.type === 'new_proposal') return w + 'New research proposal opened';
+                return w + e.message;
+            }
             const eventsHtml = state.events.slice(0, 20).map(e =>
                 '<div class="event">' +
-                '<span class="event-step">[' + String(e.step).padStart(3, '0') + ']</span>' +
                 '<span class="event-type ' + e.type + '">' + e.type + '</span>' +
-                '<span>' + e.message + '</span>' +
+                '<span>' + humanizeEvent(e) + '</span>' +
                 '</div>'
             ).join('');
             document.getElementById('events-list').innerHTML = eventsHtml || '<div class="event" style="color:var(--text-dim)">No events yet</div>';
@@ -2044,9 +2015,9 @@
                         labels: historyData.steps,
                         datasets: [
                             { label: 'Sim APY', data: historyData.apy, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.1)', tension: 0.3, fill: true, borderWidth: 2 },
-                            { label: '15% Part.', data: historyData.apy_15pct, borderColor: '#50c878', borderDash: [4,3], tension: 0.1, borderWidth: 1, pointRadius: 0 },
-                            { label: '30% Part.', data: historyData.apy_30pct, borderColor: '#4a9eff', borderDash: [4,3], tension: 0.1, borderWidth: 1, pointRadius: 0 },
-                            { label: '70% Part.', data: historyData.apy_70pct, borderColor: '#e05555', borderDash: [4,3], tension: 0.1, borderWidth: 1, pointRadius: 0 },
+                            { label: '15% Part.', data: historyData.apy_15pct, borderColor: '#50c878', borderDash: [4,3], tension: 0.1, borderWidth: 1.5, pointRadius: 0 },
+                            { label: '30% Part.', data: historyData.apy_30pct, borderColor: '#4a9eff', borderDash: [4,3], tension: 0.1, borderWidth: 1.5, pointRadius: 0 },
+                            { label: '70% Part.', data: historyData.apy_70pct, borderColor: '#e05555', borderDash: [4,3], tension: 0.1, borderWidth: 1.5, pointRadius: 0 },
                         ]
                     },
                     options: {
@@ -2063,13 +2034,15 @@
             const partCtx = document.getElementById('participation-chart');
             if (partCtx) {
                 if (participationChart) { participationChart.destroy(); participationChart = null; }
+                const labels = historyData.steps;
                 participationChart = new Chart(partCtx.getContext('2d'), {
                     type: 'line',
                     data: {
-                        labels: historyData.steps,
+                        labels: labels,
                         datasets: [
-                            { label: 'Participation %', data: historyData.participation, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.15)', tension: 0.3, fill: true, borderWidth: 2 },
-                            { label: 'Active Holders', data: historyData.active, borderColor: '#7856ff', tension: 0.3, yAxisID: 'y1', borderWidth: 1.5, pointRadius: 0 },
+                            { label: 'Participation %', data: historyData.participation, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.15)', tension: 0.3, fill: true, borderWidth: 2, pointRadius: 0 },
+                            { label: 'Healthy Zone', data: labels.map(() => 35), borderColor: 'rgba(80,200,120,0.25)', backgroundColor: 'rgba(80,200,120,0.07)', fill: '+1', pointRadius: 0, borderWidth: 1, borderDash: [3,5] },
+                            { label: '_zone_floor',  data: labels.map(() => 20), borderColor: 'rgba(80,200,120,0.25)', fill: false, pointRadius: 0, borderWidth: 1, borderDash: [3,5] },
                         ]
                     },
                     options: {
@@ -2077,7 +2050,6 @@
                         scales: {
                             x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } },
                             y: { ticks: { color: tickColor, font: { size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: gridColor }, title: { display: true, text: 'Participation %', color: tickColor } },
-                            y1: { position: 'right', ticks: { color: tickColor, font: { size: 10 } }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Holders', color: tickColor } },
                         }
                     }
                 });
@@ -2113,12 +2085,11 @@
             historyData.credits_deployed_step = history.Credits_Deployed_Step || [];
             historyData.exits_step = history.Exits_Step || [];
             historyData.entries_step = history.Entries_Step || [];
-            // Reference scenarios: compute from participation history
-            // These come from the participation_data.scenarios in each step's state
-            // We rebuild by using the step APYs from history
-            historyData.apy_15pct = [];
-            historyData.apy_30pct = [];
-            historyData.apy_70pct = [];
+            // Compute reference APYs client-side from the emission formula + known circulating supply
+            const circ0 = 134157343;
+            historyData.apy_15pct = historyData.years.map(y => (9500000 / Math.pow(2, y / 64)) / (circ0 * 0.15) * 100);
+            historyData.apy_30pct = historyData.years.map(y => (9500000 / Math.pow(2, y / 64)) / (circ0 * 0.30) * 100);
+            historyData.apy_70pct = historyData.years.map(y => (9500000 / Math.pow(2, y / 64)) / (circ0 * 0.70) * 100);
             updateChart();
             updateYieldCharts();
             await updateUI();
@@ -2321,7 +2292,7 @@
                 container.innerHTML = '<div class="agent-placeholder">No holders yet. Run the simulation.</div>';
                 return;
             }
-            const archNames = { believer: 'Believer', yield_seeker: 'Yield Seeker', institution: 'Institution', speculator: 'Speculator' };
+            const archNames = { believer: 'Believer', yield_seeker: 'Return-Sensitive', institution: 'Institution', speculator: 'Speculator' };
 
             if (currentAgentTab === 'top-stakers') {
                 const sorted = [...lastStakers].filter(s => s.active).sort((a, b) => (b.rsc_held || 0) - (a.rsc_held || 0)).slice(0, 20);
@@ -2464,7 +2435,7 @@
         function generateNarrativeSummary(model, stakers) {
             // Aggregate per-archetype data from staker list
             const archetypes = ['believer', 'yield_seeker', 'institution', 'speculator'];
-            const archNames = { believer: 'Believers', yield_seeker: 'Yield Seekers', institution: 'Institutions', speculator: 'Speculators' };
+            const archNames = { believer: 'Believers', yield_seeker: 'Return-Sensitive Holders', institution: 'Institutions', speculator: 'Speculators' };
             const archData = {};
             let totalDeployed = 0;
             let totalChurned = 0;
@@ -2646,6 +2617,24 @@
 
         function isLightMode() {
             return document.documentElement.getAttribute('data-theme') === 'light';
+        }
+
+        // ============================================
+        // Quick Scenario Loader
+        // ============================================
+        async function loadScenario(participation, threshold) {
+            // Set participation slider
+            const partSlider = document.getElementById('slider-participation');
+            const partPct = Math.round(participation * 100);
+            partSlider.value = partPct;
+            document.getElementById('val-participation').textContent = partPct + '%';
+            // Set threshold slider
+            const threshSlider = document.getElementById('slider-threshold');
+            const threshPct = Math.round(threshold * 100);
+            threshSlider.value = threshPct;
+            document.getElementById('val-threshold').textContent = threshPct + '%';
+            updateArchBar();
+            await resetWithParams();
         }
 
         // Restore saved theme
