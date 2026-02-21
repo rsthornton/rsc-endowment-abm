@@ -1091,6 +1091,9 @@
                     <li>High yield attracts holders &rarr; dilutes yield &rarr; market finds equilibrium</li>
                     <li>Holding 1+ year earns 1.2&times; more credits than new holders (no lockup required)</li>
                     <li>Calibrated to 134.2M circulating RSC at Year 0 (RH yield model CSV)</li>
+                    <li>Credits are non-transferable — they fund research only, not liquid tokens</li>
+                    <li>Credits donated to research may qualify for a tax deduction (consult your advisor)</li>
+                    <li>Principal is never spent or locked — RSC stays in your account</li>
                 </ul>
             </div>
         </div>
@@ -1144,6 +1147,41 @@
                     </div>
                     <div style="font-size:12px;line-height:1.7;color:var(--text-muted);padding:4px 0 2px">
                         &#10003; Calibrated to ResearchHub's published yield model (February 2026). Participation rates and APY match RH's own projections. Dashed lines = three CSV reference scenarios.
+                    </div>
+                </div>
+
+                <!-- Endowment Projection -->
+                <div class="card" style="margin-bottom:12px;border-left:3px solid var(--success)">
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+                        <span>Endowment Projection</span>
+                        <span style="font-size:10px;color:var(--text-muted)">Principal retained — RSC is not spent</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+                        <span style="font-size:11px;color:var(--text-muted)">Your holding:</span>
+                        <span style="font-size:13px">$</span>
+                        <input type="number" id="endow-input" value="1000000" min="1000" step="10000"
+                            style="width:120px;background:var(--bg);border:1px solid var(--border-light);color:var(--text);padding:3px 6px;border-radius:4px;font-family:inherit;font-size:12px"
+                            oninput="updateEndowmentCard()">
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">
+                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px">
+                            <div id="endow-yr1" style="font-size:20px;font-weight:600;color:var(--success)">—</div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Year 1 funding credits</div>
+                            <div id="endow-apy-label" style="font-size:9px;color:var(--text-dim);margin-top:2px">at —% APY</div>
+                        </div>
+                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px">
+                            <div id="endow-yr10" style="font-size:20px;font-weight:600;color:var(--accent)">—</div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Cumulative over 10 years</div>
+                            <div id="endow-yr10-apy" style="font-size:9px;color:var(--text-dim);margin-top:2px">Year 10 APY: —%</div>
+                        </div>
+                        <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:6px;padding:10px">
+                            <div id="endow-principal" style="font-size:20px;font-weight:600;color:var(--text)">$1,000,000</div>
+                            <div style="font-size:10px;color:var(--success);margin-top:3px">Principal retained</div>
+                            <div style="font-size:9px;color:var(--text-dim);margin-top:2px">RSC not spent or locked</div>
+                        </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-dim);margin-top:8px;line-height:1.5">
+                        Credits fund research only — non-transferable, no DeFi complexity. Donations may qualify for tax deduction.
                     </div>
                 </div>
 
@@ -1758,9 +1796,10 @@
             }
             const detailLegend = document.getElementById('multiplier-detail-legend');
             if (detailLegend) {
+                const mulReadable = { New: 'New (<30d) 1.0×', Holder: 'Holder (30d–1yr) 1.15×', LongTerm: 'Long-Term (>1yr) 1.2×' };
                 detailLegend.innerHTML = ['New', 'Holder', 'LongTerm'].map(label => {
                     const d = mulDist[label] || { count: 0, rsc: 0 };
-                    return label + ': ' + d.count + ' holders, ' + formatNumber(d.rsc || 0) + ' RSC';
+                    return mulReadable[label] + ': ' + d.count + ' holders, ' + formatNumber(d.rsc || 0) + ' RSC';
                 }).join(' | ');
             }
             const rscByArch = document.getElementById('rsc-by-archetype');
@@ -1795,6 +1834,11 @@
                 updateChart();
                 updateYieldCharts();
             }
+
+            // Update endowment projection with live sim state
+            lastApy = model.current_apy || 0;
+            lastPartRate = model.participation_rate || 0.30;
+            updateEndowmentCard();
 
             updateRHReading(model);
             await loadStakers();
@@ -2618,6 +2662,62 @@
         function isLightMode() {
             return document.documentElement.getAttribute('data-theme') === 'light';
         }
+
+        // ============================================
+        // Endowment Projection Calculator
+        // ============================================
+        // Circulating supply from RH yield model CSV, Years 0–10
+        const RH_CIRC_BY_YEAR = [
+            134157343, 143657343, 153055009, 162351444, 171547737,
+            180644968, 189644204, 198546501, 207352901, 216064440, 224682138
+        ];
+
+        function formatDollars(n) {
+            if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+            if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+            return '$' + Math.round(n).toLocaleString();
+        }
+
+        function projectCumulativeCredits(partRate, dollarAmount) {
+            // Sum annual credits over 10 years using emission decay + circulating supply growth
+            // Both from the RH yield model CSV (exact match to product doc numbers)
+            let total = 0;
+            // Year 10 APY uses year-9 circulating supply (start-of-year basis, matches RH doc's ~13% at 30%)
+            const yr10Apy = (9500000 / Math.pow(2, 9 / 64)) / (RH_CIRC_BY_YEAR[9] * partRate);
+            for (let y = 0; y < 10; y++) {
+                const emission = 9500000 / Math.pow(2, y / 64);
+                const circ = RH_CIRC_BY_YEAR[Math.min(y, RH_CIRC_BY_YEAR.length - 1)];
+                const apy = emission / (circ * partRate);
+                total += apy * dollarAmount;
+            }
+            return { cumulative: total, yr10Apy: yr10Apy };
+        }
+
+        let lastPartRate = 0.30; // default until sim runs
+
+        function updateEndowmentCard() {
+            const inputEl = document.getElementById('endow-input');
+            const amount = parseFloat(inputEl ? inputEl.value : 1000000) || 1000000;
+            const partRate = lastPartRate > 0.01 ? lastPartRate : 0.30;
+
+            // Year 1: use sim's current APY (reflects actual sim state)
+            const yr1Credits = amount * lastApy;
+            const proj = projectCumulativeCredits(partRate, amount);
+
+            const yr1El = document.getElementById('endow-yr1');
+            const yr10El = document.getElementById('endow-yr10');
+            const principalEl = document.getElementById('endow-principal');
+            const apyLabelEl = document.getElementById('endow-apy-label');
+            const yr10ApyEl = document.getElementById('endow-yr10-apy');
+
+            if (yr1El)       yr1El.textContent    = formatDollars(yr1Credits);
+            if (yr10El)      yr10El.textContent   = formatDollars(proj.cumulative);
+            if (principalEl) principalEl.textContent = formatDollars(amount);
+            if (apyLabelEl)  apyLabelEl.textContent = 'at ' + (lastApy * 100).toFixed(1) + '% APY';
+            if (yr10ApyEl)   yr10ApyEl.textContent  = 'Year 10 APY: ' + (proj.yr10Apy * 100).toFixed(1) + '%';
+        }
+
+        let lastApy = 0;
 
         // ============================================
         // Quick Scenario Loader
