@@ -1,44 +1,67 @@
-# RSC Decentralized Endowment ABM
+# RSC Endowment Simulator
 
-An interactive agent-based model simulating [ResearchHub's](https://www.researchhub.com/) 2026 Endowment mechanism. Adjust population parameters, watch the self-balancing yield mechanic play out, and explore what participation rate equilibrates — all in your browser.
+An interactive simulator for [ResearchHub's](https://www.researchhub.com/) 2026 Endowment mechanism — built directly from RH's published product docs and yield model CSV.
 
 ### **[Try the Live Demo](https://rsc-endowment-abm-production.up.railway.app)** — no install required
 
-Built with Python, [Mesa](https://mesa.readthedocs.io/) (ABM framework), Flask, and Chart.js.
+Enter an endowment amount, pick a scenario, hit Run. Watch the market find its level.
 
-## Overview
+---
 
-This model simulates the real RH Endowment mechanism:
+## What it does
 
+ResearchHub lets you hold RSC and earn yield automatically — no lockups, no staking. The yield comes as funding credits you deploy to research proposals. Your principal is never spent.
+
+This simulator makes that mechanism tangible:
+
+- **Enter** a dollar amount ($1M, $100K, whatever)
+- **Choose** a starting scenario (Conservative 15% / Expected 30% / High 70% participation)
+- **Run** the simulation — watch participation rate, APY, and holder behavior evolve over 4 years
+- **See** what credits your endowment would generate, year 1 and cumulatively
+
+The three scenarios are taken verbatim from RH's product doc. The emission schedule, circulating supply figures, and APY reference lines all come from RH's published yield model CSV.
+
+---
+
+## The mechanism, plainly
+
+**Endowment simply:** you spend the interest, never the balance. Your RSC is permanent. The yield (funding credits) is what flows to research, year after year.
+
+**Why yields self-balance:**
 ```
-Hold RSC in RH account → Passive yield (dilution-based) → Deploy credits to Research Proposals
+Your yield = your RSC ÷ total RSC held in RH × annual emissions
+```
+More people join → each person's share shrinks → yield falls.
+People leave → shares grow → yield rises.
+No one controls this. It's automatic. The simulator shows where the market settles.
+
+**Emission schedule (from RH product doc):**
+```
+E(t) = 9,500,000 / 2^(t/64)   RSC/year, halving every 64 years
 ```
 
-**No lockups. No staking action required.** RSC held in a ResearchHub account automatically earns yield proportional to your share of total held RSC.
+---
 
-**Yield formula:**
-```
-Weekly yield = (your RSC / total RSC in RH) × weekly_emission × time_weight_multiplier
-Annual emission: E(t) = 9,500,000 / 2^(t/64)   [halves every 64 years]
-```
+## What's grounded in RH docs vs. modeled
 
-**Primary design question:** What participation rate (% of circulating RSC held in RH) does the market equilibrate to?
+| Element | Source |
+|---------|--------|
+| 15% / 30% / 70% scenarios + APY values | RH Product Doc (verbatim) |
+| Circulating supply by year (134.2M at Year 0…) | RH Yield Model CSV |
+| Emission formula E(t) = 9.5M / 2^(t/64) | RH Product Doc |
+| Time-weight multipliers (1.0× / 1.15× / 1.2×) | RH Product Doc |
+| Self-balancing mechanic description | RH Product Doc |
+| Holder archetypes — Institution, Yield Seeker | Closely derived from product doc use cases |
+| Holder archetypes — Believer, Speculator | Inferred from mechanism descriptions |
+| Behavioral parameters (exit thresholds, hold horizons) | Calibrated modeling assumptions |
 
-**Key features:**
-- Self-balancing yield: more RSC → lower APY → yield seekers exit → APY recovers → new entrants join
-- 4 behavioral archetypes (Believers, Yield Seekers, Institutions, Speculators)
-- Time-weight multipliers (1.0x → 1.15x → 1.2x) reward continuous holding
-- Decaying emission schedule matched to RH's actual plan (9.5M RSC/yr, year 0)
-- Participation rate as the primary emergent output — not a fixed input
-- New entrant spawning: yield seekers re-enter when APY rises above their threshold
-- B=f(P,E) behavioral model: Person attributes × Environment = Behavior
-- Scenario save/compare for exploring equilibrium under different archetype mixes
+Reference docs live in `docs/rh-reference/` — the product doc, community doc, and yield model CSV.
 
-**Reference docs**: `docs/rh-reference/` — 5 files from RH's product doc, community doc, and yield model CSV
+---
 
 ## Quick Start
 
-The fastest way to explore is the **[live demo](https://rsc-endowment-abm-production.up.railway.app)**.
+The fastest path is the **[live demo](https://rsc-endowment-abm-production.up.railway.app)**.
 
 To run locally:
 
@@ -50,183 +73,95 @@ python server.py
 # Open http://localhost:5000
 ```
 
-## Interactive Dashboard
+---
 
-**Sidebar Controls**
+## Dashboard layout
 
-| Section | Contents |
-|---------|----------|
-| Parameters | Yield Threshold, Deploy Rate, Proposal Success, Holders |
-| Archetype Mix | Linked sliders (sum to 100%) with behavioral descriptions |
-| Time-Weight Multipliers | Distribution bar (New/Holder/LongTerm) |
-| Advanced | Burn Rate, Credit Expiry, Failure Mode |
-| Scenarios | Save/Compare parameter runs side-by-side |
-| How It Works | Mechanism explanation, self-balancing description |
+The v3 dashboard is designed for accessibility first — a CFO and a grad student should both find it immediately usable.
 
-**Main Area (5 tabs)**
-- **Agent Field**: Grid visualization. Color = archetype, opacity = holding duration (LongTerm holders glow at full opacity). Hover for tooltip.
-- **Yield Dynamics**: APY over time with 15%/30%/70% reference lines from RH's CSV model. Participation rate trajectory.
-- **Time Series**: RSC held, credits, burned over time
-- **Proposals & Funding**: Proposal status and funding progress
-- **Agent Inspector**: Individual holder deep-dive (Top Holders, Deployers, By Archetype, Exited)
+**Top:** Framing strip — plain-English explanation of the mechanism, endowment definition, self-balancing math. Collapsed "Sources & grounding" section links every number back to its RH doc.
 
-**Pinned KPIs**: Participation Rate, Current APY, Exited (always visible)
+**Calculator hero:** Dollar input + three scenario cards (from RH product doc) + Run button.
 
-## Self-Balancing Mechanic
+**Sim controls:** Step (1 wk) · 10 Weeks · 1 Year · Run to Equilibrium · Reset
 
-The core equilibrium dynamic:
+**"What Happened" panel:** Appears after running. Plain-English narrative of what the market did — participation rate, which archetypes dominated, proposals resolved.
 
-1. High APY → Yield Seekers join → total RSC increases → APY falls
-2. Low APY → Yield Seekers exit (below their `yield_threshold`) → total RSC decreases → APY rises
-3. Believers and Institutions stay throughout (mission-driven, high hold_horizon)
+**Charts (always visible):**
+- Participation Rate over time (primary — the market finding its level)
+- Annual Yield (APY) over time (with RH reference lines from CSV)
+
+**Right column:** Endowment projection — Year 1 credits, 10-year cumulative, Year 10 APY — live-updating as you change the dollar amount or run the sim.
+
+**Agent grid:** Every dot is one RSC holder. Color = archetype. Opacity = hold duration (dim = new, bright = long-term 1.2×). Glow = actively deploying credits. Hover for individual stats.
+
+**Accordions (collapsed by default):** Adjust the Scenario · Advanced Parameters · Data Tables · Detailed Time Series
+
+---
+
+## Holder archetypes
+
+Four types derived from the RH product doc's described holder behaviors:
+
+| Archetype | Grounding | Behavior |
+|-----------|-----------|----------|
+| **Institution** | Primary use case in product doc ("$1M of grants") | Large RSC, very long-term, near-zero yield sensitivity. Anchors participation. |
+| **Yield Seeker** | Self-balancing section: "high yields attract more holders... low yields cause withdrawals" | Enters when APY is attractive, exits when it falls. The self-regulating force. |
+| **Believer** | "These credits can only fund research — the more RSC you hold, the more science you fund" | Mission-driven. Holds through low yields. Deploys credits reliably. |
+| **Speculator** | Inferred from CRV benchmark + DeFi "death spiral" passage | Short-term. Amplifies participation swings. Exits quickly on APY decline. |
+
+---
+
+## Self-balancing mechanic
+
+1. High APY → Yield Seekers join → total RSC held increases → APY falls
+2. Low APY → Yield Seekers exit → total RSC decreases → APY rises
+3. Believers and Institutions hold throughout (mission-driven, long horizon)
 4. Equilibrium emerges when exits ≈ entrants
 
-The `yield_threshold_mean` slider controls the average APY below which agents exit — this is the primary lever for the equilibrium participation rate.
+The participation chart is the primary output — the simulation's job is to find where that line settles.
 
-## Behavioral Model
+---
 
-### B = f(P, E)
+## Reference scenarios (from RH Yield Model CSV)
 
-Each holder has **Person attributes** that interact with **Environment conditions** to produce behavior:
+| Participation | RSC held in RH | Year 1 APY | Year 10 APY | RH label |
+|---|---|---|---|---|
+| 15% | ~20.1M RSC | ~47.2% | ~26.6% | Low participation |
+| 30% | ~40.2M RSC | ~23.6% | ~13.3% | Anticipated average |
+| 70% | ~93.9M RSC | ~10.1% | ~5.7% | High participation |
 
-**Person attributes** (continuous 0-1 scales):
-- `mission_alignment` - cares about funding research vs. earning yield
-- `engagement` - how actively they deploy credits to proposals
-- `price_sensitivity` - reactivity to APY changes (drives exit decisions)
-- `hold_horizon` - tendency toward long-term holding (dampens exits)
+---
 
-**Environment**:
-- `current_apy` - annual yield at current participation rate
-- `yield_threshold` - personal minimum APY to stay (agent-specific)
-
-### Archetypes
-
-| Archetype | Behavior | Default Mix | Hold Horizon |
-|-----------|----------|-------------|--------------|
-| Believer | Mission-driven. Holds long-term, deploys credits reliably. | 25% | High |
-| Yield Seeker | Return-focused. Enters when APY is attractive, exits when it falls. | 30% | Medium |
-| Institution | Large RSC stake (universities, foundations). Very long-term. Reaches 1.2x multiplier. | 20% | Very high |
-| Speculator | Short-term. Deploys rarely, exits quickly on APY decline. | 25% | Low |
-
-### Time-Weight Multipliers
-
-Continuous holding duration determines the multiplier (no lockups — just time):
-
-| Tier | Duration | Multiplier |
-|------|----------|-----------|
-| New | < 4 weeks | 1.00x |
-| Holder | 4 weeks – 1 year | 1.15x |
-| LongTerm | > 1 year | 1.20x |
-
-Effective share = `(your RSC × your multiplier) / sum(all RSC × multipliers)`
-
-## Credit Flow
-
-1. **Earn**: Each week, earn credits = `weekly_emission × (effective_RSC / total_effective_RSC)`
-2. **Deploy**: Behavioral decision to deploy credits to open proposals
-3. **Burn**: 2% of backing RSC burned on deployment
-4. **Resolve**: Funded proposals complete or fail (success_rate probability)
-
-## API Endpoints
+## API
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/init` | POST | Initialize model with parameters |
-| `/api/step` | POST | Advance simulation by 1 step (1 week) |
-| `/api/run` | POST | Run N steps `{"steps": 52}` |
+| `/api/step` | POST | Advance 1 week |
+| `/api/run` | POST | Run N weeks `{"steps": 52}` |
 | `/api/state` | GET | Current model state |
-| `/api/metrics` | GET | Computed metrics |
-| `/api/holders` | GET | List all holders |
-| `/api/proposals` | GET | List all proposals |
+| `/api/holders` | GET | All holders |
+| `/api/proposals` | GET | All proposals |
 | `/api/history` | GET | Time series data |
-| `/api/multipliers` | GET | Time-weight multiplier tiers |
-| `/api/participation` | GET | Participation rate + reference scenarios (15%/30%/70%) |
+| `/api/participation` | GET | Participation rate + reference scenarios |
 
-### Example Usage
+---
 
-```bash
-# Initialize: 100 holders, yield threshold 8%, starting at 30% participation
-curl -X POST http://localhost:5000/api/init \
-  -H "Content-Type: application/json" \
-  -d '{"num_holders": 100, "yield_threshold_mean": 0.08, "initial_participation_rate": 0.30}'
-
-# Run 1 year
-curl -X POST http://localhost:5000/api/run \
-  -H "Content-Type: application/json" \
-  -d '{"steps": 52}'
-
-# Check equilibrium
-curl http://localhost:5000/api/participation
-```
-
-## Project Structure
+## Project structure
 
 ```
 rsc-endowment-abm/
 ├── src/
-│   ├── __init__.py
-│   ├── model.py        # EndowmentModel (emissions engine, participation tracking)
-│   ├── agents.py       # EndowmentHolder (passive yield, exit dynamics), EndowmentProposal
+│   ├── model.py        # EndowmentModel — emissions engine, participation tracking
+│   ├── agents.py       # EndowmentHolder (yield, exit dynamics), EndowmentProposal
 │   └── constants.py    # TIME_WEIGHT_MULTIPLIERS, EMISSION_PARAMS, ARCHETYPES
 ├── templates/
-│   └── index.html      # Single-page dashboard (HTML/CSS/JS)
+│   └── index.html      # Single-page dashboard (HTML/CSS/JS, no build step)
 ├── docs/
-│   └── rh-reference/   # RH product doc, community doc, yield CSV (5 files)
+│   └── rh-reference/   # RH product doc, community doc, yield model CSV
 ├── server.py           # Flask REST API
-├── requirements.txt
-├── ARCHITECTURE.md     # System architecture with Mermaid diagrams
-└── README.md
+└── requirements.txt
 ```
 
-## Architecture
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed diagrams.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Flask Server (server.py)                  │
-│  /api/init  /api/step  /api/run  /api/participation  ...   │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   EndowmentModel (Mesa ABM)                  │
-│  ┌─────────────────┐  ┌──────────────────┐  ┌────────────┐ │
-│  │EndowmentHolder   │  │EndowmentProposal │  │DataCollector│ │
-│  │ - archetype      │  │ - funding_target │  │ - history  │ │
-│  │ - rsc_held       │─▶│ - credits_recv   │  │ - metrics  │ │
-│  │ - weeks_held     │  │ - backers        │  └────────────┘ │
-│  │ - yield_threshold│  │ - status         │                  │
-│  │ - _consider_exit │  └──────────────────┘                  │
-│  └─────────────────┘                                         │
-│                                                              │
-│  weekly_emission() → E(t) = 9.5M / 2^(t/64)               │
-│  participation_rate → total_rsc_held / circulating_supply   │
-│  current_apy() → annual_emission / total_rsc_held           │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Interactive Dashboard (index.html)              │
-│  Sidebar                    Main Area                       │
-│  ┌──────────────┐  ┌─────────────────────────────────────┐  │
-│  │ Parameters   │  │ Agent Field │ Yield Dynamics │ ...  │  │
-│  │ Archetypes   │  │ ┌─────────────────────────────────┐ │  │
-│  │ Multipliers  │  │ │  Grid: color=arch, opacity=dur  │ │  │
-│  │ Advanced     │  │ │  + archetype behavior cards      │ │  │
-│  │ Scenarios    │  │ └─────────────────────────────────┘ │  │
-│  └──────────────┘  └─────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Reference Scenarios (from RH Yield Model CSV)
-
-At different participation rates (% of 134M circulating RSC):
-
-| Participation | RSC Held | Year 0 APY | Year 5 APY | Year 10 APY |
-|---|---|---|---|---|
-| 15% | ~20.1M RSC | ~47.3% | ~33.5% | ~23.7% |
-| 30% | ~40.2M RSC | ~23.6% | ~16.7% | ~11.8% |
-| 70% | ~93.9M RSC | ~10.1% | ~7.2% | ~5.1% |
-
-See `/api/participation` for these reference lines, and the Yield Dynamics tab to compare your simulation against them.
+Built with Python, [Mesa](https://mesa.readthedocs.io/) (ABM framework), Flask, and Chart.js.
