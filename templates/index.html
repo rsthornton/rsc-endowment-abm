@@ -892,10 +892,10 @@
 
         <!-- Controls -->
         <div class="controls">
-            <button class="primary" onclick="step()">Step</button>
-            <button onclick="run(10)">Run 10</button>
-            <button onclick="run(52)">Run 1 Year</button>
-            <button onclick="runToEquilibrium()" title="Run 4 years — enough for self-balancing to stabilize">Run to Equil.</button>
+            <button class="primary" onclick="runToEquilibrium()" style="flex:1 1 100%" title="Run 4 years — self-balancing stabilizes around week 100-150">&#9654; Run to Equilibrium</button>
+            <button onclick="run(52)">1 Year</button>
+            <button onclick="run(10)">10 Wk</button>
+            <button onclick="step()">Step</button>
             <button onclick="resetWithParams()">Reset</button>
         </div>
 
@@ -914,6 +914,15 @@
             </div>
             <div class="sidebar-section-body">
                 <div class="param-sliders">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Initial Participation</span>
+                            <span class="slider-value" id="val-participation">30%</span>
+                        </div>
+                        <input type="range" id="slider-participation" min="5" max="80" value="30" step="5"
+                            oninput="document.getElementById('val-participation').textContent=this.value+'%'">
+                        <div class="slider-hint">% of circulating RSC (134.2M) held in RH at start. 15% → high yield; 70% → diluted yield. Market self-corrects from here.</div>
+                    </div>
                     <div class="slider-group">
                         <div class="slider-header">
                             <span class="slider-label">Yield Threshold</span>
@@ -1168,58 +1177,31 @@
             </div>
         </div>
 
-        <!-- Tab Bar -->
+        <!-- Live Interpretation (shown after sim runs) -->
+        <div id="rh-design-reading" style="display:none;padding:8px 16px;font-size:11.5px;line-height:1.6;border-bottom:1px solid var(--border);border-left:3px solid var(--accent);background:var(--bg-alt)"></div>
+
+        <!-- Tab Bar (3 tabs) -->
         <div class="tab-bar">
-            <button class="tab-btn active" data-tab="agent-field">Agent Field</button>
-            <button class="tab-btn" data-tab="yield-dynamics">Yield Dynamics</button>
-            <button class="tab-btn" data-tab="time-series">Time Series</button>
-            <button class="tab-btn" data-tab="proposals-funding">Proposals & Funding</button>
-            <button class="tab-btn" data-tab="agent-inspector">Agent Inspector</button>
+            <button class="tab-btn active" data-tab="yield-dynamics">Yield Dynamics</button>
+            <button class="tab-btn" data-tab="holder-activity">Holder Activity</button>
+            <button class="tab-btn" data-tab="details">Details</button>
         </div>
 
         <!-- Tab Content -->
         <div class="tab-content">
-            <!-- TAB: Agent Field -->
-            <div class="tab-pane active" id="tab-agent-field">
-                <div class="sim-canvas-wrap">
-                    <div id="agent-grid" class="agent-grid"></div>
-                    <div class="canvas-tooltip" id="canvas-tooltip"></div>
-                    <div class="canvas-legend">
-                        <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Believer</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Yield Seeker</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Institution</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Speculator</div>
-                        <div class="legend-divider"></div>
-                        <span class="legend-encoding">Opacity=Hold Duration</span>
-                        <span class="legend-encoding">Glow=Credit Pressure</span>
-                    </div>
-                </div>
-                <!-- Archetype Behavior (moved from Time Series) -->
-                <div class="card">
-                    <div class="card-header">Archetype Behavior</div>
-                    <div class="arch-metrics-grid" id="arch-metrics"></div>
-                </div>
-                <!-- Post-run summary -->
-                <div id="post-run-summary" style="display:none"></div>
-            </div>
+            <!-- TAB: Yield Dynamics (default) -->
+            <div class="tab-pane active" id="tab-yield-dynamics">
 
-            <!-- TAB: Yield Dynamics -->
-            <div class="tab-pane" id="tab-yield-dynamics">
-
-                <!-- RH Leadership Context Card -->
+                <!-- CSV Calibration context -->
                 <div class="card" style="margin-bottom:12px;border-left:3px solid var(--accent)">
                     <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
                         <span>Grounded in RH's Yield Model CSV</span>
                         <span style="font-size:10px;color:var(--success);font-weight:600">&#10003; Calibrated</span>
                     </div>
                     <div style="font-size:12px;line-height:1.7;color:var(--text-muted);padding:4px 0 2px">
-                        Agent RSC holdings are scaled so the population collectively holds
-                        <strong style="color:var(--text)">initial_participation_rate × 134.2M circulating RSC</strong>
-                        (e.g. 30% → ~40.2M RSC). Emission formula <strong style="color:var(--text)">E(t) = 9.5M / 2^(t/64)</strong>
-                        and APY outputs match the CSV exactly. Dashed reference lines below are read directly from RH's spreadsheet.
-                    </div>
-                    <div id="rh-design-reading" style="margin-top:8px;font-size:12px;line-height:1.6;padding:8px;background:var(--bg-panel);border-radius:4px;display:none">
-                        <!-- Populated by updateRHReading() after simulation runs -->
+                        Agent RSC scaled to <strong style="color:var(--text)">Initial Participation × 134.2M circulating RSC</strong>.
+                        Emission formula <strong style="color:var(--text)">E(t) = 9.5M / 2^(t/64)</strong> and APY match RH's CSV exactly.
+                        Dashed reference lines are the three CSV scenarios.
                     </div>
                 </div>
 
@@ -1230,8 +1212,8 @@
                             <canvas id="apy-chart"></canvas>
                         </div>
                         <div class="slider-hint" style="padding:8px 0 0 0">
-                            Dashed lines: RH yield model CSV at 15% / 30% / 70% of 134.2M circulating RSC.
-                            Solid line = actual sim. <strong>Convergence toward a dashed line = equilibrium participation rate.</strong>
+                            Dashed lines: RH CSV at 15% / 30% / 70% of 134.2M RSC.
+                            <strong>Convergence toward a dashed line = equilibrium participation rate.</strong>
                         </div>
                     </div>
                     <div class="card">
@@ -1240,7 +1222,7 @@
                             <canvas id="participation-chart"></canvas>
                         </div>
                         <div class="slider-hint" style="padding:8px 0 0 0">
-                            Watch this converge. The equilibrium rate is where exits (APY &lt; threshold) balance re-entries.
+                            Watch this converge. Equilibrium = where exits (APY &lt; threshold) balance re-entries.
                             Adjust <strong>Yield Threshold</strong> to shift where it stabilizes.
                         </div>
                     </div>
@@ -1261,8 +1243,41 @@
                 </div>
             </div>
 
-            <!-- TAB: Time Series -->
-            <div class="tab-pane" id="tab-time-series">
+            <!-- TAB: Holder Activity -->
+            <div class="tab-pane" id="tab-holder-activity">
+                <div class="sim-canvas-wrap">
+                    <div id="agent-grid" class="agent-grid"></div>
+                    <div class="canvas-tooltip" id="canvas-tooltip"></div>
+                    <div class="canvas-legend">
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Believer</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Yield Seeker</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Institution</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Speculator</div>
+                        <div class="legend-divider"></div>
+                        <span class="legend-encoding">Opacity=Hold Duration</span>
+                        <span class="legend-encoding">Glow=Credit Pressure</span>
+                    </div>
+                </div>
+                <div class="card" style="margin-top:12px">
+                    <div class="card-header">Archetype Behavior</div>
+                    <div class="arch-metrics-grid" id="arch-metrics"></div>
+                </div>
+                <div class="card" style="margin-top:12px">
+                    <div class="agent-tabs">
+                        <button class="agent-tab active" onclick="showAgentTab('top-stakers', this)">Top Holders</button>
+                        <button class="agent-tab" onclick="showAgentTab('recent-deployers', this)">Deployers</button>
+                        <button class="agent-tab" onclick="showAgentTab('by-archetype', this)">By Archetype</button>
+                        <button class="agent-tab" onclick="showAgentTab('churned', this)">Exited</button>
+                    </div>
+                    <div id="agent-content" class="agent-content" style="max-height:400px;overflow-y:auto;">
+                        <div class="agent-placeholder">Run the simulation to inspect holders.</div>
+                    </div>
+                </div>
+                <div id="post-run-summary" style="display:none"></div>
+            </div>
+
+            <!-- TAB: Details -->
+            <div class="tab-pane" id="tab-details">
                 <div class="card">
                     <div class="card-header">Time Series</div>
                     <div class="chart-view-switcher">
@@ -1274,11 +1289,7 @@
                         <canvas id="history-chart"></canvas>
                     </div>
                 </div>
-            </div>
-
-            <!-- TAB: Proposals & Funding -->
-            <div class="tab-pane" id="tab-proposals-funding">
-                <div class="two-col">
+                <div class="two-col" style="margin-top:12px">
                     <div class="card">
                         <div class="card-header">Proposals</div>
                         <div class="list" id="proposals-list"></div>
@@ -1286,21 +1297,6 @@
                     <div class="card">
                         <div class="card-header">Event Log</div>
                         <div class="list" id="events-list" style="max-height: 400px;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: Agent Inspector -->
-            <div class="tab-pane" id="tab-agent-inspector">
-                <div class="card">
-                    <div class="agent-tabs">
-                        <button class="agent-tab active" onclick="showAgentTab('top-stakers', this)">Top Holders</button>
-                        <button class="agent-tab" onclick="showAgentTab('recent-deployers', this)">Deployers</button>
-                        <button class="agent-tab" onclick="showAgentTab('by-archetype', this)">By Archetype</button>
-                        <button class="agent-tab" onclick="showAgentTab('churned', this)">Exited</button>
-                    </div>
-                    <div id="agent-content" class="agent-content" style="max-height:600px;overflow-y:auto;">
-                        <div class="agent-placeholder">Loading agents...</div>
                     </div>
                 </div>
             </div>
@@ -1440,7 +1436,7 @@
                 cell.addEventListener('click', () => {
                     const s = cell._staker;
                     if (s) {
-                        switchTab('agent-inspector');
+                        switchTab('holder-activity');
                         highlightedAgentId = s.id;
                         showAgentTab('top-stakers', document.querySelector('.agent-tab'));
                     }
@@ -1504,11 +1500,10 @@
             document.querySelector('[data-tab="' + tabId + '"]').classList.add('active');
             document.getElementById('tab-' + tabId).classList.add('active');
 
-            // Resize canvas/chart when switching to their tabs
-            if (tabId === 'agent-field') {
+            if (tabId === 'holder-activity') {
                 setTimeout(() => simCanvas.forceRedraw(), 50);
             }
-            if (tabId === 'time-series') {
+            if (tabId === 'details') {
                 setTimeout(() => { if (chart) chart.resize(); }, 50);
             }
             if (tabId === 'yield-dynamics') {
@@ -1617,6 +1612,7 @@
 
             const params = {
                 num_holders: parseInt(document.getElementById('slider-holders').value),
+                initial_participation_rate: parseInt(document.getElementById('slider-participation').value) / 100,
                 yield_threshold_mean: parseInt(document.getElementById('slider-threshold').value) / 100,
                 deploy_probability: parseInt(document.getElementById('slider-deploy').value) / 100,
                 success_rate: parseInt(document.getElementById('slider-success').value) / 100,
@@ -1635,6 +1631,8 @@
         }
 
         function resetSliders() {
+            document.getElementById('slider-participation').value = 30;
+            document.getElementById('val-participation').textContent = '30%';
             document.getElementById('slider-threshold').value = 8;
             document.getElementById('val-threshold').textContent = '8%';
             document.getElementById('slider-deploy').value = 30;
