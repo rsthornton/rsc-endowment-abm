@@ -66,10 +66,13 @@ class EndowmentHolder(Agent):
             self.engagement = engagement if engagement is not None else random.uniform(*arch["engagement"])
             self.price_sensitivity = price_sensitivity if price_sensitivity is not None else random.uniform(*arch["price_sensitivity"])
             self.hold_horizon = hold_horizon if hold_horizon is not None else random.uniform(*arch["hold_horizon"])
-            # RSC amount from archetype range
-            rsc_min, rsc_max = arch["rsc_range"]
+            # RSC amount: prefer caller-supplied (calibrated by model), else lognormal fallback
             if rsc_held is None:
-                rsc_held = random.randint(rsc_min, rsc_max)
+                weight = arch.get("rsc_weight", 1.0)
+                sigma = arch.get("rsc_variance", 0.5)
+                fallback_mean = 50_000 * weight   # uncalibrated fallback
+                mu = math.log(max(fallback_mean, 1)) - (sigma ** 2) / 2
+                rsc_held = max(int(random.lognormvariate(mu, sigma)), 100)
             # Yield threshold: mean +/- archetype offset +/- personal noise
             if yield_threshold is None:
                 offset = arch["yield_threshold_offset"]

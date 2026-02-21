@@ -99,7 +99,8 @@ ARCHETYPES = {
         "engagement": (0.6, 0.9),
         "price_sensitivity": (0.0, 0.2),   # Not yield-driven, stays through low yields
         "hold_horizon": (0.7, 1.0),         # Strong long-term tendency
-        "rsc_range": (5_000, 50_000),       # Moderate RSC holdings
+        "rsc_weight": 2.0,                  # 2× the per-holder base RSC (calibrated to circulating supply)
+        "rsc_variance": 0.5,                # lognormal σ — spread around archetype mean
         "yield_threshold_offset": -0.04,    # Tolerates 4% below mean threshold
     },
     "yield_seeker": {
@@ -109,7 +110,8 @@ ARCHETYPES = {
         "engagement": (0.2, 0.5),
         "price_sensitivity": (0.7, 1.0),   # Highly yield-sensitive — drives equilibrium
         "hold_horizon": (0.2, 0.5),
-        "rsc_range": (1_000, 20_000),
+        "rsc_weight": 0.7,                  # Smaller retail holders
+        "rsc_variance": 0.6,
         "yield_threshold_offset": 0.01,    # Exits slightly above mean threshold
     },
     "institution": {
@@ -119,7 +121,8 @@ ARCHETYPES = {
         "engagement": (0.4, 0.7),
         "price_sensitivity": (0.0, 0.15),  # Near-zero sensitivity — anchors participation
         "hold_horizon": (0.85, 1.0),        # Always long-term
-        "rsc_range": (100_000, 1_000_000), # Large institutional holdings
+        "rsc_weight": 8.0,                  # 8× base — institutional scale (universities, foundations)
+        "rsc_variance": 0.7,                # Wide spread (some orgs much larger than others)
         "yield_threshold_offset": -0.06,   # Very tolerant of low yields
     },
     "speculator": {
@@ -129,7 +132,8 @@ ARCHETYPES = {
         "engagement": (0.05, 0.2),
         "price_sensitivity": (0.85, 1.0),  # Extreme yield sensitivity
         "hold_horizon": (0.0, 0.2),         # Short-term — exits before reaching Holder tier
-        "rsc_range": (500, 15_000),
+        "rsc_weight": 0.4,                  # Small positions, in and out fast
+        "rsc_variance": 0.5,
         "yield_threshold_offset": 0.03,    # Exits well above mean threshold
     },
 }

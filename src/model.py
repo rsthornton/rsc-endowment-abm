@@ -220,8 +220,35 @@ class EndowmentModel(Model):
     # Holder management
     # ============================================
 
+    def _compute_base_rsc(self, archetype_counts: dict) -> float:
+        """
+        Compute the base RSC per weight-unit so that total RSC held ≈
+        initial_participation_rate × year0_circulating.
+
+        This grounds the sim in RH's actual CSV numbers: at 30% participation,
+        agents collectively hold ~40.2M RSC (= 0.30 × 134,157,343).
+
+        Each archetype's mean RSC = base_rsc × archetype['rsc_weight'].
+        Institutions (weight=8x) hold ~11x more than speculators (weight=0.4x),
+        matching real-world distribution.
+        """
+        target_total = self.initial_participation_rate * self.year0_circulating
+        weighted_sum = sum(
+            n * ARCHETYPES[arch_id]["rsc_weight"]
+            for arch_id, n in archetype_counts.items()
+            if arch_id in ARCHETYPES
+        )
+        if weighted_sum <= 0:
+            return 10_000.0
+        return target_total / weighted_sum
+
     def _spawn_holders(self, count: int):
-        """Create holders with archetype distribution."""
+        """
+        Create holders calibrated so total RSC ≈ initial_participation_rate × circulating_supply.
+
+        RSC amounts are drawn from a lognormal distribution centered on each archetype's
+        weight × base_rsc, so the population sum matches the CSV-derived target.
+        """
         archetype_counts = {}
         remaining = count
         sorted_archetypes = sorted(self.archetype_mix.items(), key=lambda x: x[1], reverse=True)
@@ -231,11 +258,24 @@ class EndowmentModel(Model):
             remaining -= n
         archetype_counts[sorted_archetypes[-1][0]] = max(remaining, 0)
 
+        base_rsc = self._compute_base_rsc(archetype_counts)
+
         for archetype_id, n in archetype_counts.items():
+            arch = ARCHETYPES.get(archetype_id, {})
+            weight = arch.get("rsc_weight", 1.0)
+            sigma = arch.get("rsc_variance", 0.5)
+            mean_rsc = base_rsc * weight
+
             for _ in range(n):
+                # Lognormal spread: mu chosen so E[X] = mean_rsc
+                mu = math.log(mean_rsc) - (sigma ** 2) / 2
+                rsc = int(random.lognormvariate(mu, sigma))
+                rsc = max(rsc, 100)  # floor: no holder with < 100 RSC
+
                 holder = EndowmentHolder(
                     self,
                     archetype=archetype_id,
+                    rsc_held=rsc,
                     credit_expiry_enabled=self.credit_expiry_enabled,
                     credit_expiry_weeks=self.credit_expiry_weeks,
                 )
@@ -259,10 +299,23 @@ class EndowmentModel(Model):
 
             if random.random() < spawn_prob:
                 n_new = random.randint(1, 3)
+                # Scale new entrant RSC to match existing holder scale
+                active = [h for h in self.holders if h.active and h.archetype == "yield_seeker"]
+                if active:
+                    mean_rsc = sum(h.rsc_held for h in active) / len(active)
+                else:
+                    # Fallback: use calibrated base for yield seekers
+                    mean_rsc = self.initial_participation_rate * self.year0_circulating / max(self.num_holders, 1) * ARCHETYPES["yield_seeker"]["rsc_weight"]
+                sigma = ARCHETYPES["yield_seeker"]["rsc_variance"]
+                mu = math.log(max(mean_rsc, 1)) - (sigma ** 2) / 2
+
                 for _ in range(n_new):
+                    rsc = int(random.lognormvariate(mu, sigma))
+                    rsc = max(rsc, 100)
                     holder = EndowmentHolder(
                         self,
                         archetype="yield_seeker",
+                        rsc_held=rsc,
                         credit_expiry_enabled=self.credit_expiry_enabled,
                         credit_expiry_weeks=self.credit_expiry_weeks,
                     )

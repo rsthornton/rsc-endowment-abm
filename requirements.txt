@@ -1,5 +1,7 @@
 # Core ABM framework
-mesa>=2.1.0
+# Pinned to match local dev — mesa 3.x imports networkx at module load
+mesa==3.4.1
+networkx>=3.0.0
 
 # Web server
 flask>=3.0.0
@@ -7,6 +9,7 @@ flask>=3.0.0
 # Production server
 gunicorn>=21.0.0
 
-# Data handling
+# Data handling (mesa dependencies)
 pandas>=2.0.0
 numpy>=1.24.0
+scipy>=1.10.0
