@@ -293,28 +293,30 @@
         .endow-projection {
             background: var(--bg-card);
             border: 1px solid var(--border);
+            border-top: 3px solid var(--apy-line);
             border-radius: 10px;
-            padding: 20px;
+            padding: 22px 22px 18px;
             margin-bottom: 20px;
-            box-shadow: var(--shadow-card);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
         }
         .endow-projection-header {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
+            letter-spacing: 0.6px;
+            color: var(--apy-line);
+            margin-bottom: 14px;
         }
         .endow-mini-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
-        .endow-mini-item { padding: 10px 0; }
-        .endow-mini-value { font-family: 'SF Mono', 'Menlo', monospace; font-size: 20px; font-weight: 700; color: var(--text); }
-        .endow-mini-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-        .endow-mini-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+        .endow-mini-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .endow-mini-item:last-child { border-bottom: none; }
+        .endow-mini-value { font-family: 'SF Mono', 'Menlo', monospace; font-size: 24px; font-weight: 700; color: var(--text); }
+        .endow-mini-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .endow-mini-sub { font-size: 11px; color: var(--apy-line); margin-top: 2px; font-weight: 600; }
 
         /* ============================================================ ARCHETYPE COMPOSITION */
         .arch-composition {
@@ -909,14 +911,14 @@
         <div class="framing-strip">
             <strong>What is this?</strong> &nbsp;RSC is ResearchHub's native token. When you hold RSC in your RH account, you earn yield automatically — no lockups, no active management. That yield comes as <strong>funding credits</strong> you deploy to research proposals. Your principal (RSC) is never spent.
             <div class="framing-mechanism">
-                <span class="framing-step">Hold RSC</span>
+                <span class="framing-step">Hold RSC in your RH account</span>
                 <span class="framing-arrow">&#8594;</span>
                 <span class="framing-step">Earn funding credits (yield)</span>
                 <span class="framing-arrow">&#8594;</span>
                 <span class="framing-step">Deploy to research proposals</span>
             </div>
             <strong>Endowment, simply:</strong> you spend the interest, never the balance. Your RSC is permanent — it stays yours. The yield (funding credits) is what flows to research, year after year, indefinitely. One deposit → perpetual funding.
-            <br><br><strong>Why yields self-balance — the math:</strong> Your yield = your RSC ÷ total RSC held in RH × annual emissions. More people join → each person's share shrinks → yield falls. People leave → shares grow → yield rises. No one controls this. It's automatic. The three scenarios below show where RH expects the market to naturally settle.
+            <br><br><strong>Why yields self-balance — the math:</strong> Your yield = your RSC ÷ total RSC held in RH × annual emissions. More holders deposit RSC into RH → each person's share shrinks → yield falls. Some withdraw → shares grow → yield rises. No one controls this. It's automatic. The three scenarios below show where RH expects the market to naturally settle.
             <details class="framing-sources">
                 <summary>&#128196; Sources &amp; grounding — what in this simulator comes directly from RH docs</summary>
                 <div class="framing-sources-body">
@@ -972,7 +974,7 @@
             </div>
             <button class="run-btn" onclick="runToEquilibrium()">&#9654; Run the Simulation</button>
             <div id="how-it-works">
-                <div class="how-step">Hold RSC</div>
+                <div class="how-step">Hold RSC in RH</div>
                 <span class="how-arrow">&#8594;</span>
                 <div class="how-step">Earn Credits Automatically</div>
                 <span class="how-arrow">&#8594;</span>
