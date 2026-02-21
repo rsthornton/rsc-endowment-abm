@@ -155,7 +155,7 @@
             font-size: 10px;
             color: var(--text-muted);
         }
-        .step-badge span { color: var(--accent); font-weight: 600; }
+        .step-badge span { color: var(--text-muted); font-weight: 500; }
 
         /* Sidebar Sections */
         .sidebar-section {
@@ -164,11 +164,11 @@
             background: var(--bg-card);
         }
         .sidebar-section-header {
-            font-size: 10px;
+            font-size: 9px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            padding: 10px 12px;
+            letter-spacing: 1.2px;
+            color: var(--text-dim);
+            padding: 9px 12px;
             border-bottom: 1px solid var(--border);
             cursor: pointer;
             display: flex;
@@ -176,7 +176,7 @@
             align-items: center;
             user-select: none;
         }
-        .sidebar-section-header:hover { color: var(--text); }
+        .sidebar-section-header:hover { color: var(--text-muted); }
         .sidebar-section-header .toggle { font-size: 8px; color: var(--text-dim); }
         .sidebar-section-body { padding: 12px; }
         .sidebar-section-body.collapsed { display: none; }
@@ -199,7 +199,7 @@
             font-size: 11px;
         }
         .slider-label { color: var(--text-muted); }
-        .slider-value { color: var(--accent); font-weight: 600; font-family: monospace; }
+        .slider-value { color: var(--text-dim); font-weight: 500; font-family: monospace; }
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
@@ -420,12 +420,12 @@
             padding: 16px;
         }
         .card-header {
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
+            letter-spacing: 0.8px;
+            color: var(--text-dim);
+            margin-bottom: 14px;
+            padding-bottom: 10px;
             border-bottom: 1px solid var(--border);
         }
 
@@ -931,33 +931,6 @@
                             oninput="document.getElementById('val-threshold').textContent=this.value+'%'">
                         <div class="slider-hint">Average APY below which agents consider exiting. Higher = agents require better yield; lower participation equilibrium.</div>
                     </div>
-                    <div class="slider-group">
-                        <div class="slider-header">
-                            <span class="slider-label">Deploy Rate</span>
-                            <span class="slider-value" id="val-deploy">30%</span>
-                        </div>
-                        <input type="range" id="slider-deploy" min="0" max="100" value="30" step="5"
-                            oninput="document.getElementById('val-deploy').textContent=this.value+'%'">
-                        <div class="slider-hint">How actively holders fund proposals with their credits. Low = credits pile up. High = credits flow to research.</div>
-                    </div>
-                    <div class="slider-group">
-                        <div class="slider-header">
-                            <span class="slider-label">Proposal Success</span>
-                            <span class="slider-value" id="val-success">80%</span>
-                        </div>
-                        <input type="range" id="slider-success" min="20" max="100" value="80" step="5"
-                            oninput="document.getElementById('val-success').textContent=this.value+'%'">
-                        <div class="slider-hint">How often funded research delivers results. Affects credit deployment behavior.</div>
-                    </div>
-                    <div class="slider-group">
-                        <div class="slider-header">
-                            <span class="slider-label">Holders</span>
-                            <span class="slider-value" id="val-holders">100</span>
-                        </div>
-                        <input type="range" id="slider-holders" min="20" max="500" value="100" step="10"
-                            oninput="document.getElementById('val-holders').textContent=this.value">
-                        <div class="slider-hint">Initial number of RSC holders in the simulation.</div>
-                    </div>
                 </div>
                 <div class="btn-row">
                     <button class="primary" onclick="resetWithParams()">Apply & Reset</button>
@@ -982,7 +955,7 @@
                 <div class="param-sliders">
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label" style="color:var(--success)">Believers</span>
+                            <span class="slider-label">Believers</span>
                             <span class="slider-value" id="val-believer">25%</span>
                         </div>
                         <input type="range" id="slider-believer" min="5" max="85" value="25" step="5"
@@ -991,7 +964,7 @@
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label" style="color:var(--accent)">Return-Sensitive Holders</span>
+                            <span class="slider-label">Return-Sensitive Holders</span>
                             <span class="slider-value" id="val-yield_seeker">35%</span>
                         </div>
                         <input type="range" id="slider-yield_seeker" min="5" max="85" value="35" step="5"
@@ -1000,7 +973,7 @@
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label" style="color:var(--purple)">Institutions</span>
+                            <span class="slider-label">Institutions</span>
                             <span class="slider-value" id="val-institution">15%</span>
                         </div>
                         <input type="range" id="slider-institution" min="5" max="85" value="15" step="5"
@@ -1009,7 +982,7 @@
                     </div>
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span class="slider-label" style="color:var(--danger)">Speculators</span>
+                            <span class="slider-label">Speculators</span>
                             <span class="slider-value" id="val-speculator">25%</span>
                         </div>
                         <input type="range" id="slider-speculator" min="5" max="85" value="25" step="5"
@@ -1026,14 +999,43 @@
                 Advanced <span class="toggle">&#9654;</span>
             </div>
             <div class="sidebar-section-body collapsed">
-                <div class="slider-group" style="margin-bottom:12px">
-                    <div class="slider-header">
-                        <span class="slider-label">Burn Rate</span>
-                        <span class="slider-value" id="val-burn">2%</span>
+                <div class="param-sliders" style="margin-bottom:12px">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Deploy Rate</span>
+                            <span class="slider-value" id="val-deploy">30%</span>
+                        </div>
+                        <input type="range" id="slider-deploy" min="0" max="100" value="30" step="5"
+                            oninput="document.getElementById('val-deploy').textContent=this.value+'%'">
+                        <div class="slider-hint">How actively holders fund proposals with their credits.</div>
                     </div>
-                    <input type="range" id="slider-burn" min="0.5" max="10" value="2" step="0.5"
-                        oninput="document.getElementById('val-burn').textContent=this.value+'%'">
-                    <div class="slider-hint">Fee burned when credits are deployed to proposals. Higher burn = more RSC removed from supply.</div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Proposal Success</span>
+                            <span class="slider-value" id="val-success">80%</span>
+                        </div>
+                        <input type="range" id="slider-success" min="20" max="100" value="80" step="5"
+                            oninput="document.getElementById('val-success').textContent=this.value+'%'">
+                        <div class="slider-hint">How often funded research delivers results.</div>
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Holders</span>
+                            <span class="slider-value" id="val-holders">100</span>
+                        </div>
+                        <input type="range" id="slider-holders" min="20" max="500" value="100" step="10"
+                            oninput="document.getElementById('val-holders').textContent=this.value">
+                        <div class="slider-hint">Initial number of RSC holders in the simulation.</div>
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Burn Rate</span>
+                            <span class="slider-value" id="val-burn">2%</span>
+                        </div>
+                        <input type="range" id="slider-burn" min="0.5" max="10" value="2" step="0.5"
+                            oninput="document.getElementById('val-burn').textContent=this.value+'%'">
+                        <div class="slider-hint">Fee burned when credits are deployed to proposals.</div>
+                    </div>
                 </div>
                 <div class="design-toggle-row">
                     <label><input type="checkbox" id="chk-credit-expiry" onchange="updateDesignLabState()"> Credit Expiry</label>
@@ -1104,20 +1106,20 @@
         <!-- Pinned Metrics Bar (4 KPIs) -->
         <div class="metrics-bar">
             <div class="metric" data-tooltip="% of circulating RSC currently held in RH. The key equilibrium metric.">
-                <div class="metric-value" id="participation-rate" style="font-size:22px;color:var(--accent)">0%</div>
+                <div class="metric-value" id="participation-rate" style="font-size:24px;color:var(--accent)">0%</div>
                 <div class="metric-label">Participation Rate</div>
             </div>
             <div class="metric" data-tooltip="Current annualized yield rate (base 1.0x). Higher multipliers earn more.">
-                <div class="metric-value" id="current-apy" style="font-size:22px;color:var(--success)">0%</div>
+                <div class="metric-value" id="current-apy" style="font-size:24px;color:var(--success)">0%</div>
                 <div class="metric-label">Current APY</div>
             </div>
-            <div class="metric" data-tooltip="Holders who exited when APY fell below their yield threshold. Zero exits is a good signal.">
-                <div class="metric-value" id="exited-count" style="font-size:22px;color:var(--text-muted)">0</div>
-                <div class="metric-label">Holders Exited</div>
+            <div class="metric" style="flex:0.6" data-tooltip="Holders who exited when APY fell below their yield threshold. Zero exits is a good signal.">
+                <div class="metric-value" id="exited-count" style="font-size:15px;color:var(--text-dim)">0</div>
+                <div class="metric-label" style="color:var(--text-dim)">Exited</div>
             </div>
-            <div class="metric" data-tooltip="Which of RH's three CSV reference scenarios current participation is closest to.">
-                <div class="metric-value" id="csv-scenario" style="font-size:14px;color:var(--success)">—</div>
-                <div class="metric-label">CSV Scenario</div>
+            <div class="metric" style="flex:0.8" data-tooltip="Which of RH's three CSV reference scenarios current participation is closest to.">
+                <div class="metric-value" id="csv-scenario" style="font-size:12px;color:var(--text-dim)">—</div>
+                <div class="metric-label" style="color:var(--text-dim)">CSV Scenario</div>
             </div>
         </div>
 
@@ -1154,18 +1156,18 @@
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">
                         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px">
-                            <div id="endow-yr1" style="font-size:20px;font-weight:600;color:var(--success)">—</div>
+                            <div id="endow-yr1" style="font-size:20px;font-weight:600;color:var(--text)">—</div>
                             <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Year 1 funding credits</div>
                             <div id="endow-apy-label" style="font-size:9px;color:var(--text-dim);margin-top:2px">at —% APY</div>
                         </div>
                         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px">
-                            <div id="endow-yr10" style="font-size:20px;font-weight:600;color:var(--accent)">—</div>
+                            <div id="endow-yr10" style="font-size:20px;font-weight:600;color:var(--text)">—</div>
                             <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Cumulative over 10 years</div>
                             <div id="endow-yr10-apy" style="font-size:9px;color:var(--text-dim);margin-top:2px">Year 10 APY: —%</div>
                         </div>
-                        <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:6px;padding:10px">
+                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px">
                             <div id="endow-principal" style="font-size:20px;font-weight:600;color:var(--text)">$1,000,000</div>
-                            <div style="font-size:10px;color:var(--success);margin-top:3px">Principal retained</div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Principal retained</div>
                             <div style="font-size:9px;color:var(--text-dim);margin-top:2px">RSC not spent or locked</div>
                         </div>
                     </div>
@@ -1174,15 +1176,9 @@
                     </div>
                 </div>
 
-                <!-- CSV Calibration context -->
-                <div class="card" style="margin-bottom:12px;border-left:3px solid var(--accent)">
-                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-                        <span>Grounded in RH's Yield Model CSV</span>
-                        <span style="font-size:10px;color:var(--success);font-weight:600">&#10003; Calibrated</span>
-                    </div>
-                    <div style="font-size:12px;line-height:1.7;color:var(--text-muted);padding:4px 0 2px">
-                        &#10003; Calibrated to ResearchHub's published yield model (February 2026). Participation rates and APY match RH's own projections. Dashed lines = three CSV reference scenarios.
-                    </div>
+                <!-- CSV Calibration context — footnote level -->
+                <div style="font-size:9px;color:var(--text-dim);padding:0 2px 10px;letter-spacing:0.3px">
+                    &#10003; Calibrated to RH yield model CSV (Feb 2026) &mdash; dashed chart lines = 15% / 30% / 70% reference scenarios
                 </div>
 
                 <div class="two-col">
