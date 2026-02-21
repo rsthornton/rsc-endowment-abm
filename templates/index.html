@@ -1139,17 +1139,6 @@
             <!-- TAB: Yield Dynamics (default) -->
             <div class="tab-pane active" id="tab-yield-dynamics">
 
-                <!-- CSV Calibration context -->
-                <div class="card" style="margin-bottom:12px;border-left:3px solid var(--accent)">
-                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-                        <span>Grounded in RH's Yield Model CSV</span>
-                        <span style="font-size:10px;color:var(--success);font-weight:600">&#10003; Calibrated</span>
-                    </div>
-                    <div style="font-size:12px;line-height:1.7;color:var(--text-muted);padding:4px 0 2px">
-                        &#10003; Calibrated to ResearchHub's published yield model (February 2026). Participation rates and APY match RH's own projections. Dashed lines = three CSV reference scenarios.
-                    </div>
-                </div>
-
                 <!-- Endowment Projection -->
                 <div class="card" style="margin-bottom:12px;border-left:3px solid var(--success)">
                     <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
@@ -1182,6 +1171,17 @@
                     </div>
                     <div style="font-size:10px;color:var(--text-dim);margin-top:8px;line-height:1.5">
                         Credits fund research only — non-transferable, no DeFi complexity. Donations may qualify for tax deduction.
+                    </div>
+                </div>
+
+                <!-- CSV Calibration context -->
+                <div class="card" style="margin-bottom:12px;border-left:3px solid var(--accent)">
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+                        <span>Grounded in RH's Yield Model CSV</span>
+                        <span style="font-size:10px;color:var(--success);font-weight:600">&#10003; Calibrated</span>
+                    </div>
+                    <div style="font-size:12px;line-height:1.7;color:var(--text-muted);padding:4px 0 2px">
+                        &#10003; Calibrated to ResearchHub's published yield model (February 2026). Participation rates and APY match RH's own projections. Dashed lines = three CSV reference scenarios.
                     </div>
                 </div>
 
@@ -1611,7 +1611,7 @@
             return params;
         }
 
-        function resetSliders() {
+        async function resetSliders() {
             document.getElementById('slider-participation').value = 30;
             document.getElementById('val-participation').textContent = '30%';
             document.getElementById('slider-threshold').value = 8;
@@ -1633,6 +1633,7 @@
             document.getElementById('slider-speculator').value = 25;
             document.getElementById('val-speculator').textContent = '25%';
             updateArchBar();
+            await resetWithParams();
         }
 
         // Design Lab state
@@ -1700,15 +1701,10 @@
                 }
             }
 
-            // Multiplier distribution bar (sidebar)
+            // Multiplier distribution — handled in Yield Dynamics tab (multiplier-detail-bar)
             const mulDist = model.multiplier_distribution || {};
             const mulTotal = Object.values(mulDist).reduce((a, b) => a + (b.count || 0), 0) || 1;
             const mulColors = { New: '#536471', Holder: '#4a9eff', LongTerm: '#c9a227' };
-            document.getElementById('multiplier-bar').innerHTML =
-                ['New', 'Holder', 'LongTerm'].map(label => {
-                    const d = mulDist[label] || { count: 0 };
-                    return '<div class="tier-segment" style="width:' + (d.count / mulTotal * 100) + '%;background:' + mulColors[label] + '">' + d.count + '</div>';
-                }).join('');
 
             // Archetype bar (sidebar)
             const archDist = model.archetype_distribution || {};
@@ -2091,6 +2087,16 @@
                     },
                     options: {
                         ...common,
+                        plugins: {
+                            ...(common.plugins || {}),
+                            legend: {
+                                ...((common.plugins || {}).legend || {}),
+                                labels: {
+                                    ...(((common.plugins || {}).legend || {}).labels || {}),
+                                    filter: (item) => !item.text.startsWith('_')
+                                }
+                            }
+                        },
                         scales: {
                             x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } },
                             y: { ticks: { color: tickColor, font: { size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: gridColor }, title: { display: true, text: 'Participation %', color: tickColor } },
@@ -2142,10 +2148,12 @@
         }
 
         async function runToEquilibrium() {
+            // Always reset first so repeated presses don't stack (208 → 416 → ...).
             // 208 steps = 4 years — enough for self-balancing to stabilize.
             // Yield Seekers cycle through several entry/exit waves, Institutions
             // accumulate their 1.2x multiplier, and APY converges toward the
             // equilibrium implied by yield_threshold_mean.
+            await resetWithParams();
             await run(208);
         }
 
