@@ -884,6 +884,55 @@
 
         /* ============================================================ MISC */
         .footnote { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+
+        /* Death spiral callout */
+        .death-spiral-box {
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: rgba(120, 86, 255, 0.07);
+            border-left: 3px solid var(--purple);
+            border-radius: 0 6px 6px 0;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+        [data-theme="dark"] .death-spiral-box { background: rgba(120, 86, 255, 0.13); }
+
+        /* Endowment comparison table */
+        .endow-compare {
+            display: none;
+            margin: 14px 0 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 13px;
+        }
+        .endow-compare-header {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr;
+            background: var(--bg-section);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+        }
+        .endow-compare-header span, .endow-compare-row span { padding: 8px 12px; }
+        .endow-compare-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr;
+            border-bottom: 1px solid var(--border);
+        }
+        .endow-compare-row:last-child { border-bottom: none; }
+        .endow-compare-row span:first-child { color: var(--text-muted); }
+        .endow-compare-row .cash { color: var(--danger); font-family: 'SF Mono', 'Menlo', monospace; }
+        .endow-compare-row .rsc-good { color: var(--success); font-weight: 600; font-family: 'SF Mono', 'Menlo', monospace; }
+
+        /* Burn coverage stat */
+        .burn-coverage-good { color: var(--success); }
+        .burn-coverage-warn { color: var(--apy-line); }
+        .burn-coverage-bad { color: var(--danger); }
+        .stat-sublabel { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
         hr.section-divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
 
         /* Multiplier bar */
@@ -919,6 +968,9 @@
             </div>
             <strong>Endowment, simply:</strong> you spend the interest, never the balance. Your RSC is permanent — it stays yours. The yield (funding credits) is what flows to research, year after year, indefinitely. One deposit → perpetual funding.
             <br><br><strong>Why yields self-balance — the math:</strong> Your yield = your RSC ÷ total RSC held in RH × annual emissions. More holders deposit RSC into RH → each person's share shrinks → yield falls. Some withdraw → shares grow → yield rises. No one controls this. It's automatic. The three scenarios below show where RH expects the market to naturally settle.
+            <div class="death-spiral-box">
+                <strong>&#9889; The DeFi death spiral — and why this breaks it:</strong> High yield attracts capital → stakers receive liquid tokens → they sell immediately → token price crashes → yield collapses. Most DeFi protocols die this way. ResearchHub's move: yield arrives as <strong>non-transferable funding credits</strong>. Credits cannot be sold on an exchange — they can only be deployed to research proposals. Protocol inflation funds science instead of speculators. What would be sell pressure becomes research funding.
+            </div>
             <details class="framing-sources">
                 <summary>&#128196; Sources &amp; grounding — what in this simulator comes directly from RH docs</summary>
                 <div class="framing-sources-body">
@@ -1002,6 +1054,35 @@
         </div>
         <div class="principal-note" id="principal-note">
             Your $1M of RSC is never spent or locked. Funding credits fund science — non-transferable, no DeFi complexity.
+        </div>
+
+        <!-- Endowment comparison vs cash donation -->
+        <div class="endow-compare" id="endow-compare">
+            <div class="endow-compare-header">
+                <span>Scenario</span>
+                <span>Cash Donation</span>
+                <span>RSC Endowment</span>
+            </div>
+            <div class="endow-compare-row">
+                <span>Principal after gift</span>
+                <span class="cash">$0 (donated)</span>
+                <span class="rsc-good" id="compare-rsc-principal">—</span>
+            </div>
+            <div class="endow-compare-row">
+                <span>Year 1 science funding</span>
+                <span class="cash" id="compare-cash-yr1">—</span>
+                <span class="rsc-good" id="compare-rsc-yr1">—</span>
+            </div>
+            <div class="endow-compare-row">
+                <span>10-year science funding</span>
+                <span class="cash" id="compare-cash-yr10">—</span>
+                <span class="rsc-good" id="compare-rsc-yr10">—</span>
+            </div>
+            <div class="endow-compare-row">
+                <span>Principal at year 10</span>
+                <span class="cash">$0</span>
+                <span class="rsc-good" id="compare-rsc-principal-10">—</span>
+            </div>
         </div>
 
         <!-- ============================================================ WHAT HAPPENED (post-run interpretation) -->
@@ -1118,6 +1199,11 @@
             <div class="stat-pill">
                 <div class="stat-value">Wk <span id="step-count">0</span> / Yr <span id="year-display">0.0</span></div>
                 <div class="stat-label">Simulation Time</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-value"><span id="burn-coverage">—</span></div>
+                <div class="stat-label">Burn Coverage</div>
+                <div class="stat-sublabel" id="burn-coverage-sub">burns ÷ emissions</div>
             </div>
         </div>
 
@@ -1623,6 +1709,24 @@
 
             const exitedVal = model.exited_holders || model.churned_stakers || 0;
             updateMetric('exited-count', exitedVal);
+
+            // Burn coverage ratio
+            const burnCoverageEl = document.getElementById('burn-coverage');
+            const burnCoverageSubEl = document.getElementById('burn-coverage-sub');
+            if (burnCoverageEl) {
+                const totalEmitted = model.total_credits_generated || 0;
+                const totalBurned = model.total_burned || 0;
+                if (totalEmitted > 0) {
+                    const coveragePct = (totalBurned / totalEmitted * 100).toFixed(1);
+                    burnCoverageEl.textContent = coveragePct + '%';
+                    const n = parseFloat(coveragePct);
+                    burnCoverageEl.className = n >= 50 ? 'burn-coverage-good' : n >= 10 ? 'burn-coverage-warn' : 'burn-coverage-bad';
+                    if (burnCoverageSubEl) burnCoverageSubEl.textContent = Math.round(totalBurned).toLocaleString() + ' / ' + Math.round(totalEmitted).toLocaleString() + ' RSC';
+                } else {
+                    burnCoverageEl.textContent = '—';
+                    burnCoverageEl.className = '';
+                }
+            }
 
             const partNum = model.participation_rate || 0;
             const csvEl = document.getElementById('csv-scenario');
@@ -2325,6 +2429,25 @@
             if (yr10R) yr10R.textContent = formatDollars(proj.cumulative);
             if (aL) aL.textContent = 'at ' + (lastApy * 100).toFixed(1) + '% APY';
             if (y10A) y10A.textContent = 'Year 10 APY: ' + (proj.yr10Apy * 100).toFixed(1) + '%';
+
+            // Comparison table vs cash donation
+            if (yr1Credits > 0) {
+                const compare = document.getElementById('endow-compare');
+                if (compare) compare.style.display = 'block';
+                const fmtAmt = formatDollars(amount);
+                const p = document.getElementById('compare-rsc-principal');
+                const c1 = document.getElementById('compare-cash-yr1');
+                const r1 = document.getElementById('compare-rsc-yr1');
+                const c10 = document.getElementById('compare-cash-yr10');
+                const r10 = document.getElementById('compare-rsc-yr10');
+                const p10 = document.getElementById('compare-rsc-principal-10');
+                if (p) p.textContent = fmtAmt + ' ✓';
+                if (c1) c1.textContent = fmtAmt;
+                if (r1) r1.textContent = formatDollars(yr1Credits) + ' (credits)';
+                if (c10) c10.textContent = fmtAmt;
+                if (r10) r10.textContent = formatDollars(proj.cumulative) + ' (credits)';
+                if (p10) p10.textContent = fmtAmt + ' ✓';
+            }
         }
 
         // ============================================================
