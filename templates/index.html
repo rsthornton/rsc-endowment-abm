@@ -1145,6 +1145,11 @@
                         </div>
                     </div>
                     <div class="footnote" style="margin-top:10px">Principal: <strong id="endow-principal-r">$1,000,000</strong> — always retained. Credits may qualify for charitable deduction.</div>
+                    <div id="endow-sparkline-wrap" style="display:none; margin-top:16px">
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:5px;letter-spacing:0.3px">ANNUAL CREDITS — YEARS 1 – 10</div>
+                        <div style="position:relative;height:68px"><canvas id="endow-sparkline"></canvas></div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-top:5px">Gentle tapering as the 9.5M RSC/yr emission halves every 64 years. Principal never touched.</div>
+                    </div>
                 </div>
 
                 <!-- Hidden elements kept for JS compat -->
@@ -1513,6 +1518,7 @@
         };
         let apyChart = null;
         let participationChart = null;
+        let endowSparkChart = null;
         let highlightedAgentId = null;
         let savedScenarios = [];
         let initialSnapshot = null;
@@ -2437,12 +2443,75 @@
         let lastPartRate = 0.30;
         let lastApy = 0;
 
+        function drawEndowSparkline(yearlyCredits) {
+            const wrap = document.getElementById('endow-sparkline-wrap');
+            const canvas = document.getElementById('endow-sparkline');
+            if (!wrap || !canvas) return;
+            wrap.style.display = 'block';
+
+            if (endowSparkChart) { endowSparkChart.destroy(); endowSparkChart = null; }
+
+            const light = isLightMode();
+            const tickColor = light ? '#9CA3AF' : '#555';
+            const fmtD = v => v >= 1e6 ? '$' + (v / 1e6).toFixed(1) + 'M' : '$' + (v / 1e3).toFixed(0) + 'K';
+            const labels = yearlyCredits.map((_, i) => 'Y' + (i + 1));
+
+            // Bars fade gently from full gold (Y1) to 55% opacity (Y10)
+            const bgColors = yearlyCredits.map((_, i) => {
+                const opacity = 1 - (i / yearlyCredits.length) * 0.45;
+                return `rgba(201,162,39,${opacity.toFixed(2)})`;
+            });
+
+            endowSparkChart = new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: yearlyCredits,
+                        backgroundColor: bgColors,
+                        borderColor: 'transparent',
+                        borderRadius: 3,
+                        borderSkipped: false,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 400 },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: ctx => 'Year ' + ctx[0].dataIndex + 1,
+                                label: ctx => ' ' + fmtD(ctx.parsed.y) + ' in credits',
+                            },
+                        },
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 9 } } },
+                        y: { display: false },
+                    },
+                },
+            });
+        }
+
         function updateEndowmentCard() {
             const inputEl = document.getElementById('endow-input');
             const amount = parseFloat(inputEl ? inputEl.value : 1000000) || 1000000;
             const partRate = lastPartRate > 0.01 ? lastPartRate : 0.30;
             const yr1Credits = amount * lastApy;
             const proj = projectCumulativeCredits(partRate, amount);
+
+            // Per-year credits for sparkline (same formula as projectCumulativeCredits)
+            if (lastApy > 0) {
+                const yearlyCredits = [];
+                for (let y = 0; y < 10; y++) {
+                    const emission = 9500000 / Math.pow(2, y / 64);
+                    const circ = RH_CIRC_BY_YEAR[Math.min(y, RH_CIRC_BY_YEAR.length - 1)];
+                    yearlyCredits.push((emission / (circ * partRate)) * amount);
+                }
+                drawEndowSparkline(yearlyCredits);
+            }
 
             // Hero result cards
             const yr1El = document.getElementById('endow-yr1');
