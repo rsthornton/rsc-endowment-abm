@@ -1110,20 +1110,20 @@
             <!-- LEFT: Charts (participation first — it's the primary story) -->
             <div>
                 <div class="card">
-                    <div class="card-header">Participation Rate — How the Market Finds Its Level</div>
+                    <div class="card-header">Archetype Composition — Who's Holding RSC</div>
                     <div class="chart-container">
                         <canvas id="participation-chart"></canvas>
                         <div class="chart-placeholder" id="participation-placeholder">Run simulation to populate</div>
                     </div>
-                    <div class="footnote">% of circulating RSC held in RH. Too many holders &#8594; yield falls &#8594; some leave. Too few &#8594; yield rises &#8594; new ones join. <strong>Green band</strong> = healthy equilibrium zone. <strong>Dashed lines</strong> = RH reference scenarios.</div>
+                    <div class="footnote">Total RSC held, stacked by holder type. A healthy endowment has a thick <strong style="color:#10b981">Believer</strong> + <strong style="color:#7c3aed">Institution</strong> base — sticky holders who anchor the system when yield fluctuates. <strong style="color:#f59e0b">Yield Seekers</strong> self-regulate; <strong style="color:#ef4444">Speculators</strong> exit first.</div>
                 </div>
                 <div class="card">
-                    <div class="card-header">Annual Yield (APY) — What Holders Earn Per Year</div>
+                    <div class="card-header">Science Funding vs Protocol Cost — Is This Sustainable?</div>
                     <div class="chart-container">
                         <canvas id="apy-chart"></canvas>
                         <div class="chart-placeholder" id="apy-placeholder">Run simulation to populate</div>
                     </div>
-                    <div class="footnote"><strong>Gold line</strong> = your simulation. <strong>Dashed lines</strong> = RH reference at 15% participation (~47% APY), 30% (~24%), 70% (~10%). APY declines gradually as emissions halve every 64 years.</div>
+                    <div class="footnote"><strong style="color:#059669">Bars</strong> = RSC credits deployed to research each week. <strong style="color:#e05555">Red line</strong> = cumulative RSC emitted (protocol cost). <strong style="color:#1D4ED8">Blue dashed</strong> = cumulative RSC burned. The gap is RH's acknowledged sustainability challenge.</div>
                 </div>
             </div>
 
@@ -1509,6 +1509,7 @@
             rsc_believer: [], rsc_yield_seeker: [], rsc_institution: [], rsc_speculator: [],
             credits_generated_step: [], credits_deployed_step: [], exits_step: [], entries_step: [],
             apy_15pct: [], apy_30pct: [], apy_70pct: [],
+            cumulative_emissions_hist: [], total_burned_hist: [],
         };
         let apyChart = null;
         let participationChart = null;
@@ -2031,32 +2032,65 @@
             const light = isLightMode();
             const common = chartCommon(light);
             const tickColor = common._tickColor, gridColor = common._gridColor;
+            const fmtRsc = v => v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : v >= 1e3 ? (v / 1e3).toFixed(0) + 'K' : (v || 0).toFixed(0);
+
+            // ── Chart 1: Archetype Composition — stacked area ──────────────────
+            const partCtx = document.getElementById('participation-chart');
+            if (partCtx) {
+                if (participationChart) { participationChart.destroy(); participationChart = null; }
+                participationChart = new Chart(partCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: historyData.steps,
+                        datasets: [
+                            { label: 'Believers',     data: historyData.rsc_believer,     backgroundColor: 'rgba(16,185,129,0.6)',  borderColor: '#10b981', borderWidth: 1.5, fill: true, tension: 0.35, pointRadius: 0 },
+                            { label: 'Institutions',  data: historyData.rsc_institution,  backgroundColor: 'rgba(124,58,237,0.6)', borderColor: '#7c3aed', borderWidth: 1.5, fill: true, tension: 0.35, pointRadius: 0 },
+                            { label: 'Yield Seekers', data: historyData.rsc_yield_seeker, backgroundColor: 'rgba(245,158,11,0.55)', borderColor: '#f59e0b', borderWidth: 1.5, fill: true, tension: 0.35, pointRadius: 0 },
+                            { label: 'Speculators',   data: historyData.rsc_speculator,   backgroundColor: 'rgba(239,68,68,0.5)',  borderColor: '#ef4444', borderWidth: 1.5, fill: true, tension: 0.35, pointRadius: 0 },
+                        ],
+                    },
+                    options: {
+                        ...common,
+                        plugins: {
+                            ...common.plugins,
+                            legend: { ...common.plugins.legend, labels: { ...common.plugins.legend.labels, usePointStyle: true, pointStyleWidth: 10 } },
+                            tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmtRsc(ctx.parsed.y) + ' RSC' } },
+                        },
+                        scales: {
+                            x: { stacked: true, ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } },
+                            y: { stacked: true, ticks: { color: tickColor, font: { size: 10 }, callback: fmtRsc }, grid: { color: gridColor }, title: { display: true, text: 'RSC Held', color: tickColor, font: { size: 10 } } },
+                        },
+                    },
+                });
+            }
+
+            // ── Chart 2: Science Funding vs Protocol Cost — mixed bar + lines ──
             const apyCtx = document.getElementById('apy-chart');
             if (apyCtx) {
                 if (apyChart) { apyChart.destroy(); apyChart = null; }
                 apyChart = new Chart(apyCtx.getContext('2d'), {
-                    type: 'line',
-                    data: { labels: historyData.steps, datasets: [
-                        { label: 'Sim APY', data: historyData.apy, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.1)', tension: 0.3, fill: true, borderWidth: 2 },
-                        { label: '15% Part.', data: historyData.apy_15pct, borderColor: '#50c878', borderDash: [4,3], tension: 0.1, borderWidth: 1.5, pointRadius: 0 },
-                        { label: '30% Part.', data: historyData.apy_30pct, borderColor: '#1D4ED8', borderDash: [4,3], tension: 0.1, borderWidth: 1.5, pointRadius: 0 },
-                        { label: '70% Part.', data: historyData.apy_70pct, borderColor: '#e05555', borderDash: [4,3], tension: 0.1, borderWidth: 1.5, pointRadius: 0 },
-                    ]},
-                    options: { ...common, scales: { x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } }, y: { ticks: { color: tickColor, font: { size: 10 }, callback: v => v.toFixed(0) + '%' }, grid: { color: gridColor }, title: { display: true, text: 'APY %', color: tickColor } } } }
-                });
-            }
-            const partCtx = document.getElementById('participation-chart');
-            if (partCtx) {
-                if (participationChart) { participationChart.destroy(); participationChart = null; }
-                const labels = historyData.steps;
-                participationChart = new Chart(partCtx.getContext('2d'), {
-                    type: 'line',
-                    data: { labels: labels, datasets: [
-                        { label: 'Participation %', data: historyData.participation, borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.12)', tension: 0.3, fill: true, borderWidth: 2, pointRadius: 0 },
-                        { label: 'Healthy Zone', data: labels.map(() => 35), borderColor: 'rgba(5,150,105,0.5)', backgroundColor: 'rgba(5,150,105,0.1)', fill: '+1', pointRadius: 0, borderWidth: 1.5, borderDash: [3,5] },
-                        { label: '_zone_floor', data: labels.map(() => 20), borderColor: 'rgba(5,150,105,0.5)', fill: false, pointRadius: 0, borderWidth: 1.5, borderDash: [3,5] },
-                    ]},
-                    options: { ...common, plugins: { ...common.plugins, legend: { ...common.plugins.legend, labels: { ...common.plugins.legend.labels, filter: item => !item.text.startsWith('_') } } }, scales: { x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } }, y: { ticks: { color: tickColor, font: { size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: gridColor }, title: { display: true, text: 'Participation %', color: tickColor } } } }
+                    type: 'bar',
+                    data: {
+                        labels: historyData.steps,
+                        datasets: [
+                            { label: 'Credits Deployed (weekly)', data: historyData.credits_deployed_step, backgroundColor: 'rgba(5,150,105,0.55)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y', order: 2 },
+                            { label: 'Cumulative Emissions',      data: historyData.cumulative_emissions_hist, type: 'line', borderColor: '#e05555', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.2, pointRadius: 0, yAxisID: 'y1', order: 1 },
+                            { label: 'Cumulative Burns',          data: historyData.total_burned_hist,         type: 'line', borderColor: '#1D4ED8', backgroundColor: 'transparent', borderWidth: 2, borderDash: [5, 3], fill: false, tension: 0.2, pointRadius: 0, yAxisID: 'y1', order: 1 },
+                        ],
+                    },
+                    options: {
+                        ...common,
+                        plugins: {
+                            ...common.plugins,
+                            legend: { ...common.plugins.legend, labels: { ...common.plugins.legend.labels, usePointStyle: true, pointStyleWidth: 10 } },
+                            tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmtRsc(ctx.parsed.y) + ' RSC' } },
+                        },
+                        scales: {
+                            x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { color: gridColor } },
+                            y:  { position: 'left',  ticks: { color: tickColor, font: { size: 10 }, callback: fmtRsc }, grid: { color: gridColor }, title: { display: true, text: 'Weekly Credits', color: tickColor, font: { size: 10 } } },
+                            y1: { position: 'right', ticks: { color: tickColor, font: { size: 10 }, callback: fmtRsc }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Cumulative RSC', color: tickColor, font: { size: 10 } } },
+                        },
+                    },
                 });
             }
         }
@@ -2086,6 +2120,8 @@
             historyData.credits_deployed_step = history.Credits_Deployed_Step || [];
             historyData.exits_step = history.Exits_Step || [];
             historyData.entries_step = history.Entries_Step || [];
+            historyData.cumulative_emissions_hist = history.Cumulative_Emissions || [];
+            historyData.total_burned_hist = history.Total_Burned || [];
             const circ0 = 134157343;
             historyData.apy_15pct = historyData.years.map(y => (9500000 / Math.pow(2, y / 64)) / (circ0 * 0.15) * 100);
             historyData.apy_30pct = historyData.years.map(y => (9500000 / Math.pow(2, y / 64)) / (circ0 * 0.30) * 100);
@@ -2108,7 +2144,7 @@
         async function resetWithParams() {
             const params = getSliderParams();
             await fetchJson('/api/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
-            historyData = { steps: [], years: [], participation: [], apy: [], rsc_held: [], active: [], rsc_believer: [], rsc_yield_seeker: [], rsc_institution: [], rsc_speculator: [], credits_generated_step: [], credits_deployed_step: [], exits_step: [], entries_step: [], apy_15pct: [], apy_30pct: [], apy_70pct: [] };
+            historyData = { steps: [], years: [], participation: [], apy: [], rsc_held: [], active: [], rsc_believer: [], rsc_yield_seeker: [], rsc_institution: [], rsc_speculator: [], credits_generated_step: [], credits_deployed_step: [], exits_step: [], entries_step: [], apy_15pct: [], apy_30pct: [], apy_70pct: [], cumulative_emissions_hist: [], total_burned_hist: [] };
             if (chart) { chart.destroy(); chart = null; }
             if (apyChart) { apyChart.destroy(); apyChart = null; }
             if (participationChart) { participationChart.destroy(); participationChart = null; }
