@@ -122,6 +122,7 @@
         .hero.ran { padding: 16px 0; margin-bottom: 24px; }
         .hero.ran .hero-title { display: none; }
         .hero.ran #how-it-works { display: none !important; }
+        .hero.ran .run-btn { display: none; }
 
         .hero-title {
             font-size: 13px;
@@ -858,15 +859,27 @@
         .sim-btn.danger { color: var(--danger); }
         .sim-btn.danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
         .sim-controls-spacer { flex: 1; }
+        .sim-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
         .step-counter {
-            font-size: 12px;
-            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
             font-family: 'SF Mono', 'Menlo', monospace;
             padding: 5px 12px;
             background: var(--bg-section);
             border-radius: 4px;
             border: 1px solid var(--border);
         }
+        @keyframes sim-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .sim-btn.running {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+            font-weight: 600;
+            padding: 7px 20px;
+            animation: sim-pulse 1.4s ease-in-out infinite;
+        }
+        .sim-btn.running:hover { opacity: 0.88; animation: none; }
         .chart-placeholder {
             display: flex;
             align-items: center;
@@ -1024,7 +1037,7 @@
                     <div class="scenario-source">↗ RH Product Doc</div>
                 </div>
             </div>
-            <button class="run-btn" onclick="runToEquilibrium()">&#9654; Run the Simulation</button>
+            <button class="run-btn" onclick="runSimulation()">&#9654; Run the Simulation</button>
             <div id="how-it-works">
                 <div class="how-step">Hold RSC in RH</div>
                 <span class="how-arrow">&#8594;</span>
@@ -1095,14 +1108,15 @@
 
         <!-- ============================================================ SIM CONTROLS -->
         <div class="sim-controls">
-            <span class="sim-controls-label">Simulate:</span>
-            <button class="sim-btn" onclick="step()">&#9654; Step (1 wk)</button>
-            <button class="sim-btn" onclick="run(10)">10 Weeks</button>
-            <button class="sim-btn" onclick="run(52)">1 Year</button>
-            <button class="sim-btn primary" onclick="runToEquilibrium()">&#9654;&#9654; Run to Equilibrium</button>
+            <button class="sim-btn" id="btn-setup" onclick="setupSim()">&#8635; Setup</button>
+            <div class="sim-divider"></div>
+            <button class="sim-btn" id="btn-step" onclick="step()">&#9654; Step</button>
+            <button class="sim-btn" id="btn-10wk" onclick="run(10)">+10 wk</button>
+            <button class="sim-btn" id="btn-1yr" onclick="run(52)">+1 yr</button>
+            <div class="sim-divider"></div>
+            <button class="sim-btn primary" id="btn-go" onclick="toggleGo()">&#9654;&#9654; Go</button>
             <div class="sim-controls-spacer"></div>
             <div class="step-counter">Wk&nbsp;<span id="step-counter-wk">0</span>&nbsp;/&nbsp;Yr&nbsp;<span id="step-counter-yr">0.0</span></div>
-            <button class="sim-btn danger" onclick="resetWithParams()">&#8635; Reset</button>
         </div>
 
         <!-- ============================================================ TWO-COL: Charts + Projection -->
@@ -2109,7 +2123,8 @@
             await updateUI();
         }
 
-        async function run(n) {
+        async function run(n, opts = {}) {
+            const { updateCharts = true } = opts;
             await fetchJson('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steps: n }) });
             const history = await fetchJson('/api/history');
             historyData.steps = history.Step || [];
@@ -2132,8 +2147,7 @@
             historyData.apy_15pct = historyData.years.map(y => (9500000 / Math.pow(2, y / 64)) / (circ0 * 0.15) * 100);
             historyData.apy_30pct = historyData.years.map(y => (9500000 / Math.pow(2, y / 64)) / (circ0 * 0.30) * 100);
             historyData.apy_70pct = historyData.years.map(y => (9500000 / Math.pow(2, y / 64)) / (circ0 * 0.70) * 100);
-            updateChart();
-            updateYieldCharts();
+            if (updateCharts) { updateChart(); updateYieldCharts(); }
             await updateUI();
         }
 
@@ -2147,7 +2161,70 @@
             await runToEquilibrium();
         }
 
+        // ── Go / Stop ────────────────────────────────────────────────────────
+        let isRunning = false;
+        let goIter = 0;
+
+        function setManualBtnsDisabled(disabled) {
+            ['btn-step', 'btn-10wk', 'btn-1yr', 'btn-setup'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = disabled;
+            });
+        }
+
+        function updateGoBtn() {
+            const btn = document.getElementById('btn-go');
+            if (!btn) return;
+            if (isRunning) {
+                btn.innerHTML = '&#9632; Stop';
+                btn.classList.add('running');
+                btn.classList.remove('primary');
+            } else {
+                btn.innerHTML = '&#9654;&#9654; Go';
+                btn.classList.remove('running');
+                btn.classList.add('primary');
+            }
+            setManualBtnsDisabled(isRunning);
+        }
+
+        async function goLoop() {
+            goIter = 0;
+            while (isRunning) {
+                await run(4, { updateCharts: false });
+                goIter++;
+                // Rebuild charts every 5 iterations (every 20 weeks) to avoid flicker
+                if (goIter % 5 === 0) { updateChart(); updateYieldCharts(); }
+                if (!isRunning) break;
+                await new Promise(r => setTimeout(r, 30));
+            }
+            // Final full chart update on stop
+            updateChart();
+            updateYieldCharts();
+            isRunning = false;
+            updateGoBtn();
+        }
+
+        function toggleGo() {
+            if (isRunning) {
+                isRunning = false;
+                // goLoop detects flag and exits; updateGoBtn called there
+            } else {
+                isRunning = true;
+                updateGoBtn();
+                goLoop();
+            }
+        }
+
+        function setupSim() {
+            isRunning = false;
+            updateGoBtn();
+            resetWithParams();
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         async function resetWithParams() {
+            isRunning = false;
+            updateGoBtn();
             const params = getSliderParams();
             await fetchJson('/api/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
             historyData = { steps: [], years: [], participation: [], apy: [], rsc_held: [], active: [], rsc_believer: [], rsc_yield_seeker: [], rsc_institution: [], rsc_speculator: [], credits_generated_step: [], credits_deployed_step: [], exits_step: [], entries_step: [], apy_15pct: [], apy_30pct: [], apy_70pct: [], cumulative_emissions_hist: [], total_burned_hist: [] };
