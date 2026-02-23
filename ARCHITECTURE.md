@@ -45,8 +45,8 @@ sequenceDiagram
     M-->>S: Model initialized
     S-->>D: {state, events}
 
-    U->>D: Click Run 1 Year
-    D->>S: POST /api/run {steps: 52}
+    U->>D: Click Go (or +1 wk / +10 wk / +1 yr)
+    D->>S: POST /api/run {steps: N}
     loop Each step (1 week)
         S->>M: model.step()
         Note over M: weekly_emission() = E(t)/52
@@ -220,31 +220,47 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph Sidebar
-        direction TB
-        P[Parameters<br/>Yield Threshold / Deploy Rate / Success / Holders]
-        AM[Archetype Mix<br/>Linked sliders sum=100%]
-        TW[Time-Weight Multipliers<br/>Distribution bar]
-        ADV[Advanced<br/>Burn Rate / Expiry / Failure Mode]
-        SC[Scenarios<br/>Save / Compare]
-        HW[How It Works]
+    subgraph Top["Framing Strip"]
+        FS[What is this? / Self-balancing math / DeFi death spiral / Sources]
     end
 
-    subgraph Main["Main Area"]
-        direction TB
-        KPI[Pinned KPIs: Participation Rate / APY / Exited]
-        subgraph Tabs
-            AF[Agent Field<br/>Grid + archetype cards]
-            YD[Yield Dynamics<br/>APY + reference lines]
-            TS[Time Series<br/>RSC/Credits/Burned]
-            PF[Proposals & Funding]
-            AI[Agent Inspector]
+    subgraph Hero["Calculator Hero"]
+        DI[Dollar input]
+        SC[Scenario cards: Conservative 15% / Expected 30% / High 70%]
+        EC[Endowment comparison table: Cash Donation vs RSC Endowment]
+    end
+
+    subgraph Controls["Sim Controls"]
+        SU[Setup]
+        ST[+1 wk · +10 wk · +1 yr]
+        GO[Go / Stop toggle]
+        TC[Tick counter Wk / Yr]
+    end
+
+    subgraph KPIs["Pinned KPIs"]
+        PR[Participation Rate]
+        APY[Current APY]
+        EX[Exited]
+        BC[Burn Coverage %]
+    end
+
+    subgraph TwoCol["Two-Column Main"]
+        subgraph Left["Left: Charts"]
+            AC[Archetype Composition<br/>Stacked RSC by holder type]
+            SF[Science Funding vs Protocol Cost<br/>Credits deployed + Emissions vs Burns]
+        end
+        subgraph Right["Right: Endowment Projection"]
+            EP[Year 1 credits / 10-yr total / Year 10 APY]
+            SP[10-year sparkline]
         end
     end
 
-    P --> Main
-    AM --> Main
-    ADV --> Main
+    subgraph Bottom["Agent Grid + Accordions"]
+        AG[Agent Field — every dot is a holder]
+        ACC[Adjust Scenario / Advanced / Data Tables / Time Series]
+    end
+
+    Top --> Hero --> Controls --> KPIs --> TwoCol --> Bottom
 ```
 
 ## Agent Field Grid Encoding

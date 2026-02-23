@@ -81,17 +81,17 @@ The v3 dashboard is designed for accessibility first — a CFO and a grad studen
 
 **Top:** Framing strip — plain-English explanation of the mechanism, endowment definition, self-balancing math. Collapsed "Sources & grounding" section links every number back to its RH doc.
 
-**Calculator hero:** Dollar input + three scenario cards (from RH product doc) + Run button.
+**Calculator hero:** Dollar input + three scenario cards (Conservative 15% / Expected 30% / High 70%) from RH product doc.
 
-**Sim controls:** Step (1 wk) · 10 Weeks · 1 Year · Run to Equilibrium · Reset
+**Sim controls:** `⟳ Setup · ▶ +1 wk · +10 wk · +1 yr · ▶▶ Go / ■ Stop` — Go runs continuously in 4-week chunks until stopped. Tick counter shows current week and year.
 
 **"What Happened" panel:** Appears after running. Plain-English narrative of what the market did — participation rate, which archetypes dominated, proposals resolved.
 
-**Charts (always visible):**
-- Participation Rate over time (primary — the market finding its level)
-- Annual Yield (APY) over time (with RH reference lines from CSV)
+**Charts:**
+- *Archetype Composition* — stacked RSC held by Believers / Institutions / Yield Seekers / Speculators over time. Shows the sticky base vs. volatile top.
+- *Science Funding vs Protocol Cost* — weekly credits deployed to science (bars) vs. cumulative RSC emitted and burned (lines). Makes the sustainability gap visible.
 
-**Right column:** Endowment projection — Year 1 credits, 10-year cumulative, Year 10 APY — live-updating as you change the dollar amount or run the sim.
+**Right column:** Endowment projection — Year 1 credits, 10-year cumulative, Year 10 APY — plus a 10-year sparkline showing the gentle credit taper as emissions halve every 64 years. Updates live as you adjust the dollar amount.
 
 **Agent grid:** Every dot is one RSC holder. Color = archetype. Opacity = hold duration (dim = new, bright = long-term 1.2×). Glow = actively deploying credits. Hover for individual stats.
 
